@@ -779,9 +779,11 @@ function nearestPlayer(x,y,r){
   }
   return best;
 }
+// offset de la pelota respecto al jugador que la posee (en su propio campo de coordenadas 0..1)
+// La pelota queda adelante del jugador, hacia el arco rival.
 function ballAtFoot(pl){
-  const dy=(playerR()*1.25)/H*(pl.team==='blue'?-1:1);
-  return{x:pl.x,y:clamp(pl.y+dy,0.02,0.98)};
+  const dxN=0, dyN=playerR()*1.25/H*(pl.team==='blue'?-1:1);
+  return{x:clamp(pl.x+dxN,0.02,0.98),y:clamp(pl.y+dyN,0.02,0.98)};
 }
 function attachBall(pl){
   if(!pl||pl.ball)return;
@@ -793,19 +795,25 @@ function attachBall(pl){
   if(!same)toast('⚽ La lleva '+(pl.team==='blue'?'Azul':'Rojo')+' '+(pl.name||pl.num)+' — arrastrá la pelota para pasar');
   draw();
 }
+// radio de asignación de pelota al soltar o pisar (generoso: fácil con el dedo)
+function attachR(){return (playerR()*2.4)/W}
 function hit(pos){
   const b=ballObj();
-  const dB=Math.hypot(b.x-pos.x,b.y-pos.y);
-  const rB=(playerR()*0.62)/W*2.3; // agarre generoso para la pelota
-  const rP=playerR()/W*1.5;
-  let best=null,bd=9;
+  const rB=(playerR()*0.62)/W*2.6; // agarre generoso para la pelota
+  const rP=playerR()/W*1.7;
+  // si hay un jugador MUY cerca del toque, gana (edición)
+  let best=null,bd=rP;
   for(const p of S.players){
     if(p.ball)continue;
     const d=Math.hypot(p.x-pos.x,p.y-pos.y);
-    if(d<rP&&d<bd){best=p;bd=d}
+    if(d<bd){best=p;bd=d}
   }
-  if(dB<rB&&(S.carrier||dB<=bd))return b; // con dueño, la pelota gana: pase fácil
-  return best||(dB<rB?b:null);
+  const dB=Math.hypot(b.x-pos.x,b.y-pos.y);
+  if(dB<rB){
+    // tocás la pelota: si no hay dueño, o el toque es justo sobre ella (no sobre un jugador), la agarrás
+    if(!best || dB<bd*0.8) return b;
+  }
+  return best;
 }
 
 cv.addEventListener('pointerdown',e=>{
@@ -840,10 +848,16 @@ cv.addEventListener('pointermove',e=>{
   if(d.ball&&S.carrier)S.carrier=null; // tomar la pelota del pie = empieza un pase
   d.x=clamp(pos.x,0.02,0.98);
   d.y=clamp(pos.y,0.02,0.98);
-  if(S.carrier===d.id){ // lleva la pelota pegada al pie
+  if(S.carrier===d.id){ // lleva la pelota pegada al pie (parent-child: SIEMPRE recalculada desde el jugador)
     const b=ballObj(),o=ballAtFoot(d);
     b.x=o.x;b.y=o.y;
     if(S.mode==='rec')addKey(b,true);
+  } else if(!d.ball){
+    // jugador moviéndose SIN la pelota: si la pisa (pelota suelta), la toma al instante
+    const b=ballObj();
+    if(Math.hypot(b.x-d.x,b.y-d.y)<attachR()*0.9 && S.mode!=='play'){
+      attachBall(d);
+    }
   }
   if(S.mode==='rec')addKey(d,true);
   else pushFx(d);
@@ -893,6 +907,13 @@ function startRec(){
 function stopRec(){
   const t=performance.now()-S.recStart;
   S.duration=Math.max(S.duration,t,600);
+  // Simplificar tracks con Douglas-Peucker: el arrastre del dedo deja 100+ puntos
+  // con jitter; RDP los reduce a los 5-15 que importan, dejando una trayectoria
+  // limpia que Catmull-Rom interpola suavemente.
+  for(const id in S.tracks){
+    const kf=simplifyTrack(S.tracks[id]);
+    S.tracks[id]=kf;
+  }
   for(const p of S.players){
     const kf=S.tracks[p.id],last=kf[kf.length-1];
     if(last.t<S.duration)kf.push({t:S.duration,x:last.x,y:last.y});
@@ -900,21 +921,67 @@ function stopRec(){
   S.playT=0;setMode('idle');
   toast('Jugada grabada · '+(S.duration/1000).toFixed(1)+'s — probá ✨ IA');
 }
+// Ramer-Douglas-Peucker para keyframes temporales. ε en coordenadas 0..1.
+function simplifyTrack(kf){
+  if(kf.length<3)return kf.slice();
+  const eps=0.012; // ~1.2% del ancho del campo
+  const rdp=(s,e)=>{
+    let dmax=0,idx=0;
+    const a=kf[s],b=kf[e];
+    for(let i=s+1;i<e;i++){
+      const p=kf[i];
+      // distancia perpendicular de p a la línea a-b
+      const dx=b.x-a.x,dy=b.y-a.y;
+      const len=Math.hypot(dx,dy)||1;
+      const d=Math.abs(dy*p.x-dx*p.y+b.x*a.y-b.y*a.x)/len;
+      if(d>dmax){dmax=d;idx=i}
+    }
+    if(dmax>eps){
+      const left=rdp(s,idx),right=rdp(idx,e);
+      return left.slice(0,-1).concat(right);
+    }
+    return [a,b];
+  };
+  return rdp(0,kf.length-1);
+}
 
 // ---------------- Reproducción ----------------
+// Catmull-Rom CENTRIPETAL (α=0.5): la única variante que NO produce loops ni
+// overshoot cuando los keyframes están a distancias desiguales (jugadores que
+// frenan, cambian de ritmo). Yuksel 2011. Maneja puntos repetidos (evita NaN).
+function catmullRom(p0,p1,p2,p3,u){
+  const d2=(a,b)=>{const dx=a.x-b.x,dy=a.y-b.y;return dx*dx+dy*dy};
+  let dt0=Math.pow(d2(p0,p1),0.25);
+  let dt1=Math.pow(d2(p1,p2),0.25);
+  let dt2=Math.pow(d2(p2,p3),0.25);
+  // safety: puntos repetidos → división por cero. Usar vecino.
+  if(dt1<1e-5)dt1=1;
+  if(dt0<1e-5)dt0=dt1;
+  if(dt2<1e-5)dt2=dt1;
+  // tangentes en parametrización centripetal, reescaladas a [0,1]
+  let t1x=(p1.x-p0.x)/dt0-(p2.x-p0.x)/(dt0+dt1)+(p2.x-p1.x)/dt1;
+  let t1y=(p1.y-p0.y)/dt0-(p2.y-p0.y)/(dt0+dt1)+(p2.y-p1.y)/dt1;
+  let t2x=(p2.x-p1.x)/dt1-(p3.x-p1.x)/(dt1+dt2)+(p3.x-p2.x)/dt2;
+  let t2y=(p2.y-p1.y)/dt1-(p3.y-p1.y)/(dt1+dt2)+(p3.y-p2.y)/dt2;
+  t1x*=dt1; t1y*=dt1; t2x*=dt1; t2y*=dt1;
+  // polinomio cúbico p(u) = c0 + c1·u + c2·u² + c3·u³ con p(0)=p1, p(1)=p2
+  const u2=u*u, u3=u2*u;
+  const x=p1.x + t1x*u + (-3*p1.x+3*p2.x-2*t1x-t2x)*u2 + (2*p1.x-2*p2.x+t1x+t2x)*u3;
+  const y=p1.y + t1y*u + (-3*p1.y+3*p2.y-2*t1y-t2y)*u2 + (2*p1.y-2*p2.y+t1y+t2y)*u3;
+  return {x,y};
+}
 function posAt(kf,t){
-  // Interpolación Catmull-Rom: pasa suave por todos los puntos grabados,
-  // sin el efecto "frena-arranca" de animar tramo por tramo.
   const n=kf.length;
   if(n===1||t<=kf[0].t)return kf[0];
   if(t>=kf[n-1].t)return kf[n-1];
   let i=1;while(kf[i].t<t)i++;
   const p1=kf[i-1],p2=kf[i];
-  const p0=kf[i-2]||p1,p3=kf[i+1]||p2;
-  const u=(t-p1.t)/Math.max(1,p2.t-p1.t),u2=u*u,u3=u2*u;
-  const cr=(a,b,c,d)=>0.5*((2*b)+(-a+c)*u+(2*a-5*b+4*c-d)*u2+(-a+3*b-3*c+d)*u3);
-  return{x:clamp(cr(p0.x,p1.x,p2.x,p3.x),0.02,0.98),
-         y:clamp(cr(p0.y,p1.y,p2.y,p3.y),0.02,0.98)};
+  // extremos: extrapolar por reflexión para no perder tangente natural
+  const p0=kf[i-2]?kf[i-2]:{x:2*p1.x-p2.x,y:2*p1.y-p2.y};
+  const p3=kf[i+1]?kf[i+1]:{x:2*p2.x-p1.x,y:2*p2.y-p1.y};
+  const u=(t-p1.t)/Math.max(1,p2.t-p1.t);
+  const q=catmullRom(p0,p1,p2,p3,u);
+  return{x:clamp(q.x,0.02,0.98),y:clamp(q.y,0.02,0.98)};
 }
 function activeTracks(){
   if(S.preview&&S.prevShow==='ai')return S.preview.tracks;

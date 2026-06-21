@@ -85,3 +85,48 @@ Stage Summary:
 - Archivos nuevos en public/: gif.js, gif.worker.js.
 - pizarra-pro.html ahora tiene 🔁 loop, ⚡⚡ 8x, ↶ deshacer, 🎬 exportar GIF.
 - Listo para próxima iteración según respuestas del usuario sobre monetización.
+
+---
+Task ID: 9
+Agent: main (Z.ai Code)
+Task: Investigar bugs de pelota y animación, aplicar fixes de calidad profesional.
+
+Work Log:
+- Investigación online (12 búsquedas, 9 páginas leídas): técnicas de pizarras
+  tácticas pro, Catmull-Rom centripetal, RDP, parent-child ball, performance canvas.
+- Diagnóstico de bugs:
+  * Bug pelota: carrier solo se asignaba en endPtr, no durante el arrastre. Si
+    moves un jugador sobre la pelota suelta, no la tomaba. Radio attachR chico.
+  * Bug animación: Catmull-Rom UNIFORM (α=0) produce overshoot/loops cuando
+    el jugador frena (puntos a distancias desiguales). Sin safety de NaN.
+  * Bug trayectoria: muestreo crudo a 60Hz del dedo = 100+ puntos con jitter.
+- Fix 1 — Pelota parent-child:
+  * attachR aumentado a playerR()*2.4/W (más fácil con el dedo).
+  * hit() reescrito: si tocás pelota y no hay jugador muy cerca, la agarrás.
+  * En pointermove, si jugador sin pelota pisa pelota suelta → attachBall()
+    al instante (no solo al soltar).
+  * ballAtFoot con offset constante (pie del jugador mirando al arco rival).
+  * Verificado: drift constante 0.042 durante drag completo (no creciente).
+- Fix 2 — Catmull-Rom CENTRIPETAL (α=0.5):
+  * Implementación completa según Yuksel 2011, forma cerrada de Three.js.
+  * Safety para puntos repetidos (dt < 1e-5 → usar vecino, evita NaN).
+  * Extremos por reflexión (p_{-1}=2·p0−p1) para tangente natural.
+  * Verificado: rango y [0.150, 0.517] sobre keyframes [0.15, 0.50] = sin
+    overshoot (uniform daba >0.55 en el mismo caso).
+- Fix 3 — Simplificación RDP (Ramer-Douglas-Peucker):
+  * Al stopRec, cada track se simplifica con ε=0.012 (1.2% del campo).
+  * Movimiento recto: 30 samples → 2 keyframes. Movimiento curvo: 40 samples
+    → 5 keyframes (conserva curvatura).
+  * Catmull-Rom interpola los keyframes limpios = trayectoria suave.
+- Verificación Agent Browser con pointer events reales:
+  * Drag pelota→jugador: carrier asignado, pelota en el pie. ✓
+  * Drag jugador con pelota: drift 0.042 constante, no se despega. ✓
+  * Reproducción: pelota avanza de (0.5,0.5)→(0.45,0.70)→(0.40,0.81) suave. ✓
+  * Sin errores de consola.
+
+Stage Summary:
+- 3 bugs críticos resueltos con técnicas profesionales (no parches).
+- Pelota ahora se queda pegada al jugador y lo sigue durante el arrastre.
+- Animación sin overshoot (centripetal) y sin jitter (RDP).
+- Listo para próxima iteración: modelo keyframes+paths editables, capas canvas,
+  más estilos IA, monetización.
