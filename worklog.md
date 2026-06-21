@@ -58,3 +58,30 @@ Stage Summary:
   YA estaban resueltas en el HTML que me pasó de la otra IA — verificadas.
 - Mejora adicional entregada: jugadas persisten en el dispositivo (localStorage).
 - Listo para seguir iterando: más estilos de IA, exportar jugadas, velocidad 8x, etc.
+
+---
+Task ID: 8
+Agent: main (Z.ai Code)
+Task: Implementar 5 mejoras en loop: modo loop, 8x, undo, export GIF, onboarding corto.
+
+Work Log:
+- Mejora 1 — Modo loop (🔁): botón en la scrubRow. Al terminar la reproducción
+  reinicia solo si S.loop=true. Toggle con highlight ámbar.
+- Mejora 2 — Velocidad 8x "Relámpago": añadida a SPEEDS.
+- Mejora 3 — Deshacer (↶): botón flotante que aparece solo durante grabación.
+  pushUndo() hace snapshot de tracks+duration+carrier al iniciar cada drag.
+  undoRec() restaura el último snapshot. Stack de hasta 30 niveles.
+- Mejora 4 — Exportar GIF (🎬): usa gif.js. Descargué gif.js + gif.worker.js a
+  public/ (same-origin, evita error CORS de Web Worker desde CDN). Genera
+  frames a 14fps escalados a 360px de ancho, descarga pizarra-pro-jugada.gif.
+  Verificado: blob de 142KB tipo image/gif generado correctamente.
+- Mejora 5 — Onboarding de 4→3 pasos más conciso. Botón ❔ siempre accesible.
+- Verificación Agent Browser: loop reinicia solo, 8x reproduce veloz, undo
+  revierte el último movimiento manteniendo los anteriores (tracks 2→1,
+  duration restaurada), GIF se genera sin errores.
+
+Stage Summary:
+- 5 mejoras verificadas y funcionando.
+- Archivos nuevos en public/: gif.js, gif.worker.js.
+- pizarra-pro.html ahora tiene 🔁 loop, ⚡⚡ 8x, ↶ deshacer, 🎬 exportar GIF.
+- Listo para próxima iteración según respuestas del usuario sobre monetización.

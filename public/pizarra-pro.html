@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pizarra Pro — Táctica de fútbol</title>
+<script src="/gif.js"></script>
 <style>
   :root{
     --bg:#0b110d;
@@ -117,6 +118,22 @@
     border:1px solid var(--line);background:var(--panel2);border-radius:999px;
     padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;
   }
+  #chipLoop{
+    border:1px solid var(--line);background:var(--panel2);border-radius:999px;
+    padding:6px 11px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;
+    flex:0 0 auto;
+  }
+  #chipLoop.on{background:var(--amber);color:#161616;border-color:var(--amber)}
+  .iconBtn:disabled{opacity:.35;cursor:default}
+  .floatBtn{
+    position:absolute;left:14px;top:14px;z-index:5;
+    display:none;align-items:center;gap:6px;
+    background:var(--amber);color:#161616;border:none;border-radius:999px;
+    padding:9px 16px;font-size:12.5px;font-weight:900;cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+  }
+  .floatBtn.show{display:flex}
+  .floatBtn:active{transform:scale(.94)}
   #scrubRow .t{font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);min-width:36px;text-align:center}
   input[type=range]{flex:1;appearance:none;-webkit-appearance:none;height:26px;background:transparent}
   input[type=range]::-webkit-slider-runnable-track{
@@ -269,6 +286,7 @@
 <header>
   <div class="hrow">
     <div class="logo"><span class="b">⚽</span><h1>PIZARRA <em>PRO</em></h1></div>
+    <button class="iconBtn" id="hExport" title="Exportar a GIF">🎬</button>
     <button class="iconBtn" id="hPlays" title="Mis jugadas">📂</button>
     <button class="iconBtn" id="hHelp" title="Ayuda">❔</button>
   </div>
@@ -288,6 +306,7 @@
 
 <div id="fieldWrap">
   <canvas id="fieldCanvas"></canvas>
+  <button id="undoFloat" class="floatBtn">↶ Deshacer</button>
   <div id="rail">
     <button class="railBtn" id="rDraw" title="Dibujar flechas">✏️</button>
     <button class="railBtn" id="rForm" title="Formaciones">📐</button>
@@ -305,6 +324,7 @@
 
 <div id="controls">
   <div id="scrubRow">
+    <button id="chipLoop" title="Repetir en bucle">🔁</button>
     <button id="chipSpeed">⏱ <span id="speedLabel">1x</span></button>
     <span class="t" id="tCur">0.0s</span>
     <input type="range" id="scrub" min="0" max="1000" value="0" disabled>
@@ -427,10 +447,9 @@
     <div class="em">⚽</div>
     <h3>Tu pizarra con IA</h3>
     <ol>
-      <li><span class="n">1</span>Elegí <b>Fútbol 5, 8 u 11</b> y acomodá con 📐 formaciones.</li>
-      <li><span class="n">2</span>Llevá la pelota hasta un jugador y <b>se la queda</b>: al moverlo, va con él. Arrastrá la pelota a otro para <b>pasar</b>.</li>
-      <li><span class="n">3</span>Tocá <b>⏺ Grabar</b>, armá la jugada y después <b>✨ IA → Completar</b>: el resto del equipo y el rival se mueven solos.</li>
-      <li><span class="n">4</span>Dibujá flechas con ✏️ y guardá tus jugadas en 📂.</li>
+      <li><span class="n">1</span>Elegí <b>Fútbol 5, 8 u 11</b> y arrastrá la pelota a un jugador — <b>se la queda</b>.</li>
+      <li><span class="n">2</span><b>⏺ Grabar</b> → mové pelota y jugadores (gambeta/pase) → <b>✨ IA → Completar</b>: el resto se mueve solo.</li>
+      <li><span class="n">3</span>Reproducí, dibujá flechas ✏️ y guardá en 📂. ¿Dudas? Tocá ❔ cuando quieras.</li>
     </ol>
     <button class="bigBtn" id="obOk">¡EMPEZAR!</button>
   </div>
@@ -468,6 +487,8 @@ const S = {
   saved:[],
   editing:null,
   lastTap:{t:0,id:null},
+  loop:false,
+  recHistory:[],
 };
 
 const SPEEDS=[
@@ -475,6 +496,7 @@ const SPEEDS=[
   {v:1,n:'Normal',d:'Velocidad real de la grabación',i:'▶️'},
   {v:2,n:'Rápido',d:'El doble de velocidad',i:'⚡'},
   {v:4,n:'Muy rápido',d:'Repaso veloz de toda la jugada',i:'🚀'},
+  {v:8,n:'Relámpago',d:'Repasá 5 jugadas en segundos',i:'⚡⚡'},
 ];
 
 const STYLES=[
@@ -802,7 +824,7 @@ cv.addEventListener('pointerdown',e=>{
     }
     S.lastTap={t:now,id:p.id};
     S.dragging=p;S.curFx=null;cv.setPointerCapture(e.pointerId);
-    if(S.mode==='rec')addKey(p);
+    if(S.mode==='rec'){pushUndo();addKey(p)}
     draw();
   }
 });
@@ -863,7 +885,7 @@ function addKey(p,thr){
 }
 function startRec(){
   discardPreview(true);
-  S.tracks={};S.duration=0;lastKeyT={};
+  S.tracks={};S.duration=0;lastKeyT={};S.recHistory=[];
   S.recStart=performance.now();
   for(const p of S.players)S.tracks[p.id]=[{t:0,x:p.x,y:p.y}];
   setMode('rec');toast('⏺ Mové la pelota y tus jugadores clave');
@@ -918,6 +940,9 @@ function loop(now){
   S.playT+=dt*S.speed;
   const D=curDuration();
   if(S.playT>=D){
+    if(S.loop){
+      S.playT=0;applyFrame(0);requestAnimationFrame(loop);return;
+    }
     S.playT=D;applyFrame(D);setMode('idle');
     document.getElementById('bPlayL').textContent='Repetir';
     return;
@@ -1222,6 +1247,7 @@ function setMode(m){
   document.getElementById('pRec').classList.toggle('show',m==='rec');
   document.getElementById('pPlay').classList.toggle('show',m==='play'&&!S.preview);
   document.getElementById('pPause').classList.toggle('show',m==='pause');
+  document.getElementById('undoFloat').classList.toggle('show',m==='rec');
   updateUI();
 }
 function updateUI(){
@@ -1249,6 +1275,7 @@ function updateUI(){
   document.getElementById('rForm').disabled=pl||pa||rec||pv;
   document.getElementById('rTeams').disabled=pl||pa||rec||pv;
   document.getElementById('rAI').disabled=pl&&!pv||rec;
+  document.getElementById('hExport').disabled=!has||rec||pl;
 }
 
 document.getElementById('bRec').onclick=()=>S.mode==='rec'?stopRec():startRec();
@@ -1284,6 +1311,64 @@ document.getElementById('rAI').onclick=()=>{if(S.preview){toast('Cerrá la vista
 document.getElementById('hPlays').onclick=()=>openSheet('shPlays');
 document.getElementById('hHelp').onclick=()=>document.getElementById('onboard').style.display='flex';
 document.getElementById('chipSpeed').onclick=()=>openSheet('shSpeed');
+document.getElementById('chipLoop').onclick=()=>{
+  S.loop=!S.loop;
+  document.getElementById('chipLoop').classList.toggle('on',S.loop);
+  toast(S.loop?'🔁 Repetición en bucle':'Repetición desactivada');
+};
+document.getElementById('undoFloat').onclick=undoRec;
+document.getElementById('hExport').onclick=exportGIF;
+
+function pushUndo(){
+  if(S.mode!=='rec')return;
+  S.recHistory.push({
+    tracks:JSON.parse(JSON.stringify(S.tracks)),
+    duration:S.duration,
+    carrier:S.carrier
+  });
+  if(S.recHistory.length>30)S.recHistory.shift();
+}
+function undoRec(){
+  if(S.mode!=='rec'||!S.recHistory.length){toast('Nada para deshacer');return}
+  const s=S.recHistory.pop();
+  S.tracks=s.tracks;S.duration=s.duration;S.carrier=s.carrier;
+  document.getElementById('recTime').textContent=(S.duration/1000).toFixed(1)+'s';
+  draw();toast('↶ Movimiento deshecho');
+}
+function exportGIF(){
+  if(typeof GIF==='undefined'){toast('No pude cargar el codificador GIF. Revisá tu conexión.');return}
+  if(!hasPlay()){toast('Grabá una jugada primero');return}
+  if(S.mode==='play')setMode('pause');
+  const D=curDuration();
+  const fps=14,N=Math.max(2,Math.min(Math.round(D/1000*fps),100));
+  const scale=Math.min(1,360/W);
+  const w=Math.round(W*scale),h=Math.round(H*scale);
+  const gif=new GIF({workers:1,quality:12,width:w,height:h,
+    workerScript:'/gif.worker.js'});
+  const saved=S.players.map(p=>({id:p.id,x:p.x,y:p.y}));
+  const savedT=S.playT;
+  const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
+  const tctx=tmp.getContext('2d');
+  for(let i=0;i<N;i++){
+    const t=D*(i/(N-1||1));
+    applyFrame(t);
+    tctx.drawImage(cv,0,0,w,h);
+    gif.addFrame(tmp,{delay:Math.round(1000/fps)});
+  }
+  S.players.forEach(p=>{const s=saved.find(q=>q.id===p.id);if(s){p.x=s.x;p.y=s.y}});
+  S.playT=savedT;
+  if(S.mode==='pause'||S.mode==='idle')applyFrame(savedT);
+  toast('🎬 Generando GIF… tardá unos segundos');
+  gif.on('finished',blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;
+    a.download='pizarra-pro-jugada.gif';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    toast('🎬 GIF listo — descargado');
+  });
+  gif.render();
+}
 
 // segmento de modalidad
 document.querySelectorAll('#gameSeg button').forEach(b=>b.onclick=()=>{
