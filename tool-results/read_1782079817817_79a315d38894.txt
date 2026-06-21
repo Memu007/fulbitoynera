@@ -1,0 +1,1429 @@
+     1→<!DOCTYPE html>
+     2→<html lang="es">
+     3→<head>
+     4→<meta charset="UTF-8">
+     5→<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+     6→<title>Pizarra Pro — Táctica de fútbol</title>
+     7→<style>
+     8→  :root{
+     9→    --bg:#0b110d;
+    10→    --panel:#141d17;
+    11→    --panel2:#1b2820;
+    12→    --line:#27382e;
+    13→    --chalk:#f3f6f1;
+    14→    --muted:#8aa092;
+    15→    --amber:#ffb020;
+    16→    --rec:#ff4d4d;
+    17→    --blue:#3f8cff;
+    18→    --red:#f05546;
+    19→    --violet:#9d6bff;
+    20→    --ok:#3ecf6e;
+    21→    --r:16px;
+    22→  }
+    23→  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    24→  html,body{height:100%}
+    25→  body{
+    26→    font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    27→    background:radial-gradient(120% 90% at 50% 0%, #122018 0%, var(--bg) 55%);
+    28→    color:var(--chalk);
+    29→    display:flex;flex-direction:column;
+    30→    height:100dvh;overflow:hidden;
+    31→    user-select:none;-webkit-user-select:none;
+    32→  }
+    33→  button{font-family:inherit;color:inherit}
+    34→
+    35→  /* ================= HEADER ================= */
+    36→  header{flex:0 0 auto;padding:10px 14px 8px;display:flex;flex-direction:column;gap:9px}
+    37→  .hrow{display:flex;align-items:center;gap:10px}
+    38→  .logo{display:flex;align-items:baseline;gap:8px;margin-right:auto}
+    39→  .logo .b{font-size:18px}
+    40→  .logo h1{font-size:16px;font-weight:900;letter-spacing:2px}
+    41→  .logo h1 em{font-style:normal;color:var(--amber)}
+    42→  .iconBtn{
+    43→    width:38px;height:38px;border-radius:12px;border:1px solid var(--line);
+    44→    background:var(--panel);font-size:17px;cursor:pointer;
+    45→    display:flex;align-items:center;justify-content:center;
+    46→  }
+    47→  .iconBtn:active{transform:scale(.93)}
+    48→  .seg{
+    49→    display:flex;background:var(--panel);border:1px solid var(--line);
+    50→    border-radius:12px;padding:3px;gap:3px;
+    51→  }
+    52→  .seg button{
+    53→    flex:1;border:none;background:none;border-radius:9px;
+    54→    padding:8px 4px;font-size:12.5px;font-weight:800;letter-spacing:.4px;
+    55→    color:var(--muted);cursor:pointer;transition:.15s;
+    56→  }
+    57→  .seg button.on{background:var(--amber);color:#161616}
+    58→
+    59→  /* ================= STATUS ================= */
+    60→  #statusBar{flex:0 0 auto;display:flex;justify-content:center;min-height:30px;padding:0 12px}
+    61→  .pill{
+    62→    display:none;align-items:center;gap:7px;border-radius:999px;
+    63→    padding:5px 14px;font-size:11.5px;font-weight:800;letter-spacing:1px;
+    64→  }
+    65→  .pill.show{display:flex}
+    66→  .pill.rec{background:var(--rec)}
+    67→  .pill.rec i{width:8px;height:8px;border-radius:50%;background:#fff;animation:bl 1s infinite}
+    68→  .pill.play{background:var(--blue)}
+    69→  .pill.pause{background:var(--amber);color:#161616}
+    70→  .pill.ai{background:var(--violet)}
+    71→  @keyframes bl{50%{opacity:.15}}
+    72→
+    73→  /* ================= FIELD ================= */
+    74→  #fieldWrap{flex:1 1 auto;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;padding:4px 10px 8px}
+    75→  #fieldCanvas{
+    76→    touch-action:none;border-radius:16px;
+    77→    box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.05);
+    78→  }
+    79→  /* riel de herramientas flotante */
+    80→  #rail{
+    81→    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    82→    display:flex;flex-direction:column;gap:9px;z-index:5;
+    83→  }
+    84→  .railBtn{
+    85→    width:44px;height:44px;border-radius:14px;border:1px solid var(--line);
+    86→    background:rgba(20,29,23,.88);backdrop-filter:blur(6px);
+    87→    font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    88→    box-shadow:0 4px 14px rgba(0,0,0,.35);
+    89→  }
+    90→  .railBtn:active{transform:scale(.92)}
+    91→  .railBtn.on{background:var(--amber);border-color:var(--amber)}
+    92→  .railBtn:disabled{opacity:.35}
+    93→  /* sub-barra dibujo */
+    94→  #drawBar{
+    95→    position:absolute;left:14px;bottom:14px;z-index:5;
+    96→    display:none;gap:8px;align-items:center;
+    97→    background:rgba(20,29,23,.92);border:1px solid var(--line);
+    98→    border-radius:14px;padding:7px;backdrop-filter:blur(6px);
+    99→  }
+   100→  #drawBar.show{display:flex}
+   101→  .dBtn{
+   102→    width:36px;height:36px;border-radius:10px;border:1px solid var(--line);
+   103→    background:var(--panel2);font-size:15px;cursor:pointer;
+   104→    display:flex;align-items:center;justify-content:center;
+   105→  }
+   106→  .dBtn.col{border-width:2px}
+   107→  .dBtn.col.on{outline:2px solid var(--chalk);outline-offset:1px}
+   108→  .dBtn:active{transform:scale(.92)}
+   109→
+   110→  /* ================= TRANSPORT ================= */
+   111→  #controls{
+   112→    flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);
+   113→    padding:9px 14px calc(10px + env(safe-area-inset-bottom));
+   114→  }
+   115→  #scrubRow{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+   116→  #chipSpeed{
+   117→    border:1px solid var(--line);background:var(--panel2);border-radius:999px;
+   118→    padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;
+   119→  }
+   120→  #scrubRow .t{font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);min-width:36px;text-align:center}
+   121→  input[type=range]{flex:1;appearance:none;-webkit-appearance:none;height:26px;background:transparent}
+   122→  input[type=range]::-webkit-slider-runnable-track{
+   123→    height:6px;border-radius:3px;
+   124→    background:linear-gradient(to right,var(--amber) var(--fill,0%),#2c3d32 var(--fill,0%));
+   125→  }
+   126→  input[type=range]::-webkit-slider-thumb{
+   127→    -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+   128→    background:var(--chalk);margin-top:-7px;box-shadow:0 2px 6px rgba(0,0,0,.5);
+   129→  }
+   130→  input[type=range]:disabled::-webkit-slider-thumb{background:#56685d}
+   131→
+   132→  #btnRow{display:flex;align-items:center;justify-content:space-around;gap:4px}
+   133→  .ctl{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-size:10.5px;font-weight:700;color:var(--muted);cursor:pointer;min-width:56px}
+   134→  .ctl .ico{
+   135→    width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+   136→    background:var(--panel2);border:1px solid var(--line);font-size:19px;color:var(--chalk);transition:transform .08s;
+   137→  }
+   138→  .ctl.primary .ico{width:58px;height:58px;font-size:24px;background:var(--chalk);color:#10150f;border:none}
+   139→  .ctl.recOn .ico{background:var(--rec);border:none;box-shadow:0 0 0 5px rgba(255,77,77,.22)}
+   140→  .ctl:disabled{opacity:.3}
+   141→  .ctl:active:not(:disabled) .ico{transform:scale(.9)}
+   142→
+   143→  /* barra de preview IA (reemplaza botones) */
+   144→  #aiBar{display:none;align-items:center;gap:8px}
+   145→  #aiBar.show{display:flex}
+   146→  #aiBar .segMini{
+   147→    display:flex;background:var(--panel2);border:1px solid var(--line);
+   148→    border-radius:11px;padding:3px;gap:3px;flex:1;
+   149→  }
+   150→  #aiBar .segMini button{
+   151→    flex:1;border:none;background:none;border-radius:8px;padding:9px 4px;
+   152→    font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;
+   153→  }
+   154→  #aiBar .segMini button.on{background:var(--violet);color:#fff}
+   155→  .pillBtn{
+   156→    border:none;border-radius:12px;padding:11px 14px;font-size:12.5px;font-weight:900;
+   157→    letter-spacing:.4px;cursor:pointer;
+   158→  }
+   159→  .pillBtn.ok{background:var(--ok);color:#0b1a10}
+   160→  .pillBtn.no{background:var(--panel2);border:1px solid var(--line);color:var(--chalk)}
+   161→  .pillBtn:active{transform:scale(.95)}
+   162→
+   163→  /* ================= SHEETS ================= */
+   164→  #sheetBg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:50}
+   165→  #sheetBg.open{display:block}
+   166→  .sheet{
+   167→    position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--panel);
+   168→    border-radius:24px 24px 0 0;border-top:1px solid var(--line);
+   169→    transform:translateY(106%);transition:transform .26s cubic-bezier(.32,1,.45,1);
+   170→    max-height:88dvh;display:flex;flex-direction:column;
+   171→  }
+   172→  .sheet.open{transform:translateY(0)}
+   173→  .sheet .grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:10px auto 4px}
+   174→  .sheet h2{font-size:13.5px;font-weight:900;letter-spacing:1.4px;text-align:center;padding:7px 16px 12px}
+   175→  .sheet .body{overflow-y:auto;padding:0 16px calc(20px + env(safe-area-inset-bottom))}
+   176→
+   177→  .opt{
+   178→    display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);
+   179→    border-radius:var(--r);padding:13px 14px;margin-bottom:9px;cursor:pointer;
+   180→  }
+   181→  .opt:active{transform:scale(.985)}
+   182→  .opt.sel{border-color:var(--amber)}
+   183→  .opt .ic{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:19px}
+   184→  .opt .tx{flex:1;min-width:0}
+   185→  .opt .tx b{display:block;font-size:14px}
+   186→  .opt .tx small{color:var(--muted);font-size:12px;line-height:1.35;display:block;margin-top:1px}
+   187→  .opt .ck{color:var(--amber);font-size:17px;opacity:0;flex:0 0 auto}
+   188→  .opt.sel .ck{opacity:1}
+   189→
+   190→  .secTitle{font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--muted);margin:14px 2px 8px}
+   191→  .chips{display:flex;flex-wrap:wrap;gap:8px}
+   192→  .fChip{
+   193→    border:1px solid var(--line);background:var(--panel2);border-radius:11px;
+   194→    padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;
+   195→  }
+   196→  .fChip.sel{background:var(--amber);color:#161616;border-color:var(--amber)}
+   197→  .fChip:disabled{opacity:.3}
+   198→
+   199→  .teamTabs{display:flex;gap:8px;margin-bottom:4px}
+   200→  .teamTab{
+   201→    flex:1;border:1px solid var(--line);background:var(--panel2);border-radius:12px;
+   202→    padding:11px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+   203→  }
+   204→  .teamTab .sw{width:13px;height:13px;border-radius:50%}
+   205→  .teamTab.on{border-color:var(--chalk)}
+   206→
+   207→  .teamRow{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:11px 14px;margin-bottom:9px}
+   208→  .teamRow .sw{width:15px;height:15px;border-radius:50%;flex:0 0 auto}
+   209→  .teamRow b{flex:1;font-size:14px}
+   210→  .stepBtn{width:37px;height:37px;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:19px;font-weight:700;cursor:pointer}
+   211→  .stepBtn:disabled{opacity:.25}
+   212→  .countN{min-width:24px;text-align:center;font-weight:900;font-size:16px}
+   213→
+   214→  .bigBtn{
+   215→    width:100%;border:none;border-radius:14px;padding:15px;font-size:13.5px;font-weight:900;
+   216→    letter-spacing:.7px;background:var(--amber);color:#161616;cursor:pointer;margin-top:6px;
+   217→  }
+   218→  .bigBtn.violet{background:var(--violet);color:#fff}
+   219→  .bigBtn.alt{background:var(--panel2);border:1px solid var(--line);color:var(--chalk)}
+   220→  .bigBtn:active{transform:scale(.985)}
+   221→  .hint{font-size:12px;color:var(--muted);text-align:center;line-height:1.5;padding:6px 6px 12px}
+   222→
+   223→  .playItem{display:flex;align-items:center;gap:11px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:12px 13px;margin-bottom:9px}
+   224→  .playItem .tx{flex:1;min-width:0}
+   225→  .playItem .tx b{font-size:13.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+   226→  .playItem .tx small{color:var(--muted);font-size:11px}
+   227→  .miniBtn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 11px;font-size:12px;font-weight:800;cursor:pointer;flex:0 0 auto}
+   228→  .miniBtn.warn{color:var(--rec)}
+   229→  input[type=text],input[type=number]{
+   230→    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+   231→    padding:13px;color:var(--chalk);font-size:14px;margin-bottom:10px;outline:none;
+   232→  }
+   233→  input:focus{border-color:var(--amber)}
+   234→  .empty{text-align:center;color:var(--muted);font-size:13px;padding:24px 8px;line-height:1.55}
+   235→  .row2{display:flex;gap:10px}
+   236→  .row2>*{flex:1}
+   237→
+   238→  /* ================= TOAST + ONBOARDING ================= */
+   239→  #toast{
+   240→    position:fixed;left:50%;bottom:150px;transform:translateX(-50%) translateY(16px);
+   241→    background:var(--chalk);color:#10150f;border-radius:999px;padding:10px 17px;
+   242→    font-size:12.5px;font-weight:800;opacity:0;pointer-events:none;transition:.22s;z-index:95;
+   243→    box-shadow:0 8px 22px rgba(0,0,0,.45);max-width:92vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+   244→  }
+   245→  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+   246→
+   247→  #onboard{
+   248→    position:fixed;inset:0;z-index:100;background:rgba(8,12,9,.82);backdrop-filter:blur(4px);
+   249→    display:flex;align-items:center;justify-content:center;padding:24px;
+   250→  }
+   251→  #onboard .card{
+   252→    background:var(--panel);border:1px solid var(--line);border-radius:22px;
+   253→    padding:26px 22px;max-width:340px;width:100%;text-align:center;
+   254→    box-shadow:0 24px 60px rgba(0,0,0,.6);
+   255→  }
+   256→  #onboard .card .em{font-size:38px;margin-bottom:10px}
+   257→  #onboard h3{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:14px}
+   258→  #onboard ol{list-style:none;text-align:left;display:flex;flex-direction:column;gap:11px;margin-bottom:18px}
+   259→  #onboard li{display:flex;gap:11px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:#cfe0d4}
+   260→  #onboard li .n{
+   261→    flex:0 0 auto;width:23px;height:23px;border-radius:50%;background:var(--amber);color:#161616;
+   262→    font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px;
+   263→  }
+   264→  @media (prefers-reduced-motion:reduce){.sheet{transition:none}.pill.rec i{animation:none}}
+   265→</style>
+   266→</head>
+   267→<body>
+   268→
+   269→<header>
+   270→  <div class="hrow">
+   271→    <div class="logo"><span class="b">⚽</span><h1>PIZARRA <em>PRO</em></h1></div>
+   272→    <button class="iconBtn" id="hPlays" title="Mis jugadas">📂</button>
+   273→    <button class="iconBtn" id="hHelp" title="Ayuda">❔</button>
+   274→  </div>
+   275→  <div class="seg" id="gameSeg">
+   276→    <button data-g="5" class="on">Fútbol 5</button>
+   277→    <button data-g="8">Fútbol 8</button>
+   278→    <button data-g="11">Fútbol 11</button>
+   279→  </div>
+   280→</header>
+   281→
+   282→<div id="statusBar">
+   283→  <div class="pill rec" id="pRec"><i></i>GRABANDO · <span id="recTime">0.0s</span></div>
+   284→  <div class="pill play" id="pPlay">▶ REPRODUCIENDO</div>
+   285→  <div class="pill pause" id="pPause">⏸ PAUSADO · arrastrá la barra</div>
+   286→  <div class="pill ai" id="pAI">✨ VISTA PREVIA IA</div>
+   287→</div>
+   288→
+   289→<div id="fieldWrap">
+   290→  <canvas id="fieldCanvas"></canvas>
+   291→  <div id="rail">
+   292→    <button class="railBtn" id="rDraw" title="Dibujar flechas">✏️</button>
+   293→    <button class="railBtn" id="rForm" title="Formaciones">📐</button>
+   294→    <button class="railBtn" id="rTeams" title="Equipos">👥</button>
+   295→    <button class="railBtn" id="rAI" title="IA">✨</button>
+   296→  </div>
+   297→  <div id="drawBar">
+   298→    <button class="dBtn col on" id="dWhite" style="background:#f3f6f1"></button>
+   299→    <button class="dBtn col" id="dAmber" style="background:#ffb020"></button>
+   300→    <button class="dBtn" id="dUndo" title="Deshacer">↶</button>
+   301→    <button class="dBtn" id="dClear" title="Borrar todo">🗑</button>
+   302→    <button class="dBtn" id="dExit" title="Listo">✓</button>
+   303→  </div>
+   304→</div>
+   305→
+   306→<div id="controls">
+   307→  <div id="scrubRow">
+   308→    <button id="chipSpeed">⏱ <span id="speedLabel">1x</span></button>
+   309→    <span class="t" id="tCur">0.0s</span>
+   310→    <input type="range" id="scrub" min="0" max="1000" value="0" disabled>
+   311→    <span class="t" id="tTot">0.0s</span>
+   312→  </div>
+   313→  <div id="btnRow">
+   314→    <button class="ctl" id="bRec"><span class="ico">⏺</span><span id="bRecL">Grabar</span></button>
+   315→    <button class="ctl primary" id="bPlay" disabled><span class="ico">▶</span><span id="bPlayL">Reproducir</span></button>
+   316→    <button class="ctl" id="bStop" disabled><span class="ico">⏹</span>Detener</button>
+   317→    <button class="ctl" id="bReset"><span class="ico">↺</span>Limpiar</button>
+   318→    <button class="ctl" id="bSave" disabled><span class="ico">💾</span>Guardar</button>
+   319→  </div>
+   320→  <div id="aiBar">
+   321→    <button class="pillBtn no" id="aiNo">✕</button>
+   322→    <div class="segMini">
+   323→      <button id="aiSeeOrig">Tu jugada</button>
+   324→      <button id="aiSeeAI" class="on">Con IA</button>
+   325→    </div>
+   326→    <button class="pillBtn no" id="aiReplay">↻</button>
+   327→    <button class="pillBtn ok" id="aiYes">✓ Aplicar</button>
+   328→  </div>
+   329→</div>
+   330→
+   331→<!-- ============ SHEETS ============ -->
+   332→<div id="sheetBg"></div>
+   333→
+   334→<div class="sheet" id="shSpeed">
+   335→  <div class="grab"></div><h2>VELOCIDAD DE REPRODUCCIÓN</h2>
+   336→  <div class="body" id="speedList"></div>
+   337→</div>
+   338→
+   339→<div class="sheet" id="shTeams">
+   340→  <div class="grab"></div><h2>EQUIPOS</h2>
+   341→  <div class="body">
+   342→    <div class="teamRow">
+   343→      <span class="sw" style="background:var(--blue)"></span><b>Azul</b>
+   344→      <button class="stepBtn" id="t1m">−</button><span class="countN" id="t1n">5</span><button class="stepBtn" id="t1p">+</button>
+   345→    </div>
+   346→    <div class="teamRow">
+   347→      <span class="sw" style="background:var(--red)"></span><b>Rojo</b>
+   348→      <button class="stepBtn" id="t2m">−</button><span class="countN" id="t2n">5</span><button class="stepBtn" id="t2p">+</button>
+   349→    </div>
+   350→    <p class="hint">Tocá dos veces a un jugador en la cancha para ponerle nombre y número.</p>
+   351→    <button class="bigBtn" id="teamsApply">APLICAR</button>
+   352→  </div>
+   353→</div>
+   354→
+   355→<div class="sheet" id="shForm">
+   356→  <div class="grab"></div><h2>FORMACIONES</h2>
+   357→  <div class="body">
+   358→    <div class="teamTabs">
+   359→      <button class="teamTab on" id="ftBlue"><span class="sw" style="background:var(--blue)"></span>Azul</button>
+   360→      <button class="teamTab" id="ftRed"><span class="sw" style="background:var(--red)"></span>Rojo</button>
+   361→    </div>
+   362→    <div class="secTitle" id="formModeLbl">FÚTBOL 5</div>
+   363→    <div class="chips" id="formChips"></div>
+   364→    <p class="hint" id="formHint"></p>
+   365→  </div>
+   366→</div>
+   367→
+   368→<div class="sheet" id="shAI">
+   369→  <div class="grab"></div><h2>✨ ASISTENTE TÁCTICO IA</h2>
+   370→  <div class="body">
+   371→    <div class="secTitle">EQUIPO QUE ATACA</div>
+   372→    <div class="chips" id="attChips" style="margin-bottom:10px"></div>
+   373→
+   374→    <div class="secTitle">ESTILO DE JUEGO</div>
+   375→    <div class="chips" id="styleChips" style="margin-bottom:14px"></div>
+   376→
+   377→    <div id="aiHasPlay">
+   378→      <div class="opt" id="aiComplete" style="border-color:var(--violet)">
+   379→        <span class="ic" style="background:#9d6bff22">🧠</span>
+   380→        <span class="tx"><b>Completar mi jugada</b>
+   381→        <small>Mantiene exactamente lo que grabaste y la IA mueve al resto: desmarques de tus compañeros, presión y coberturas del rival, arqueros que se acomodan.</small></span>
+   382→      </div>
+   383→    </div>
+   384→    <div id="aiNoPlay" class="empty" style="display:none">
+   385→      Todavía no grabaste nada.<br>Grabá una jugada moviendo la pelota y 2 o 3 jugadores clave… la IA hace el resto.
+   386→    </div>
+   387→
+   388→    <div class="secTitle">O EMPEZÁ DESDE CERO</div>
+   389→    <div class="opt" id="aiDemo">
+   390→      <span class="ic" style="background:#ffb02022">🎲</span>
+   391→      <span class="tx"><b>Generar jugada de ejemplo</b>
+   392→      <small>Crea un ataque completo según el estilo elegido, listo para ver, editar y guardar.</small></span>
+   393→    </div>
+   394→    <p class="hint">Después de la vista previa podés comparar "Tu jugada" vs "Con IA" antes de aplicar.</p>
+   395→  </div>
+   396→</div>
+   397→
+   398→<div class="sheet" id="shSave">
+   399→  <div class="grab"></div><h2>GUARDAR JUGADA</h2>
+   400→  <div class="body">
+   401→    <input type="text" id="playName" placeholder="Ej: Córner al primer palo" maxlength="40">
+   402→    <button class="bigBtn" id="saveOk">GUARDAR</button>
+   403→    <p class="hint" style="margin-top:8px">Se guarda mientras la app esté abierta. En la versión Android quedará guardado para siempre.</p>
+   404→  </div>
+   405→</div>
+   406→
+   407→<div class="sheet" id="shPlays">
+   408→  <div class="grab"></div><h2>MIS JUGADAS</h2>
+   409→  <div class="body" id="playsList"></div>
+   410→</div>
+   411→
+   412→<div class="sheet" id="shPlayer">
+   413→  <div class="grab"></div><h2>EDITAR JUGADOR</h2>
+   414→  <div class="body">
+   415→    <div class="row2">
+   416→      <input type="text" id="plName" placeholder="Nombre (ej: Messi)" maxlength="10">
+   417→      <input type="number" id="plNum" placeholder="N°" min="0" max="99" style="max-width:90px">
+   418→    </div>
+   419→    <button class="bigBtn" id="plOk">LISTO</button>
+   420→  </div>
+   421→</div>
+   422→
+   423→<div id="toast"></div>
+   424→
+   425→<div id="onboard">
+   426→  <div class="card">
+   427→    <div class="em">⚽</div>
+   428→    <h3>Tu pizarra con IA</h3>
+   429→    <ol>
+   430→      <li><span class="n">1</span>Elegí <b>Fútbol 5, 8 u 11</b> y acomodá con 📐 formaciones.</li>
+   431→      <li><span class="n">2</span>Llevá la pelota hasta un jugador y <b>se la queda</b>: al moverlo, va con él. Arrastrá la pelota a otro para <b>pasar</b>.</li>
+   432→      <li><span class="n">3</span>Tocá <b>⏺ Grabar</b>, armá la jugada y después <b>✨ IA → Completar</b>: el resto del equipo y el rival se mueven solos.</li>
+   433→      <li><span class="n">4</span>Dibujá flechas con ✏️ y guardá tus jugadas en 📂.</li>
+   434→    </ol>
+   435→    <button class="bigBtn" id="obOk">¡EMPEZAR!</button>
+   436→  </div>
+   437→</div>
+   438→
+   439→<script>
+   440→'use strict';
+   441→/* ============================================================
+   442→   PIZARRA PRO v2
+   443→   - Modos Fútbol 5 / 8 / 11 con formaciones reales
+   444→   - Grabación con tiempo real + reproducción interpolada (fluida)
+   445→   - IA "completar jugada": respeta lo grabado y mueve al resto
+   446→   - Dibujo de flechas, edición de jugadores, jugadas guardadas
+   447→============================================================ */
+   448→
+   449→// ---------------- Estado ----------------
+   450→const S = {
+   451→  mode:'idle',            // idle|rec|play|pause
+   452→  game:5,                 // 5|8|11
+   453→  speed:1,
+   454→  team1:5, team2:5,
+   455→  form1:'1-2-1', form2:'1-2-1',
+   456→  players:[],             // {id,team,num,name,gk,ball,x,y}
+   457→  tracks:{}, duration:0,
+   458→  recStart:0, playT:0, lastFrame:0,
+   459→  dragging:null,
+   460→  carrier:null,           // id del jugador que lleva la pelota
+   461→  fx:[], fxLoop:false, curFx:null, // estelas en vivo al mover
+   462→  drawings:[],            // {color, pts:[{x,y}]}
+   463→  drawMode:false, drawColor:'#f3f6f1', curStroke:null,
+   464→  preview:null,           // {tracks, duration}
+   465→  prevShow:'ai',
+   466→  aiStyle:'balanced',
+   467→  attTeam:'auto',
+   468→  saved:[],
+   469→  editing:null,
+   470→  lastTap:{t:0,id:null},
+   471→};
+   472→
+   473→const SPEEDS=[
+   474→  {v:.5,n:'Lento',d:'Para analizar detalle por detalle',i:'🐢'},
+   475→  {v:1,n:'Normal',d:'Velocidad real de la grabación',i:'▶️'},
+   476→  {v:2,n:'Rápido',d:'El doble de velocidad',i:'⚡'},
+   477→  {v:4,n:'Muy rápido',d:'Repaso veloz de toda la jugada',i:'🚀'},
+   478→];
+   479→
+   480→const STYLES=[
+   481→  {id:'balanced', n:'Equilibrado', i:'⚖️'},
+   482→  {id:'attack',   n:'Ofensivo',    i:'🔥'},
+   483→  {id:'wings',    n:'Por bandas',  i:'↔️'},
+   484→  {id:'defense',  n:'Defensivo',   i:'🛡️'},
+   485→];
+   486→
+   487→const FORMATIONS={
+   488→  5:['1-2-1','2-2','1-1-2','3-1'],
+   489→  8:['3-3-1','2-3-2','3-2-2','2-4-1','3-1-3'],
+   490→  11:['4-3-3','4-4-2','4-2-3-1','3-5-2','5-3-2','3-4-3'],
+   491→};
+   492→const DEFAULT_FORM={5:'1-2-1',8:'3-3-1',11:'4-3-3'};
+   493→
+   494→// ---------------- Canvas ----------------
+   495→const cv=document.getElementById('fieldCanvas');
+   496→const ctx=cv.getContext('2d');
+   497→let W=0,H=0,DPR=1;
+   498→
+   499→function resize(){
+   500→  const wrap=document.getElementById('fieldWrap');
+   501→  const aw=wrap.clientWidth-18, ah=wrap.clientHeight-12;
+   502→  const ratio = S.game===5 ? 0.72 : S.game===8 ? 0.68 : 0.64; // F5 más "cuadrada"
+   503→  let h=ah,w=h*ratio;
+   504→  if(w>aw){w=aw;h=w/ratio}
+   505→  DPR=Math.min(window.devicePixelRatio||1,2);
+   506→  cv.width=w*DPR;cv.height=h*DPR;
+   507→  cv.style.width=w+'px';cv.style.height=h+'px';
+   508→  W=w;H=h;ctx.setTransform(DPR,0,0,DPR,0,0);
+   509→  draw();
+   510→}
+   511→addEventListener('resize',resize);
+   512→
+   513→// ---------------- Formaciones / jugadores ----------------
+   514→function parseForm(code,count){
+   515→  // code '4-3-3' -> filas atrás→adelante. válida si suma+arquero == count
+   516→  const rows=code.split('-').map(Number);
+   517→  if(rows.reduce((a,b)=>a+b,0)+1!==count) return null;
+   518→  return rows;
+   519→}
+   520→function formationPositions(code,count,isBlue){
+   521→  let rows=parseForm(code,count);
+   522→  if(!rows){ // genérica
+   523→    const n=count-1, per=Math.ceil(n/3);
+   524→    rows=[];let left=n;
+   525→    while(left>0){rows.push(Math.min(per,left));left-=per}
+   526→  }
+   527→  const pos=[[0.5,0.93]]; // arquero
+   528→  // todos en campo propio: la línea más adelantada queda detrás de la mitad
+   529→  const yBack=0.82, yFront=S.game===5?0.62:0.57;
+   530→  rows.forEach((cnt,r)=>{
+   531→    const y= rows.length===1? (yBack+yFront)/2 : yBack-(yBack-yFront)*r/(rows.length-1);
+   532→    for(let j=0;j<cnt;j++){
+   533→      const x=(j+1)/(cnt+1);
+   534→      pos.push([0.5+(x-0.5)*0.92, y]);
+   535→    }
+   536→  });
+   537→  return isBlue?pos:pos.map(([x,y])=>[1-x,1-y]);
+   538→}
+   539→
+   540→function buildPlayers(keepMeta){
+   541→  const meta={};
+   542→  if(keepMeta) S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num});
+   543→  S.players=[];
+   544→  const f1=formationPositions(S.form1,S.team1,true);
+   545→  for(let i=0;i<S.team1;i++){
+   546→    const id='b'+i;
+   547→    S.players.push({id,team:'blue',num:meta[id]?.num??(i+1),name:meta[id]?.name||'',gk:i===0,x:f1[i][0],y:f1[i][1]});
+   548→  }
+   549→  const f2=formationPositions(S.form2,S.team2,false);
+   550→  for(let i=0;i<S.team2;i++){
+   551→    const id='r'+i;
+   552→    S.players.push({id,team:'red',num:meta[id]?.num??(i+1),name:meta[id]?.name||'',gk:i===0,x:f2[i][0],y:f2[i][1]});
+   553→  }
+   554→  S.players.push({id:'ball',team:'ball',ball:true,num:0,name:'',gk:false,x:.5,y:.5});
+   555→}
+   556→
+   557→function applyFormation(team,code){
+   558→  if(team==='blue')S.form1=code; else S.form2=code;
+   559→  const count=team==='blue'?S.team1:S.team2;
+   560→  const f=formationPositions(code,count,team==='blue');
+   561→  let i=0;
+   562→  S.players.forEach(p=>{if(p.team===team){p.x=f[i][0];p.y=f[i][1];i++}});
+   563→  clearPlay(true);
+   564→  draw();
+   565→}
+   566→
+   567→// ---------------- Dibujo del campo ----------------
+   568→const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+   569→function draw(){
+   570→  ctx.clearRect(0,0,W,H);
+   571→  drawPitch();
+   572→  drawStrokes();
+   573→  drawTrails();
+   574→  for(const p of S.players){if(!p.ball)drawPlayer(p)}
+   575→  const b=S.players.find(p=>p.ball); if(b)drawBall(b);
+   576→}
+   577→function L(a,b,c,d){ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke()}
+   578→function C(x,y,r,f){ctx.beginPath();ctx.arc(x,y,r,0,7);f?ctx.fill():ctx.stroke()}
+   579→
+   580→function drawPitch(){
+   581→  // césped con franjas + viñeta
+   582→  const stripes=S.game===11?12:S.game===8?10:8;
+   583→  for(let i=0;i<stripes;i++){
+   584→    ctx.fillStyle=i%2?'#0f7d44':'#0d713d';
+   585→    ctx.fillRect(0,i*H/stripes,W,H/stripes+1);
+   586→  }
+   587→  const vg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
+   588→  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.28)');
+   589→  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+   590→
+   591→  ctx.strokeStyle='rgba(243,246,241,.85)';
+   592→  ctx.lineWidth=Math.max(1.5,W*0.0045);
+   593→  const m=W*0.045;
+   594→  ctx.strokeRect(m,m,W-2*m,H-2*m);
+   595→  L(m,H/2,W-m,H/2);
+   596→  C(W/2,H/2,W*(S.game===5?0.16:0.13),false);
+   597→  ctx.fillStyle='rgba(243,246,241,.85)';C(W/2,H/2,3,true);
+   598→
+   599→  // áreas (proporciones por modalidad)
+   600→  const big= S.game===5?{w:.62,h:.16}: S.game===8?{w:.56,h:.15}:{w:.52,h:.14};
+   601→  const sm = S.game===5?{w:.30,h:.06}:{w:.26,h:.058};
+   602→  const bw=W*big.w,bh=H*big.h,sw=W*sm.w,sh=H*sm.h;
+   603→  ctx.strokeRect(W/2-bw/2,m,bw,bh); ctx.strokeRect(W/2-sw/2,m,sw,sh);
+   604→  ctx.strokeRect(W/2-bw/2,H-m-bh,bw,bh); ctx.strokeRect(W/2-sw/2,H-m-sh,sw,sh);
+   605→  ctx.fillStyle='rgba(243,246,241,.85)';
+   606→  C(W/2,m+bh*0.72,3,true);C(W/2,H-m-bh*0.72,3,true);
+   607→  // semicírculo del área (8 y 11)
+   608→  if(S.game!==5){
+   609→    ctx.beginPath();ctx.arc(W/2,m+bh,W*0.10,0.25*Math.PI,0.75*Math.PI);ctx.stroke();
+   610→    ctx.beginPath();ctx.arc(W/2,H-m-bh,W*0.10,1.25*Math.PI,1.75*Math.PI);ctx.stroke();
+   611→  }
+   612→  // arcos
+   613→  ctx.lineWidth=Math.max(3,W*0.008);
+   614→  const gw=sw*0.8;
+   615→  L(W/2-gw/2,m,W/2+gw/2,m);
+   616→  L(W/2-gw/2,H-m,W/2+gw/2,H-m);
+   617→}
+   618→
+   619→function playerR(){
+   620→  const base=S.game===11?0.036:S.game===8?0.041:0.047;
+   621→  return Math.max(12,W*base);
+   622→}
+   623→function drawPlayer(p){
+   624→  const r=playerR(),x=p.x*W,y=p.y*H;
+   625→  const col=p.team==='blue'?css('--blue'):css('--red');
+   626→  ctx.fillStyle='rgba(0,0,0,.32)';
+   627→  ctx.beginPath();ctx.ellipse(x,y+r*0.75,r*0.85,r*0.3,0,0,7);ctx.fill();
+   628→  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.4,r*0.2,x,y,r);
+   629→  g.addColorStop(0,col);g.addColorStop(1,shade(col,-22));
+   630→  ctx.fillStyle=g;C(x,y,r,true);
+   631→  if(p.gk){ctx.strokeStyle=css('--amber');ctx.lineWidth=3;C(x,y,r+1.5,false)}
+   632→  if(S.carrier===p.id&&S.mode!=='play'&&S.mode!=='pause'){ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;C(x,y,r+3.5,false)}
+   633→  if(S.dragging===p){ctx.strokeStyle='#fff';ctx.lineWidth=2.5;C(x,y,r+5,false)}
+   634→  ctx.fillStyle='#fff';
+   635→  ctx.font=`800 ${r*0.92}px -apple-system,Roboto,sans-serif`;
+   636→  ctx.textAlign='center';ctx.textBaseline='middle';
+   637→  ctx.fillText(p.gk&&!p.name?'A':p.num,x,y+1);
+   638→  if(p.name){
+   639→    ctx.font=`700 ${Math.max(9,r*0.62)}px -apple-system,Roboto,sans-serif`;
+   640→    ctx.fillStyle='rgba(255,255,255,.95)';
+   641→    ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=3;ctx.lineJoin='round';
+   642→    ctx.strokeText(p.name,x,y+r*1.75);
+   643→    ctx.fillText(p.name,x,y+r*1.75);
+   644→  }
+   645→}
+   646→function drawBall(b){
+   647→  const r=playerR()*0.6,x=b.x*W,y=b.y*H;
+   648→  ctx.fillStyle='rgba(0,0,0,.32)';
+   649→  ctx.beginPath();ctx.ellipse(x,y+r*0.85,r*0.8,r*0.28,0,0,7);ctx.fill();
+   650→  ctx.fillStyle='#fff';C(x,y,r,true);
+   651→  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=1.4;C(x,y,r,false);
+   652→  ctx.fillStyle='#1a1a1a';C(x,y,r*0.3,true);
+   653→  for(let i=0;i<5;i++){const a=i/5*6.283-1.57;C(x+Math.cos(a)*r*0.7,y+Math.sin(a)*r*0.7,r*0.15,true)}
+   654→  if(S.dragging===b){ctx.strokeStyle='#fff';ctx.lineWidth=2.5;C(x,y,r+5,false)}
+   655→}
+   656→function shade(hex,pct){
+   657→  const n=parseInt(hex.slice(1),16),a=Math.round(2.55*pct);
+   658→  const R=Math.min(255,Math.max(0,(n>>16)+a)),G=Math.min(255,Math.max(0,(n>>8&255)+a)),B=Math.min(255,Math.max(0,(n&255)+a));
+   659→  return `rgb(${R},${G},${B})`;
+   660→}
+   661→
+   662→// estelas (en grabación se ve todo lo grabado; al reproducir, hasta el momento actual)
+   663→function drawTrails(){
+   664→  const tr=activeTracks();
+   665→  if(tr&&S.mode!=='idle'){
+   666→    const upTo=S.mode==='rec'?Infinity:S.playT;
+   667→    if(upTo>0)for(const id in tr){
+   668→      const kf=tr[id];if(!kf||kf.length<2)continue;
+   669→      if(pathLen(kf)<0.05)continue; // sólo los que se mueven
+   670→      const p=S.players.find(q=>q.id===id);if(!p)continue;
+   671→      ctx.strokeStyle=p.ball?'rgba(255,255,255,.6)':p.team==='blue'?'rgba(63,140,255,.45)':'rgba(240,85,70,.45)';
+   672→      ctx.lineWidth=2.4;ctx.setLineDash(p.ball?[7,7]:[]);
+   673→      ctx.beginPath();let st=false;
+   674→      for(const k of kf){
+   675→        if(k.t>upTo)break;
+   676→        const x=k.x*W,y=k.y*H;
+   677→        st?ctx.lineTo(x,y):(ctx.moveTo(x,y),st=true);
+   678→      }
+   679→      ctx.stroke();ctx.setLineDash([]);
+   680→    }
+   681→  }
+   682→  drawFx();
+   683→}
+   684→
+   685→// estelas en vivo: al mover algo queda su recorrido unos segundos y se desvanece
+   686→const FXFADE=2400;
+   687→function pushFx(p){
+   688→  if(S.mode==='play')return;
+   689→  if(!S.curFx||S.curFx.id!==p.id){
+   690→    S.curFx={id:p.id,ball:!!p.ball,team:p.team,pts:[]};
+   691→    S.fx.push(S.curFx);
+   692→  }
+   693→  S.curFx.pts.push({x:p.x,y:p.y,t:performance.now()});
+   694→  ensureFxLoop();
+   695→}
+   696→function ensureFxLoop(){
+   697→  if(S.fxLoop)return;S.fxLoop=true;
+   698→  const step=()=>{
+   699→    const now=performance.now();
+   700→    S.fx=S.fx.filter(s=>s.pts.length&&now-s.pts[s.pts.length-1].t<FXFADE);
+   701→    if(!S.fx.length||S.mode==='play'){S.fxLoop=false;draw();return}
+   702→    draw();requestAnimationFrame(step);
+   703→  };
+   704→  requestAnimationFrame(step);
+   705→}
+   706→function drawFx(){
+   707→  if(!S.fx.length)return;
+   708→  const now=performance.now();
+   709→  for(const s of S.fx){
+   710→    ctx.lineWidth=3;ctx.lineCap='round';
+   711→    ctx.setLineDash(s.ball?[7,7]:[]);
+   712→    const col=s.ball?'255,255,255':s.team==='blue'?'63,140,255':'240,85,70';
+   713→    for(let i=1;i<s.pts.length;i++){
+   714→      const a=s.pts[i-1],b=s.pts[i];
+   715→      const al=Math.max(0,1-(now-b.t)/FXFADE)*0.8;
+   716→      if(al<=0)continue;
+   717→      ctx.strokeStyle=`rgba(${col},${al})`;
+   718→      ctx.beginPath();ctx.moveTo(a.x*W,a.y*H);ctx.lineTo(b.x*W,b.y*H);ctx.stroke();
+   719→    }
+   720→    ctx.setLineDash([]);
+   721→  }
+   722→}
+   723→function pathLen(kf){let d=0;for(let i=1;i<kf.length;i++)d+=Math.hypot(kf[i].x-kf[i-1].x,kf[i].y-kf[i-1].y);return d}
+   724→
+   725→// trazos del entrenador (flechas)
+   726→function drawStrokes(){
+   727→  const all=S.curStroke?[...S.drawings,S.curStroke]:S.drawings;
+   728→  for(const s of all){
+   729→    if(s.pts.length<2)continue;
+   730→    ctx.strokeStyle=s.color;ctx.lineWidth=3.2;ctx.lineCap='round';ctx.lineJoin='round';
+   731→    ctx.beginPath();
+   732→    ctx.moveTo(s.pts[0].x*W,s.pts[0].y*H);
+   733→    for(let i=1;i<s.pts.length;i++)ctx.lineTo(s.pts[i].x*W,s.pts[i].y*H);
+   734→    ctx.stroke();
+   735→    // punta de flecha
+   736→    const n=s.pts.length,a=s.pts[Math.max(0,n-4)],b=s.pts[n-1];
+   737→    const ang=Math.atan2((b.y-a.y)*H,(b.x-a.x)*W),hl=11;
+   738→    ctx.fillStyle=s.color;ctx.beginPath();
+   739→    ctx.moveTo(b.x*W,b.y*H);
+   740→    ctx.lineTo(b.x*W-hl*Math.cos(ang-0.45),b.y*H-hl*Math.sin(ang-0.45));
+   741→    ctx.lineTo(b.x*W-hl*Math.cos(ang+0.45),b.y*H-hl*Math.sin(ang+0.45));
+   742→    ctx.closePath();ctx.fill();
+   743→  }
+   744→}
+   745→
+   746→// ---------------- Input ----------------
+   747→const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+   748→function ptr(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/W,y:(e.clientY-r.top)/H}}
+   749→function ballObj(){return S.players.find(p=>p.ball)}
+   750→function attachR(){return (playerR()*1.8)/W}
+   751→function nearestPlayer(x,y,r){
+   752→  let best=null,bd=r;
+   753→  for(const p of S.players){
+   754→    if(p.ball)continue;
+   755→    const d=Math.hypot(p.x-x,p.y-y);
+   756→    if(d<bd){bd=d;best=p}
+   757→  }
+   758→  return best;
+   759→}
+   760→function ballAtFoot(pl){
+   761→  const dy=(playerR()*1.25)/H*(pl.team==='blue'?-1:1);
+   762→  return{x:pl.x,y:clamp(pl.y+dy,0.02,0.98)};
+   763→}
+   764→function attachBall(pl){
+   765→  if(!pl||pl.ball)return;
+   766→  const same=S.carrier===pl.id;
+   767→  S.carrier=pl.id;
+   768→  const b=ballObj(),o=ballAtFoot(pl);
+   769→  b.x=o.x;b.y=o.y;
+   770→  if(S.mode==='rec')addKey(b);
+   771→  if(!same)toast('⚽ La lleva '+(pl.team==='blue'?'Azul':'Rojo')+' '+(pl.name||pl.num)+' — arrastrá la pelota para pasar');
+   772→  draw();
+   773→}
+   774→function hit(pos){
+   775→  const b=ballObj();
+   776→  const dB=Math.hypot(b.x-pos.x,b.y-pos.y);
+   777→  const rB=(playerR()*0.62)/W*2.3; // agarre generoso para la pelota
+   778→  const rP=playerR()/W*1.5;
+   779→  let best=null,bd=9;
+   780→  for(const p of S.players){
+   781→    if(p.ball)continue;
+   782→    const d=Math.hypot(p.x-pos.x,p.y-pos.y);
+   783→    if(d<rP&&d<bd){best=p;bd=d}
+   784→  }
+   785→  if(dB<rB&&(S.carrier||dB<=bd))return b; // con dueño, la pelota gana: pase fácil
+   786→  return best||(dB<rB?b:null);
+   787→}
+   788→
+   789→cv.addEventListener('pointerdown',e=>{
+   790→  const pos=ptr(e);
+   791→  if(S.drawMode){
+   792→    S.curStroke={color:S.drawColor,pts:[pos]};
+   793→    cv.setPointerCapture(e.pointerId);draw();return;
+   794→  }
+   795→  if(S.mode==='play')return;
+   796→  const p=hit(pos);
+   797→  if(p){
+   798→    // doble tap → editar
+   799→    const now=performance.now();
+   800→    if(!p.ball&&S.lastTap.id===p.id&&now-S.lastTap.t<320){
+   801→      S.lastTap={t:0,id:null};openPlayerEdit(p);return;
+   802→    }
+   803→    S.lastTap={t:now,id:p.id};
+   804→    S.dragging=p;S.curFx=null;cv.setPointerCapture(e.pointerId);
+   805→    if(S.mode==='rec')addKey(p);
+   806→    draw();
+   807→  }
+   808→});
+   809→cv.addEventListener('pointermove',e=>{
+   810→  const pos=ptr(e);
+   811→  if(S.drawMode&&S.curStroke){
+   812→    const lp=S.curStroke.pts[S.curStroke.pts.length-1];
+   813→    if(Math.hypot(pos.x-lp.x,pos.y-lp.y)>0.006)S.curStroke.pts.push(pos);
+   814→    draw();return;
+   815→  }
+   816→  if(!S.dragging)return;
+   817→  const d=S.dragging;
+   818→  if(d.ball&&S.carrier)S.carrier=null; // tomar la pelota del pie = empieza un pase
+   819→  d.x=clamp(pos.x,0.02,0.98);
+   820→  d.y=clamp(pos.y,0.02,0.98);
+   821→  if(S.carrier===d.id){ // lleva la pelota pegada al pie
+   822→    const b=ballObj(),o=ballAtFoot(d);
+   823→    b.x=o.x;b.y=o.y;
+   824→    if(S.mode==='rec')addKey(b,true);
+   825→  }
+   826→  if(S.mode==='rec')addKey(d,true);
+   827→  else pushFx(d);
+   828→  draw();
+   829→});
+   830→function endPtr(){
+   831→  if(S.drawMode&&S.curStroke){
+   832→    if(S.curStroke.pts.length>2)S.drawings.push(S.curStroke);
+   833→    S.curStroke=null;draw();return;
+   834→  }
+   835→  const d=S.dragging;
+   836→  if(d){
+   837→    if(d.ball){ // pelota soltada sobre un jugador → se la asignás (pase recibido)
+   838→      const tgt=nearestPlayer(d.x,d.y,attachR());
+   839→      if(tgt)attachBall(tgt);
+   840→    }else if(!S.carrier){ // jugador que pisa una pelota suelta, la toma
+   841→      const b=ballObj();
+   842→      if(Math.hypot(b.x-d.x,b.y-d.y)<attachR())attachBall(d);
+   843→    }
+   844→    if(S.mode==='rec'){
+   845→      addKey(d);
+   846→      if(S.carrier===d.id)addKey(ballObj());
+   847→    }
+   848→  }
+   849→  S.dragging=null;S.curFx=null;draw();
+   850→}
+   851→cv.addEventListener('pointerup',endPtr);
+   852→cv.addEventListener('pointercancel',endPtr);
+   853→
+   854→// ---------------- Grabación ----------------
+   855→let lastKeyT={};
+   856→function addKey(p,thr){
+   857→  const t=performance.now()-S.recStart;
+   858→  if(thr&&lastKeyT[p.id]&&t-lastKeyT[p.id]<40)return;
+   859→  lastKeyT[p.id]=t;
+   860→  S.tracks[p.id].push({t,x:p.x,y:p.y});
+   861→  S.duration=Math.max(S.duration,t);
+   862→  document.getElementById('recTime').textContent=(t/1000).toFixed(1)+'s';
+   863→}
+   864→function startRec(){
+   865→  discardPreview(true);
+   866→  S.tracks={};S.duration=0;lastKeyT={};
+   867→  S.recStart=performance.now();
+   868→  for(const p of S.players)S.tracks[p.id]=[{t:0,x:p.x,y:p.y}];
+   869→  setMode('rec');toast('⏺ Mové la pelota y tus jugadores clave');
+   870→}
+   871→function stopRec(){
+   872→  const t=performance.now()-S.recStart;
+   873→  S.duration=Math.max(S.duration,t,600);
+   874→  for(const p of S.players){
+   875→    const kf=S.tracks[p.id],last=kf[kf.length-1];
+   876→    if(last.t<S.duration)kf.push({t:S.duration,x:last.x,y:last.y});
+   877→  }
+   878→  S.playT=0;setMode('idle');
+   879→  toast('Jugada grabada · '+(S.duration/1000).toFixed(1)+'s — probá ✨ IA');
+   880→}
+   881→
+   882→// ---------------- Reproducción ----------------
+   883→function posAt(kf,t){
+   884→  // Interpolación Catmull-Rom: pasa suave por todos los puntos grabados,
+   885→  // sin el efecto "frena-arranca" de animar tramo por tramo.
+   886→  const n=kf.length;
+   887→  if(n===1||t<=kf[0].t)return kf[0];
+   888→  if(t>=kf[n-1].t)return kf[n-1];
+   889→  let i=1;while(kf[i].t<t)i++;
+   890→  const p1=kf[i-1],p2=kf[i];
+   891→  const p0=kf[i-2]||p1,p3=kf[i+1]||p2;
+   892→  const u=(t-p1.t)/Math.max(1,p2.t-p1.t),u2=u*u,u3=u2*u;
+   893→  const cr=(a,b,c,d)=>0.5*((2*b)+(-a+c)*u+(2*a-5*b+4*c-d)*u2+(-a+3*b-3*c+d)*u3);
+   894→  return{x:clamp(cr(p0.x,p1.x,p2.x,p3.x),0.02,0.98),
+   895→         y:clamp(cr(p0.y,p1.y,p2.y,p3.y),0.02,0.98)};
+   896→}
+   897→function activeTracks(){
+   898→  if(S.preview&&S.prevShow==='ai')return S.preview.tracks;
+   899→  return Object.keys(S.tracks).length?S.tracks:null;
+   900→}
+   901→function curDuration(){return S.preview&&S.prevShow==='ai'?S.preview.duration:S.duration}
+   902→
+   903→function applyFrame(t){
+   904→  const tr=activeTracks();if(!tr)return;
+   905→  for(const p of S.players){
+   906→    const kf=tr[p.id];
+   907→    if(kf&&kf.length){const q=posAt(kf,t);p.x=q.x;p.y=q.y}
+   908→  }
+   909→  draw();
+   910→  const D=curDuration(),sc=document.getElementById('scrub');
+   911→  const pct=D?t/D*1000:0;
+   912→  sc.value=pct;sc.style.setProperty('--fill',(pct/10)+'%');
+   913→  document.getElementById('tCur').textContent=(t/1000).toFixed(1)+'s';
+   914→}
+   915→function loop(now){
+   916→  if(S.mode!=='play')return;
+   917→  const dt=now-S.lastFrame;S.lastFrame=now;
+   918→  S.playT+=dt*S.speed;
+   919→  const D=curDuration();
+   920→  if(S.playT>=D){
+   921→    S.playT=D;applyFrame(D);setMode('idle');
+   922→    document.getElementById('bPlayL').textContent='Repetir';
+   923→    return;
+   924→  }
+   925→  applyFrame(S.playT);
+   926→  requestAnimationFrame(loop);
+   927→}
+   928→function play(){
+   929→  if(!hasPlay())return;
+   930→  if(S.mode==='pause'){setMode('play');S.lastFrame=performance.now();requestAnimationFrame(loop);return}
+   931→  if(S.playT>=curDuration())S.playT=0;
+   932→  setMode('play');S.lastFrame=performance.now();requestAnimationFrame(loop);
+   933→}
+   934→const pause=()=>{if(S.mode==='play')setMode('pause')};
+   935→function stopPlay(){S.playT=0;applyFrame(0);setMode('idle')}
+   936→function hasPlay(){return curDuration()>0&&!!activeTracks()}
+   937→
+   938→const scrub=document.getElementById('scrub');
+   939→scrub.addEventListener('input',()=>{
+   940→  if(!hasPlay())return;
+   941→  if(S.mode==='play')setMode('pause');
+   942→  S.playT=scrub.value/1000*curDuration();
+   943→  applyFrame(S.playT);
+   944→});
+   945→
+   946→// ---------------- IA: completar jugada ----------------
+   947→const dirOf=team=>team==='blue'?-1:1; // blue ataca hacia arriba (y decrece)
+   948→
+   949→function completePlay(baseTracks,duration,style,attOverride){
+   950→  const SAMPLE=220;
+   951→  const ids=Object.keys(baseTracks);
+   952→  const start={},active={};
+   953→  ids.forEach(id=>{start[id]=baseTracks[id][0];active[id]=pathLen(baseTracks[id])>0.06});
+   954→
+   955→  const ball=baseTracks['ball'];
+   956→  const ballMoved=ball&&pathLen(ball)>0.06;
+   957→
+   958→  // referencia de juego: la pelota, o si no se movió, el jugador más activo
+   959→  let refTrack=ball&&ball.length?ball:[{t:0,x:.5,y:.5}];
+   960→  if(!ballMoved){
+   961→    let bl=0;
+   962→    S.players.forEach(p=>{
+   963→      if(p.ball)return;
+   964→      const l=pathLen(baseTracks[p.id]||[]);
+   965→      if(l>bl){bl=l;refTrack=baseTracks[p.id]}
+   966→    });
+   967→  }
+   968→  const ballAt=t=>posAt(refTrack,t);
+   969→
+   970→  // ¿quién ataca? 1) lo que elija el usuario, 2) hacia dónde va la pelota,
+   971→  // 3) qué equipo avanzó más, 4) quién tiene la pelota más cerca
+   972→  let att=(attOverride&&attOverride!=='auto')?attOverride:null;
+   973→  if(!att&&ballMoved){
+   974→    const dy=ball[ball.length-1].y-ball[0].y;
+   975→    if(Math.abs(dy)>0.05)att=dy<0?'blue':'red'; // sube → ataca azul
+   976→  }
+   977→  if(!att){
+   978→    const adv={blue:0,red:0};
+   979→    S.players.forEach(p=>{
+   980→      if(p.ball)return;const kf=baseTracks[p.id];if(!kf)return;
+   981→      const d=(kf[0].y-kf[kf.length-1].y)*(p.team==='blue'?1:-1);
+   982→      adv[p.team]+=Math.max(0,d);
+   983→    });
+   984→    if(Math.abs(adv.blue-adv.red)>0.02)att=adv.blue>adv.red?'blue':'red';
+   985→  }
+   986→  if(!att){
+   987→    const b0=ballAt(0);let bd=9;
+   988→    S.players.forEach(p=>{
+   989→      if(p.ball||p.gk)return;
+   990→      const d=Math.hypot(start[p.id].x-b0.x,start[p.id].y-b0.y);
+   991→      if(d<bd){bd=d;att=p.team}
+   992→    });
+   993→  }
+   994→  att=att||'blue';
+   995→  const def=att==='blue'?'red':'blue';
+   996→  const dAtt=dirOf(att);
+   997→
+   998→  // presor: defensor más cercano a la pelota al inicio (no arquero)
+   999→  let presser=null,pd=9;
+  1000→  S.players.forEach(p=>{
+  1001→    if(p.team!==def||p.gk||p.ball)return;
+  1002→    const b0=ballAt(0),d=Math.hypot(start[p.id].x-b0.x,start[p.id].y-b0.y);
+  1003→    if(d<pd){pd=d;presser=p.id}
+  1004→  });
+  1005→
+  1006→  // corredores especiales del equipo atacante (estilo)
+  1007→  let winger=null,striker=null;
+  1008→  if(style==='attack'||style==='wings'||style==='balanced'){
+  1009→    const b0=ballAt(0),side=b0.x<0.5?'L':'R';
+  1010→    let wBest=0;
+  1011→    S.players.forEach(p=>{
+  1012→      if(p.team!==att||p.gk||active[p.id])return;
+  1013→      const sx=start[p.id].x;
+  1014→      const sameSide=side==='L'?sx<0.5:sx>=0.5;
+  1015→      const wide=Math.abs(sx-0.5);
+  1016→      if(sameSide&&wide>wBest){wBest=wide;winger=p.id}
+  1017→    });
+  1018→    let sBest=9;
+  1019→    S.players.forEach(p=>{
+  1020→      if(p.team!==att||p.gk||active[p.id]||p.id===winger)return;
+  1021→      const gy=att==='blue'?0:1;
+  1022→      const d=Math.abs(start[p.id].y-gy);
+  1023→      if(d<sBest){sBest=d;striker=p.id}
+  1024→    });
+  1025→  }
+  1026→
+  1027→  const depth= style==='attack'?0.26 : style==='defense'?0.07 : style==='wings'?0.16 : 0.16;
+  1028→  const out={};
+  1029→  const steps=Math.max(2,Math.ceil(duration/SAMPLE));
+  1030→
+  1031→  for(const p of S.players){
+  1032→    const id=p.id;
+  1033→    if(active[id]||p.ball&&ballMoved){out[id]=baseTracks[id];continue}
+  1034→    if(p.ball){ // pelota quieta: queda donde está
+  1035→      out[id]=baseTracks[id]||[{t:0,x:p.x,y:p.y},{t:duration,x:p.x,y:p.y}];continue;
+  1036→    }
+  1037→    const a=start[id],kf=[];
+  1038→    for(let s=0;s<=steps;s++){
+  1039→      const t=Math.min(duration,s*SAMPLE);
+  1040→      const b=ballAt(t);
+  1041→      const prog=clamp(((ballAt(0).y-b.y)*dAtt*-1)/0.55,0,1); // avance de la pelota 0→1
+  1042→      let x,y;
+  1043→
+  1044→      if(p.gk){ // arquero: se desplaza lateralmente siguiendo la pelota, pegado a su arco
+  1045→        x=0.5+(b.x-0.5)*0.28;
+  1046→        y=p.team==='blue'?clamp(a.y,0.87,0.94):clamp(a.y,0.06,0.13);
+  1047→      }
+  1048→      else if(p.team===att){
+  1049→        // compañero de apoyo
+  1050→        x=a.x+(b.x-a.x)*0.22;
+  1051→        y=a.y + dAtt*depth*prog;
+  1052→        if(id===winger){ // desborde por banda
+  1053→          const tx=ballAt(0).x<0.5?0.10:0.90;
+  1054→          x=a.x+(tx-a.x)*Math.min(1,prog*1.5);
+  1055→          y=a.y + dAtt*(depth+0.16)*prog;
+  1056→        }
+  1057→        if(id===striker){ // ataque al área / primer palo
+  1058→          const gy=att==='blue'?0.12:0.88;
+  1059→          x=a.x+(0.5+(b.x-0.5)*0.4-a.x)*prog;
+  1060→          y=a.y+(gy-a.y)*Math.min(1,prog*1.25);
+  1061→        }
+  1062→        if(style==='wings'&&id!==winger&&Math.abs(a.x-0.5)>0.18){
+  1063→          x=a.x+( (a.x<0.5?0.13:0.87) -a.x)*0.5*prog;
+  1064→        }
+  1065→        // no pisar la pelota
+  1066→        const dball=Math.hypot(x-b.x,y-b.y);
+  1067→        if(dball<0.085){const f=(0.085-dball);x+= (x-b.x)/Math.max(0.01,dball)*f;y+=(y-b.y)/Math.max(0.01,dball)*f}
+  1068→      }
+  1069→      else{ // defensor: el bloque bascula hacia la pelota y se repliega; el más cercano presiona
+  1070→        const retreat=def==='blue'?0.10:-0.10; // hacia su propio arco
+  1071→        x=a.x+(b.x-a.x)*0.30;
+  1072→        y=a.y+retreat*prog;
+  1073→        if(style==='defense'){
+  1074→          x=a.x+(b.x-a.x)*0.18+(0.5-a.x)*0.18;
+  1075→          y=a.y+retreat*1.4*prog;
+  1076→        }
+  1077→        if(id===presser){ // sale a presionar al portador, tapando el camino al arco
+  1078→          const off=def==='blue'?0.055:-0.055;
+  1079→          const reach=Math.min(1,0.25+prog*1.1);
+  1080→          x=a.x+(b.x-a.x)*reach;
+  1081→          y=a.y+(b.y+off-a.y)*reach;
+  1082→        }
+  1083→      }
+  1084→      kf.push({t,x:clamp(x,0.03,0.97),y:clamp(y,0.03,0.97)});
+  1085→    }
+  1086→    out[id]=kf;
+  1087→  }
+  1088→  return {tracks:out, att};
+  1089→}
+  1090→
+  1091→function previewComplete(){
+  1092→  if(!Object.keys(S.tracks).length||S.duration<=0){toast('Primero grabá una jugada');return}
+  1093→  const res=completePlay(S.tracks,S.duration,S.aiStyle,S.attTeam);
+  1094→  S.preview={tracks:res.tracks,duration:S.duration};
+  1095→  S.prevShow='ai';
+  1096→  closeSheets();updatePrevSeg();
+  1097→  document.getElementById('pAI').classList.add('show');
+  1098→  document.getElementById('btnRow').style.display='none';
+  1099→  document.getElementById('aiBar').classList.add('show');
+  1100→  stopPlay();applyFrame(0);play();
+  1101→  toast('✨ Ataca '+(res.att==='blue'?'AZUL 🔵':'ROJO 🔴')+' — compará y aplicá');
+  1102→  updateUI();
+  1103→}
+  1104→function applyPreview(){
+  1105→  if(!S.preview)return;
+  1106→  S.tracks=S.preview.tracks;S.duration=S.preview.duration;
+  1107→  discardPreview(true);
+  1108→  stopPlay();toast('✓ Mejora aplicada a tu jugada');updateUI();
+  1109→}
+  1110→function discardPreview(silent){
+  1111→  if(!S.preview&&silent)return finishPrevUI();
+  1112→  S.preview=null;
+  1113→  finishPrevUI();
+  1114→  if(!silent){stopPlay();toast('Se mantiene tu jugada original')}
+  1115→}
+  1116→function finishPrevUI(){
+  1117→  document.getElementById('pAI').classList.remove('show');
+  1118→  document.getElementById('aiBar').classList.remove('show');
+  1119→  document.getElementById('btnRow').style.display='flex';
+  1120→  updateUI();
+  1121→}
+  1122→function updatePrevSeg(){
+  1123→  document.getElementById('aiSeeOrig').classList.toggle('on',S.prevShow==='orig');
+  1124→  document.getElementById('aiSeeAI').classList.toggle('on',S.prevShow==='ai');
+  1125→}
+  1126→document.getElementById('aiSeeOrig').onclick=()=>{S.prevShow='orig';updatePrevSeg();stopPlay();play()};
+  1127→document.getElementById('aiSeeAI').onclick=()=>{S.prevShow='ai';updatePrevSeg();stopPlay();play()};
+  1128→document.getElementById('aiReplay').onclick=()=>{stopPlay();play()};
+  1129→document.getElementById('aiYes').onclick=applyPreview;
+  1130→document.getElementById('aiNo').onclick=()=>discardPreview(false);
+  1131→
+  1132→// ---- jugada de ejemplo ----
+  1133→function demoPlay(){
+  1134→  discardPreview(true);
+  1135→  buildPlayers(true);applyFormationsQuiet();
+  1136→  const D=6200,side=Math.random()<0.5?-1:1; // -1 izq, 1 der
+  1137→  const sx=0.5+side*0.34;
+  1138→  const tr={};
+  1139→  for(const p of S.players)tr[p.id]=[{t:0,x:p.x,y:p.y}];
+  1140→  // pelota: salida → banda → centro al área → definición
+  1141→  const ball=tr['ball'];
+  1142→  ball.length=0;
+  1143→  ball.push({t:0,x:.5,y:.58},{t:900,x:.5,y:.50},{t:2300,x:clamp(sx+side*0.08,0.08,0.92),y:.38},
+  1144→            {t:3300,x:clamp(sx+side*0.10,0.06,0.94),y:.26},{t:4400,x:.52,y:.15},{t:5400,x:.5,y:.055});
+  1145→  // corredores azules: lateral/volante por banda + delantero
+  1146→  const blues=S.players.filter(p=>p.team==='blue'&&!p.gk);
+  1147→  let wing=blues.reduce((a,b)=>(side>0?b.x>a.x:b.x<a.x)?b:a,blues[0]);
+  1148→  let str=blues.filter(p=>p!==wing).reduce((a,b)=>b.y<a.y?b:a,blues.filter(p=>p!==wing)[0]||blues[0]);
+  1149→  if(wing){const k=tr[wing.id];k.push({t:2400,x:clamp(sx+side*0.12,0.06,0.94),y:.40},{t:3600,x:clamp(sx+side*0.13,0.05,0.95),y:.24})}
+  1150→  if(str&&str!==wing){const k=tr[str.id];k.push({t:2600,x:.5,y:.30},{t:4600,x:.53,y:.16},{t:5300,x:.5,y:.10})}
+  1151→  // cerrar tracks
+  1152→  for(const id in tr){const k=tr[id],l=k[k.length-1];if(l.t<D)k.push({t:D,x:l.x,y:l.y})}
+  1153→  const full=completePlay(tr,D,S.aiStyle,'blue').tracks;
+  1154→  S.tracks=tr;S.duration=D; // "tu jugada" = guion base (pelota+corredores)
+  1155→  S.preview={tracks:full,duration:D};
+  1156→  S.prevShow='ai';updatePrevSeg();
+  1157→  closeSheets();
+  1158→  document.getElementById('pAI').classList.add('show');
+  1159→  document.getElementById('btnRow').style.display='none';
+  1160→  document.getElementById('aiBar').classList.add('show');
+  1161→  stopPlay();applyFrame(0);play();
+  1162→  toast('🎲 Jugada de ejemplo (estilo '+STYLES.find(s=>s.id===S.aiStyle).n.toLowerCase()+')');
+  1163→  updateUI();
+  1164→}
+  1165→function applyFormationsQuiet(){
+  1166→  const f1=formationPositions(S.form1,S.team1,true);let i=0;
+  1167→  S.players.forEach(p=>{if(p.team==='blue'){p.x=f1[i][0];p.y=f1[i][1];i++}});
+  1168→  const f2=formationPositions(S.form2,S.team2,false);i=0;
+  1169→  S.players.forEach(p=>{if(p.team==='red'){p.x=f2[i][0];p.y=f2[i][1];i++}});
+  1170→}
+  1171→
+  1172→// ---------------- Guardar / cargar ----------------
+  1173→function renderPlays(){
+  1174→  const list=document.getElementById('playsList');list.innerHTML='';
+  1175→  if(!S.saved.length){
+  1176→    list.innerHTML='<div class="empty">Todavía no guardaste jugadas.<br>Grabá una y tocá 💾 Guardar.</div>';return;
+  1177→  }
+  1178→  S.saved.forEach((pl,i)=>{
+  1179→    const el=document.createElement('div');el.className='playItem';
+  1180→    el.innerHTML=`<span style="font-size:21px">📋</span>
+  1181→      <span class="tx"><b>${esc(pl.name)}</b><small>F${pl.game} · ${pl.t1}v${pl.t2} · ${(pl.duration/1000).toFixed(1)}s</small></span>
+  1182→      <button class="miniBtn" data-a="l" data-i="${i}">Cargar</button>
+  1183→      <button class="miniBtn warn" data-a="d" data-i="${i}">✕</button>`;
+  1184→    list.appendChild(el);
+  1185→  });
+  1186→  list.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  1187→    const i=+b.dataset.i;
+  1188→    if(b.dataset.a==='d'){S.saved.splice(i,1);renderPlays();toast('Jugada eliminada')}
+  1189→    else loadPlay(i);
+  1190→  });
+  1191→}
+  1192→const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML};
+  1193→function loadPlay(i){
+  1194→  const pl=S.saved[i];
+  1195→  discardPreview(true);
+  1196→  S.game=pl.game;S.team1=pl.t1;S.team2=pl.t2;S.form1=pl.f1;S.form2=pl.f2;
+  1197→  syncGameSeg();buildPlayers();
+  1198→  S.players.forEach(p=>{const m=pl.meta[p.id];if(m){p.name=m.name;p.num=m.num}});
+  1199→  S.tracks=JSON.parse(JSON.stringify(pl.tracks));
+  1200→  S.duration=pl.duration;S.drawings=JSON.parse(JSON.stringify(pl.drawings||[]));
+  1201→  S.carrier=null;S.fx=[];
+  1202→  S.playT=0;resize();applyFrame(0);setMode('idle');closeSheets();
+  1203→  toast('Cargada: '+pl.name);
+  1204→}
+  1205→document.getElementById('saveOk').onclick=()=>{
+  1206→  const name=document.getElementById('playName').value.trim()||'Jugada '+(S.saved.length+1);
+  1207→  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num});
+  1208→  S.saved.push({name,game:S.game,t1:S.team1,t2:S.team2,f1:S.form1,f2:S.form2,
+  1209→    duration:S.duration,tracks:JSON.parse(JSON.stringify(S.tracks)),
+  1210→    drawings:JSON.parse(JSON.stringify(S.drawings)),meta});
+  1211→  document.getElementById('playName').value='';
+  1212→  closeSheets();toast('💾 Guardada: '+name);
+  1213→};
+  1214→
+  1215→// ---------------- UI general ----------------
+  1216→function setMode(m){
+  1217→  S.mode=m;
+  1218→  document.getElementById('pRec').classList.toggle('show',m==='rec');
+  1219→  document.getElementById('pPlay').classList.toggle('show',m==='play'&&!S.preview);
+  1220→  document.getElementById('pPause').classList.toggle('show',m==='pause');
+  1221→  updateUI();
+  1222→}
+  1223→function updateUI(){
+  1224→  const has=hasPlay(),rec=S.mode==='rec',pl=S.mode==='play',pa=S.mode==='pause',pv=!!S.preview;
+  1225→  const bR=document.getElementById('bRec');
+  1226→  bR.classList.toggle('recOn',rec);
+  1227→  bR.querySelector('.ico').textContent=rec?'⏹':'⏺';
+  1228→  document.getElementById('bRecL').textContent=rec?'Detener':(Object.keys(S.tracks).length?'Regrabar':'Grabar');
+  1229→  bR.disabled=pl||pa||pv;
+  1230→
+  1231→  const bP=document.getElementById('bPlay');
+  1232→  bP.disabled=!has||rec;
+  1233→  bP.querySelector('.ico').textContent=pl?'⏸':'▶';
+  1234→  document.getElementById('bPlayL').textContent=pl?'Pausar':(pa?'Continuar':'Reproducir');
+  1235→
+  1236→  document.getElementById('bStop').disabled=!(pl||pa);
+  1237→  document.getElementById('bSave').disabled=!Object.keys(S.tracks).length||rec||pv;
+  1238→  document.getElementById('bReset').disabled=rec;
+  1239→
+  1240→  scrub.disabled=!has||rec;
+  1241→  document.getElementById('tTot').textContent=(curDuration()/1000).toFixed(1)+'s';
+  1242→  if(!has){document.getElementById('tCur').textContent='0.0s';scrub.value=0;scrub.style.setProperty('--fill','0%')}
+  1243→
+  1244→  document.getElementById('rDraw').disabled=pl||rec;
+  1245→  document.getElementById('rForm').disabled=pl||pa||rec||pv;
+  1246→  document.getElementById('rTeams').disabled=pl||pa||rec||pv;
+  1247→  document.getElementById('rAI').disabled=pl&&!pv||rec;
+  1248→}
+  1249→
+  1250→document.getElementById('bRec').onclick=()=>S.mode==='rec'?stopRec():startRec();
+  1251→document.getElementById('bPlay').onclick=()=>S.mode==='play'?pause():play();
+  1252→document.getElementById('bStop').onclick=stopPlay;
+  1253→document.getElementById('bReset').onclick=()=>{
+  1254→  discardPreview(true);clearPlay();S.drawings=[];S.carrier=null;S.fx=[];
+  1255→  buildPlayers(true);applyFormationsQuiet();setMode('idle');draw();
+  1256→  document.getElementById('bPlayL').textContent='Reproducir';
+  1257→  toast('Pizarra limpia');
+  1258→};
+  1259→document.getElementById('bSave').onclick=()=>openSheet('shSave');
+  1260→function clearPlay(silent){S.tracks={};S.duration=0;S.playT=0;if(!silent)updateUI()}
+  1261→
+  1262→// rail
+  1263→document.getElementById('rDraw').onclick=()=>{
+  1264→  if(S.mode==='rec'){toast('Terminá la grabación para dibujar');return}
+  1265→  S.drawMode=!S.drawMode;
+  1266→  document.getElementById('rDraw').classList.toggle('on',S.drawMode);
+  1267→  document.getElementById('drawBar').classList.toggle('show',S.drawMode);
+  1268→  toast(S.drawMode?'✏️ Dibujá flechas sobre la cancha':'Modo mover jugadores');
+  1269→};
+  1270→document.getElementById('dExit').onclick=()=>document.getElementById('rDraw').click();
+  1271→document.getElementById('dUndo').onclick=()=>{S.drawings.pop();draw()};
+  1272→document.getElementById('dClear').onclick=()=>{S.drawings=[];draw();toast('Dibujos borrados')};
+  1273→document.getElementById('dWhite').onclick=()=>{S.drawColor='#f3f6f1';selCol('dWhite')};
+  1274→document.getElementById('dAmber').onclick=()=>{S.drawColor='#ffb020';selCol('dAmber')};
+  1275→function selCol(id){document.querySelectorAll('.dBtn.col').forEach(b=>b.classList.toggle('on',b.id===id))}
+  1276→
+  1277→document.getElementById('rForm').onclick=()=>openSheet('shForm');
+  1278→document.getElementById('rTeams').onclick=()=>openSheet('shTeams');
+  1279→document.getElementById('rAI').onclick=()=>{if(S.preview){toast('Cerrá la vista previa primero (✓ o ✕)');return}openSheet('shAI')};
+  1280→document.getElementById('hPlays').onclick=()=>openSheet('shPlays');
+  1281→document.getElementById('hHelp').onclick=()=>document.getElementById('onboard').style.display='flex';
+  1282→document.getElementById('chipSpeed').onclick=()=>openSheet('shSpeed');
+  1283→
+  1284→// segmento de modalidad
+  1285→document.querySelectorAll('#gameSeg button').forEach(b=>b.onclick=()=>{
+  1286→  const g=+b.dataset.g;if(g===S.game)return;
+  1287→  if(S.mode!=='idle'){toast('Detené la reproducción/grabación primero');return}
+  1288→  discardPreview(true);
+  1289→  S.game=g;S.team1=g;S.team2=g;
+  1290→  S.form1=DEFAULT_FORM[g];S.form2=DEFAULT_FORM[g];
+  1291→  syncGameSeg();clearPlay(true);S.drawings=[];S.carrier=null;S.fx=[];
+  1292→  buildPlayers();resize();updateUI();
+  1293→  toast('Fútbol '+g+' · '+DEFAULT_FORM[g]);
+  1294→});
+  1295→function syncGameSeg(){
+  1296→  document.querySelectorAll('#gameSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.g===S.game));
+  1297→}
+  1298→
+  1299→// sheets
+  1300→const bg=document.getElementById('sheetBg');
+  1301→function openSheet(id){
+  1302→  closeSheets();bg.classList.add('open');
+  1303→  document.getElementById(id).classList.add('open');
+  1304→  if(id==='shPlays')renderPlays();
+  1305→  if(id==='shForm')renderFormSheet();
+  1306→  if(id==='shAI')renderAISheet();
+  1307→  if(id==='shTeams'){S._t1=S.team1;S._t2=S.team2;syncTeams()}
+  1308→}
+  1309→function closeSheets(){bg.classList.remove('open');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'))}
+  1310→bg.onclick=closeSheets;
+  1311→
+  1312→// velocidad
+  1313→function renderSpeeds(){
+  1314→  const l=document.getElementById('speedList');l.innerHTML='';
+  1315→  SPEEDS.forEach(s=>{
+  1316→    const el=document.createElement('div');
+  1317→    el.className='opt'+(S.speed===s.v?' sel':'');
+  1318→    el.innerHTML=`<span class="ic" style="background:#ffb02022">${s.i}</span>
+  1319→      <span class="tx"><b>${s.n} · ${s.v}x</b><small>${s.d}</small></span><span class="ck">✔</span>`;
+  1320→    el.onclick=()=>{S.speed=s.v;document.getElementById('speedLabel').textContent=s.v+'x';renderSpeeds();closeSheets();toast('Velocidad '+s.v+'x')};
+  1321→    l.appendChild(el);
+  1322→  });
+  1323→}
+  1324→
+  1325→// equipos
+  1326→function syncTeams(){
+  1327→  document.getElementById('t1n').textContent=S._t1;
+  1328→  document.getElementById('t2n').textContent=S._t2;
+  1329→  document.getElementById('t1m').disabled=S._t1<=3;document.getElementById('t1p').disabled=S._t1>=11;
+  1330→  document.getElementById('t2m').disabled=S._t2<=3;document.getElementById('t2p').disabled=S._t2>=11;
+  1331→}
+  1332→S._t1=5;S._t2=5;
+  1333→document.getElementById('t1m').onclick=()=>{S._t1=Math.max(3,S._t1-1);syncTeams()};
+  1334→document.getElementById('t1p').onclick=()=>{S._t1=Math.min(11,S._t1+1);syncTeams()};
+  1335→document.getElementById('t2m').onclick=()=>{S._t2=Math.max(3,S._t2-1);syncTeams()};
+  1336→document.getElementById('t2p').onclick=()=>{S._t2=Math.min(11,S._t2+1);syncTeams()};
+  1337→document.getElementById('teamsApply').onclick=()=>{
+  1338→  S.team1=S._t1;S.team2=S._t2;
+  1339→  if(!parseForm(S.form1,S.team1))S.form1='auto';
+  1340→  if(!parseForm(S.form2,S.team2))S.form2='auto';
+  1341→  discardPreview(true);clearPlay(true);S.carrier=null;S.fx=[];
+  1342→  buildPlayers(true);setMode('idle');draw();closeSheets();
+  1343→  toast(`Equipos: ${S.team1} vs ${S.team2}`);
+  1344→};
+  1345→
+  1346→// formaciones
+  1347→let formTeam='blue';
+  1348→document.getElementById('ftBlue').onclick=()=>{formTeam='blue';renderFormSheet()};
+  1349→document.getElementById('ftRed').onclick=()=>{formTeam='red';renderFormSheet()};
+  1350→function renderFormSheet(){
+  1351→  document.getElementById('ftBlue').classList.toggle('on',formTeam==='blue');
+  1352→  document.getElementById('ftRed').classList.toggle('on',formTeam==='red');
+  1353→  document.getElementById('formModeLbl').textContent='FÚTBOL '+S.game+' · EQUIPO '+(formTeam==='blue'?'AZUL':'ROJO');
+  1354→  const count=formTeam==='blue'?S.team1:S.team2;
+  1355→  const cur=formTeam==='blue'?S.form1:S.form2;
+  1356→  const box=document.getElementById('formChips');box.innerHTML='';
+  1357→  let any=false;
+  1358→  FORMATIONS[S.game].forEach(code=>{
+  1359→    const ok=!!parseForm(code,count);
+  1360→    const b=document.createElement('button');
+  1361→    b.className='fChip'+(cur===code?' sel':'');
+  1362→    b.textContent=code;b.disabled=!ok;if(ok)any=true;
+  1363→    b.onclick=()=>{applyFormation(formTeam,code);renderFormSheet();toast('Formación '+code+' aplicada')};
+  1364→    box.appendChild(b);
+  1365→  });
+  1366→  document.getElementById('formHint').textContent=any?
+  1367→    'Aplicar una formación reubica al equipo y borra la jugada en curso.':
+  1368→    `Con ${count} jugadores no hay formaciones estándar de Fútbol ${S.game}. Ajustá la cantidad en 👥.`;
+  1369→}
+  1370→
+  1371→// IA sheet
+  1372→function renderAISheet(){
+  1373→  const ab=document.getElementById('attChips');ab.innerHTML='';
+  1374→  [['auto','🤖 Auto'],['blue','🔵 Azul'],['red','🔴 Rojo']].forEach(([id,lbl])=>{
+  1375→    const b=document.createElement('button');
+  1376→    b.className='fChip'+(S.attTeam===id?' sel':'');
+  1377→    b.textContent=lbl;
+  1378→    b.onclick=()=>{S.attTeam=id;renderAISheet()};
+  1379→    ab.appendChild(b);
+  1380→  });
+  1381→  const box=document.getElementById('styleChips');box.innerHTML='';
+  1382→  STYLES.forEach(s=>{
+  1383→    const b=document.createElement('button');
+  1384→    b.className='fChip'+(S.aiStyle===s.id?' sel':'');
+  1385→    b.textContent=s.i+' '+s.n;
+  1386→    b.onclick=()=>{S.aiStyle=s.id;renderAISheet()};
+  1387→    box.appendChild(b);
+  1388→  });
+  1389→  const has=Object.keys(S.tracks).length>0&&S.duration>0;
+  1390→  document.getElementById('aiHasPlay').style.display=has?'block':'none';
+  1391→  document.getElementById('aiNoPlay').style.display=has?'none':'block';
+  1392→}
+  1393→document.getElementById('aiComplete').onclick=previewComplete;
+  1394→document.getElementById('aiDemo').onclick=demoPlay;
+  1395→
+  1396→// edición jugador
+  1397→function openPlayerEdit(p){
+  1398→  S.editing=p;
+  1399→  document.getElementById('plName').value=p.name||'';
+  1400→  document.getElementById('plNum').value=p.num;
+  1401→  openSheet('shPlayer');
+  1402→}
+  1403→document.getElementById('plOk').onclick=()=>{
+  1404→  if(S.editing){
+  1405→    S.editing.name=document.getElementById('plName').value.trim().slice(0,10);
+  1406→    const n=parseInt(document.getElementById('plNum').value);
+  1407→    if(!isNaN(n))S.editing.num=clamp(n,0,99);
+  1408→  }
+  1409→  S.editing=null;closeSheets();draw();
+  1410→};
+  1411→
+  1412→// toast + onboarding
+  1413→let toastT;
+  1414→function toast(m){
+  1415→  const t=document.getElementById('toast');
+  1416→  t.textContent=m;t.classList.add('show');
+  1417→  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);
+  1418→}
+  1419→document.getElementById('obOk').onclick=()=>{document.getElementById('onboard').style.display='none'};
+  1420→
+  1421→// ---------------- Init ----------------
+  1422→buildPlayers();
+  1423→resize();
+  1424→setMode('idle');
+  1425→renderSpeeds();
+  1426→</script>
+  1427→</body>
+  1428→</html>
+  1429→
