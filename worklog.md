@@ -206,3 +206,24 @@ Stage Summary:
 - Feature gating funcional Free vs Pro.
 - Persistencia de plan en localStorage.
 - Listo para: demo a usuarios, landing page externa, integración Stripe/StoreKit.
+
+---
+Task ID: 12
+Agent: main (Z.ai Code)
+Task: Verificar rediseño + Modo Presentación.
+
+Work Log:
+- Verificación post-rediseño: init OK, grabar OK, IA#1 FREE OK, IA#2 FREE
+  bloquea y abre paywall, PRO activa IA ilimitada. Sin errores consola.
+- Modo Presentación implementado:
+  * Botón 🖥️ en el riel + CSS que oculta header/controls/rail/statusBar.
+  * Botón ✕ semi-transparente arriba a la derecha para salir.
+  * Auto-reproduce la jugada en loop al entrar.
+  * Resize automático al salir.
+  * Validaciones: no presentar sin jugada, no presentar grabando.
+- Verificado: cancha ocupa toda la pantalla, sin UI, reproduciendo en loop.
+  VLM confirmó "limpio para proyectar".
+
+Stage Summary:
+- Rediseño verificado, nada roto.
+- Modo Presentación listo para vestuarios (feature que piden DT en reviews).

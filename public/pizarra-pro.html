@@ -354,6 +354,27 @@
   #onboard .dots span{width:6px;height:6px;border-radius:50%;background:var(--line)}
   #onboard .dots span.on{background:var(--accent);width:18px}
   @media (prefers-reduced-motion:reduce){.sheet{transition:none}.pill.rec i{animation:none}}
+
+  /* ================= PRESENTACIÓN ================= */
+  /* Pantalla completa sin botones, para proyectar en vestuario */
+  body.presenting header,
+  body.presenting #controls,
+  body.presenting #rail,
+  body.presenting #drawBar,
+  body.presenting #undoFloat,
+  body.presenting #statusBar{display:none !important}
+  body.presenting #fieldWrap{padding:8px}
+  body.presenting #fieldCanvas{box-shadow:none;border-radius:8px}
+  body.presenting #presentExit{
+    position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:200;
+    width:44px;height:44px;border-radius:50%;border:none;
+    background:rgba(0,0,0,.45);color:#fff;font-size:20px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+    opacity:.5;transition:opacity .2s;
+  }
+  body.presenting #presentExit:active{opacity:1;transform:scale(.92)}
+  body.presenting #presentExit:hover{opacity:1}
+  #presentExit{display:none}
 </style>
 </head>
 <body>
@@ -388,6 +409,7 @@
   <canvas id="fieldCanvas"></canvas>
   <button id="undoFloat" class="floatBtn">↶ Deshacer</button>
   <div id="rail">
+    <button class="railBtn" id="rPresent" title="Modo presentación (vestuario)">🖥️</button>
     <button class="railBtn" id="rDraw" title="Dibujar flechas">✏️</button>
     <button class="railBtn" id="rForm" title="Formaciones">📐</button>
     <button class="railBtn" id="rTeams" title="Equipos">👥</button>
@@ -574,6 +596,7 @@
 </div>
 
 <div id="toast"></div>
+<button id="presentExit" title="Salir de presentación">✕</button>
 
 <div id="onboard">
   <div class="card">
@@ -1546,6 +1569,24 @@ function selCol(id){document.querySelectorAll('.dBtn.col').forEach(b=>b.classLis
 document.getElementById('rForm').onclick=()=>openSheet('shForm');
 document.getElementById('rTeams').onclick=()=>openSheet('shTeams');
 document.getElementById('rAI').onclick=()=>{if(S.preview){toast('Cerrá la vista previa primero (✓ o ✕)');return}openSheet('shAI')};
+document.getElementById('rPresent').onclick=enterPresent;
+document.getElementById('presentExit').onclick=exitPresent;
+function enterPresent(){
+  if(!hasPlay()){toast('Grabá o cargá una jugada antes de presentar');return}
+  if(S.mode==='rec'){toast('Detené la grabación antes de presentar');return}
+  document.body.classList.add('presenting');
+  document.getElementById('presentExit').style.display='flex';
+  // reproducir desde el inicio en loop
+  S.loop=true;document.getElementById('chipLoop').classList.add('on');
+  stopPlay();play();
+  toast('🖥️ Modo presentación · tocá ✕ para salir');
+}
+function exitPresent(){
+  document.body.classList.remove('presenting');
+  document.getElementById('presentExit').style.display='none';
+  pause();
+  resize();
+}
 document.getElementById('hPlays').onclick=()=>openSheet('shPlays');
 document.getElementById('hHelp').onclick=()=>document.getElementById('onboard').style.display='flex';
 document.getElementById('hUpgrade').onclick=()=>openSheet('shPlans');
