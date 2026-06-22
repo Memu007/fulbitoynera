@@ -418,6 +418,79 @@
   }
   .fairnessHint.warn{background:#FBBF2411;border-color:#FBBF2433;color:var(--amber)}
 
+  /* ================= AUTH (login/registro/recuperar) ================= */
+  #authModal{
+    position:fixed;inset:0;z-index:110;background:rgba(8,12,14,.92);backdrop-filter:blur(8px);
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  #authModal.show{display:flex}
+  #authModal .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    padding:28px 22px;max-width:360px;width:100%;
+    box-shadow:0 24px 60px rgba(0,0,0,.6);
+  }
+  #authModal .em{
+    width:60px;height:60px;border-radius:16px;margin:0 auto 14px;
+    background:linear-gradient(135deg,var(--accent),#0F9D77);
+    display:flex;align-items:center;justify-content:center;font-size:28px;
+    box-shadow:0 8px 24px rgba(34,211,166,.35);
+  }
+  #authModal h3{font-size:19px;font-weight:800;letter-spacing:-.3px;text-align:center;margin-bottom:4px}
+  #authModal .sub{font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:18px;line-height:1.4}
+  #authForm{display:flex;flex-direction:column;gap:10px}
+  #authForm .field{position:relative}
+  #authForm .field small{
+    position:absolute;left:14px;top:8px;font-size:9.5px;color:var(--muted-2);
+    letter-spacing:.5px;text-transform:uppercase;font-weight:700;pointer-events:none;
+  }
+  #authForm input{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    padding:22px 14px 8px;color:var(--chalk);font-size:14px;outline:none;font-family:inherit;
+  }
+  #authForm input:focus{border-color:var(--accent)}
+  #authForm button[type=submit]{
+    border:none;border-radius:12px;padding:14px;font-size:13px;font-weight:800;
+    background:var(--accent);color:#0E1416;cursor:pointer;margin-top:6px;letter-spacing:.3px;
+  }
+  #authForm button[type=submit]:active{transform:scale(.98)}
+  .authSwitch{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+  .authSwitch a{color:var(--accent);font-weight:700;text-decoration:none;cursor:pointer}
+  .authLinks{display:flex;justify-content:space-between;margin-top:10px;font-size:11.5px}
+  .authLinks a{color:var(--muted);text-decoration:none;cursor:pointer}
+  .authLinks a:hover{color:var(--chalk)}
+  .authError{
+    background:#EF444411;border:1px solid #EF444433;border-radius:10px;
+    padding:9px 12px;font-size:12px;color:var(--rec);margin-bottom:8px;display:none;
+  }
+  .authError.show{display:block}
+  .authSuccess{
+    background:#22D3A611;border:1px solid #22D3A633;border-radius:10px;
+    padding:9px 12px;font-size:12px;color:var(--accent);margin-bottom:8px;display:none;
+  }
+  .authSuccess.show{display:block}
+  .userPill{
+    display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:5px 10px 5px 7px;cursor:pointer;
+  }
+  .userPill .av{
+    width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0F9D77);
+    color:#0E1416;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;
+  }
+  .userPill .un{font-size:11.5px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .userMenu{
+    position:fixed;top:60px;right:14px;z-index:80;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:6px;min-width:160px;
+    box-shadow:var(--shadow-float);display:none;
+  }
+  .userMenu.show{display:block}
+  .userMenu button{
+    display:flex;width:100%;align-items:center;gap:9px;background:none;border:none;
+    color:var(--chalk);font-size:13px;font-weight:600;padding:9px 10px;border-radius:8px;cursor:pointer;
+    text-align:left;
+  }
+  .userMenu button:active{background:var(--panel)}
+  .userMenu button.danger{color:var(--rec)}
+
   /* ================= PRESENTACIÓN ================= */
   /* Pantalla completa sin botones, para proyectar en vestuario */
   body.presenting header,
@@ -462,6 +535,11 @@
       <h1>Pizarra <em>Pro</em></h1>
       <span class="pro-badge free" id="planBadge">FREE</span>
     </div>
+    <div id="userPill" class="userPill" style="display:none">
+      <div class="av" id="userAvatar">?</div>
+      <span class="un" id="userName">Usuario</span>
+    </div>
+    <button class="iconBtn" id="hLogin" title="Iniciar sesión">👤</button>
     <button class="iconBtn" id="hHome" title="Inicio (Landing)">🏠</button>
     <button class="iconBtn" id="hUpgrade" title="Mejorar a Pro">👑</button>
     <button class="iconBtn" id="hMinutes" title="Control de minutos (inferiores)">⏱️</button>
@@ -685,6 +763,43 @@
   <div class="body" id="templatesList">
     <p class="hint" style="text-align:left;padding:0 4px 14px">Cargá una jugada lista para ver, editar o guardar. Ideal para arrancar rápido.</p>
   </div>
+</div>
+
+<div id="authModal">
+  <div class="card">
+    <div class="em">⚽</div>
+    <h3 id="authTitle">Iniciar sesión</h3>
+    <p class="sub" id="authSub">Entrá para guardar tus jugadas en la nube y sincronizar entre dispositivos.</p>
+    <div class="authError" id="authError"></div>
+    <div class="authSuccess" id="authSuccess"></div>
+    <form id="authForm" autocomplete="on">
+      <div id="nameField" class="field" style="display:none">
+        <small>Nombre</small>
+        <input type="text" id="authName" placeholder="Tu nombre" maxlength="30" autocomplete="name">
+      </div>
+      <div class="field">
+        <small>Email</small>
+        <input type="email" id="authEmail" placeholder="tu@email.com" required autocomplete="email">
+      </div>
+      <div id="passField" class="field">
+        <small>Contraseña</small>
+        <input type="password" id="authPass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="current-password">
+      </div>
+      <button type="submit" id="authSubmit">ENTRAR</button>
+    </form>
+    <p class="authSwitch" id="authSwitch">
+      ¿No tenés cuenta? <a id="authSwitchLink">Registrate gratis</a>
+    </p>
+    <div class="authLinks" id="authLinks">
+      <a id="authForgot">¿Olvidaste tu contraseña?</a>
+    </div>
+  </div>
+</div>
+
+<div class="userMenu" id="userMenu">
+  <button id="umPlays">📂 Mis jugadas</button>
+  <button id="umUpgrade">👑 Mi plan</button>
+  <button id="umLogout" class="danger">🚪 Cerrar sesión</button>
 </div>
 
 <div id="toast"></div>
@@ -2355,15 +2470,138 @@ function toast(m){
 }
 document.getElementById('obOk').onclick=()=>{document.getElementById('onboard').style.display='none'};
 
+// ---------------- Auth (login/registro/recuperar) ----------------
+// Demo: usuarios guardados en localStorage. Listo para migrar a Supabase/Auth real.
+const USERS_KEY='pizarraPro.users.v1';
+const SESSION_KEY='pizarraPro.session.v1';
+S.user=null;
+let _authMode='login'; // login | register | forgot
+function loadUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]')}catch(e){return[]}}
+function saveUsers(u){try{localStorage.setItem(USERS_KEY,JSON.stringify(u))}catch(e){}}
+function loadSession(){try{const s=localStorage.getItem(SESSION_KEY);if(s)S.user=JSON.parse(s)}catch(e){}}
+function saveSession(){try{localStorage.setItem(SESSION_KEY,JSON.stringify(S.user))}catch(e){}}
+function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch(e){}S.user=null}
+function hash(s){ // hash simple (no seguro, solo demo. En prod: bcrypt server-side)
+  let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return String(h)
+}
+function initials(name){return(name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?'}
+
+function openAuth(mode){
+  _authMode=mode||'login';
+  const title=document.getElementById('authTitle');
+  const sub=document.getElementById('authSub');
+  const submit=document.getElementById('authSubmit');
+  const nameField=document.getElementById('nameField');
+  const passField=document.getElementById('passField');
+  const switchP=document.getElementById('authSwitch');
+  const links=document.getElementById('authLinks');
+  const err=document.getElementById('authError');
+  const suc=document.getElementById('authSuccess');
+  err.classList.remove('show');suc.classList.remove('show');
+  document.getElementById('authForm').reset();
+  if(_authMode==='login'){
+    title.textContent='Iniciar sesión';
+    sub.textContent='Entrá para guardar tus jugadas en la nube y sincronizar entre dispositivos.';
+    submit.textContent='ENTRAR';
+    nameField.style.display='none';
+    passField.style.display='block';
+    switchP.innerHTML='¿No tenés cuenta? <a id="authSwitchLink">Registrate gratis</a>';
+    links.style.display='flex';
+  } else if(_authMode==='register'){
+    title.textContent='Crear cuenta';
+    sub.textContent='Gratis. Guardá jugadas, sincronizá y desbloqueá la IA.';
+    submit.textContent='CREAR CUENTA';
+    nameField.style.display='block';
+    passField.style.display='block';
+    switchP.innerHTML='¿Ya tenés cuenta? <a id="authSwitchLink">Iniciar sesión</a>';
+    links.style.display='none';
+  } else if(_authMode==='forgot'){
+    title.textContent='Recuperar contraseña';
+    sub.textContent='Te enviamos un link a tu email para restablecerla.';
+    submit.textContent='ENVIAR LINK';
+    nameField.style.display='none';
+    passField.style.display='none';
+    switchP.innerHTML='¿Ya te acordás? <a id="authSwitchLink">Volver a iniciar sesión</a>';
+    links.style.display='none';
+  }
+  document.getElementById('authModal').classList.add('show');
+  const sl=document.getElementById('authSwitchLink');
+  if(sl)sl.onclick=()=>openAuth(_authMode==='login'?'register':'login');
+}
+function closeAuth(){document.getElementById('authModal').classList.remove('show')}
+function authError(msg){const e=document.getElementById('authError');e.textContent=msg;e.classList.add('show')}
+function authSuccess(msg){const e=document.getElementById('authSuccess');e.textContent=msg;e.classList.add('show')}
+function refreshUserUI(){
+  const pill=document.getElementById('userPill');
+  const loginBtn=document.getElementById('hLogin');
+  if(S.user){
+    pill.style.display='flex';
+    loginBtn.style.display='none';
+    document.getElementById('userAvatar').textContent=initials(S.user.name||S.user.email);
+    document.getElementById('userName').textContent=S.user.name||S.user.email.split('@')[0];
+  } else {
+    pill.style.display='none';
+    loginBtn.style.display='flex';
+  }
+}
+document.getElementById('hLogin').onclick=()=>openAuth('login');
+document.getElementById('authForgot').onclick=()=>openAuth('forgot');
+document.getElementById('authForm').onsubmit=(e)=>{
+  e.preventDefault();
+  const email=document.getElementById('authEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('authPass').value;
+  const name=document.getElementById('authName').value.trim();
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('authSuccess').classList.remove('show');
+  if(_authMode==='forgot'){
+    authSuccess('📧 Te enviamos un link a '+email+'. Revisá tu casilla.');
+    setTimeout(()=>{closeAuth();toast('📧 Link de recuperación enviado')},1800);
+    return;
+  }
+  if(_authMode==='register'){
+    if(name.length<2){authError('Decinos tu nombre (mínimo 2 caracteres)');return}
+    if(pass.length<6){authError('La contraseña tiene que tener al menos 6 caracteres');return}
+    const users=loadUsers();
+    if(users.find(u=>u.email===email)){authError('Ya existe una cuenta con ese email. Iniciá sesión.');return}
+    const u={id:'u'+Date.now(),name,email,passHash:hash(pass),created:Date.now()};
+    users.push(u);saveUsers(users);
+    S.user={id:u.id,name:u.name,email:u.email};saveSession();
+    authSuccess('✓ Cuenta creada. ¡Bienvenido, '+name+'!');
+    setTimeout(()=>{closeAuth();refreshUserUI();toast('✓ Sesión iniciada — bienvenido, '+name)},1200);
+    return;
+  }
+  // login
+  const users=loadUsers();
+  const u=users.find(x=>x.email===email);
+  if(!u||u.passHash!==hash(pass)){authError('Email o contraseña incorrectos');return}
+  S.user={id:u.id,name:u.name,email:u.email};saveSession();
+  closeAuth();refreshUserUI();
+  toast('✓ Hola de nuevo, '+u.name);
+};
+document.getElementById('userPill').onclick=(e)=>{
+  e.stopPropagation();
+  document.getElementById('userMenu').classList.toggle('show');
+};
+document.addEventListener('click',()=>document.getElementById('userMenu').classList.remove('show'));
+document.getElementById('umPlays').onclick=()=>{document.getElementById('userMenu').classList.remove('show');openSheet('shPlays')};
+document.getElementById('umUpgrade').onclick=()=>{document.getElementById('userMenu').classList.remove('show');openSheet('shPlans')};
+document.getElementById('umLogout').onclick=()=>{
+  document.getElementById('userMenu').classList.remove('show');
+  clearSession();refreshUserUI();
+  toast('Sesión cerrada');
+};
+
 // ---------------- Init ----------------
 loadSaved();
 loadPlan();
 loadRoster();
+loadSession();
 buildPlayers();
 resize();
 setMode('idle');
 renderSpeeds();
 updatePlanBadge();
+refreshUserUI();
 // Si hay una jugada compartida en el URL (?play=...), cargarla y reproducirla
 loadSharedPlay();
 

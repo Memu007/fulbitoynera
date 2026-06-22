@@ -623,3 +623,28 @@ Stage Summary:
   de inferiores: tracking de minutos y equidad.
 - Persiste en localStorage, funciona offline.
 - Freno acá. Dos loops completos (A + F).
+
+---
+Task ID: 28
+Agent: main (Z.ai Code)
+Task: Pantalla de alta/login/recuperar contraseña.
+
+Work Log:
+- CSS completo: authModal con card centrada, campos floating-label, error/success.
+- userPill en header (avatar con iniciales + nombre) + userMenu desplegable.
+- Botón 👤 hLogin cuando no hay sesión.
+- 3 modos: login, register, forgot. Toggle entre ellos con links.
+- Estado: S.user, USERS_KEY (usuarios registrados), SESSION_KEY (sesión actual).
+  Persistido en localStorage.
+- hash() simple (demo, no seguro — en prod: bcrypt server-side con Supabase/Auth).
+- Validaciones: email requerido, contraseña min 6, nombre min 2, email único.
+- refreshUserUI(): muestra/oculta pill vs botón login según sesión.
+- loadSession() en init → persiste tras reload.
+- User menu: Mis jugadas, Mi plan, Cerrar sesión.
+- Verificado: login abre, registro crea cuenta y loguea, pill visible, recarga
+  mantiene sesión, recuperar contraseña muestra success. Sin errores.
+
+Stage Summary:
+- Auth completo en modo demo (localStorage). Listo para migrar a Supabase/Auth.
+- Sesión persiste entre recargas.
+- Freno acá.
