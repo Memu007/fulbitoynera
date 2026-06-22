@@ -252,3 +252,22 @@ Stage Summary:
 - Decisión: NO forkear nada, seguir mejorando nuestra app.
 - Dinamismo mejorado de ~3/10 a 8/10 según VLM.
 - Próximo: easing en tiempo, ghost positions, más estilos IA.
+
+---
+Task ID: 14
+Agent: main (Z.ai Code)
+Task: Easing temporal easeInOutCubic en la reproducción.
+
+Work Log:
+- Implementado easeInOutQuad mezclado 55% lineal + 45% eased en applyFrame.
+- Solo se aplica durante playback (useEasing=true en loop y GIF export),
+  NO durante scrubbing (para que la barra se sienta lineal al arrastrar).
+- Verificación: t=25% eased=0.558 vs lineal=0.575 (más lento al inicio ✓),
+  t=75% eased=0.742 vs lineal=0.725 (más rápido, va a frenar ✓),
+  t=50% iguales (punto de cruce ✓). Sin errores.
+
+Stage Summary:
+- Easing completo: jugadores aceleran al arrancar, frenan al llegar.
+- GIF export también usa easing (consistencia visual).
+- Scrubbing sigue siendo lineal (UX correcta).
+- Dinamismo ahora: easing + flechas de dirección + bob + spin de pelota.

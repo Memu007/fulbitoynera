@@ -1198,14 +1198,26 @@ function activeTracks(){
 }
 function curDuration(){return S.preview&&S.prevShow==='ai'?S.preview.duration:S.duration}
 
-function applyFrame(t){
+// Easing temporal: los jugadores aceleran al arrancar y frenan al llegar.
+// No es lineal — se siente natural, como un jugador real corriendo.
+function easeInOutQuad(tn){
+  return tn<0.5 ? 2*tn*tn : 1-2*(1-tn)*(1-tn);
+}
+function applyFrame(t, useEasing){
   const tr=activeTracks();if(!tr)return;
+  const D=curDuration();
+  // Mezclar 55% lineal + 45% eased: sutil pero se nota (acelera al inicio, frena al final)
+  let tEff=t;
+  if(useEasing && D>200){
+    const tn=t/D;
+    tEff=(0.55*tn + 0.45*easeInOutQuad(tn))*D;
+  }
   const LOOK=60; // ms lookback para calcular velocidad
   for(const p of S.players){
     const kf=tr[p.id];
     if(kf&&kf.length){
-      const q=posAt(kf,t);
-      const qPrev=posAt(kf,Math.max(0,t-LOOK));
+      const q=posAt(kf,tEff);
+      const qPrev=posAt(kf,Math.max(0,tEff-LOOK));
       p.prevX=p.x; p.prevY=p.y;
       p.x=q.x; p.y=q.y;
       p.vx=q.x-qPrev.x; p.vy=q.y-qPrev.y;
@@ -1213,8 +1225,8 @@ function applyFrame(t){
     }
   }
   draw();
-  const D=curDuration(),sc=document.getElementById('scrub');
-  const pct=D?t/D*1000:0;
+  const sc=document.getElementById('scrub');
+  const pct=D?t/D*1000:0; // la barra muestra tiempo lineal (natural al scrollear)
   sc.value=pct;sc.style.setProperty('--fill',(pct/10)+'%');
   document.getElementById('tCur').textContent=(t/1000).toFixed(1)+'s';
 }
@@ -1225,13 +1237,13 @@ function loop(now){
   const D=curDuration();
   if(S.playT>=D){
     if(S.loop){
-      S.playT=0;applyFrame(0);requestAnimationFrame(loop);return;
+      S.playT=0;applyFrame(0,true);requestAnimationFrame(loop);return;
     }
-    S.playT=D;applyFrame(D);setMode('idle');
+    S.playT=D;applyFrame(D,true);setMode('idle');
     document.getElementById('bPlayL').textContent='Repetir';
     return;
   }
-  applyFrame(S.playT);
+  applyFrame(S.playT,true);
   requestAnimationFrame(loop);
 }
 function play(){
@@ -1716,7 +1728,7 @@ function exportGIF(){
   const tctx=tmp.getContext('2d');
   for(let i=0;i<N;i++){
     const t=D*(i/(N-1||1));
-    applyFrame(t);
+    applyFrame(t,true); // easing para que el GIF se vea igual que la reproducción
     tctx.drawImage(cv,0,0,w,h);
     gif.addFrame(tmp,{delay:Math.round(1000/fps)});
   }
