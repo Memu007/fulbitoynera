@@ -686,3 +686,27 @@ Stage Summary:
 - Foto: enganche de chicos en inferiores (review real lo confirma).
 - WhatsApp: resuelve dolor de padres ("¿cuánto jugó mi hijo?").
 - Freno acá.
+
+---
+Task ID: 30
+Agent: main (Z.ai Code)
+Task: Verificación final para handoff a otra AI.
+
+Work Log:
+- Dev server limpio (todos GET 200, sin errores).
+- Test e2e de 10 puntos críticos: TODOS OK.
+  1. Init + PWA: 11 players, SW registrado, manifest linkeado, plan=free ✓
+  2. Grabar: 600ms, 11 tracks ✓
+  3. Doble-tap pelota: carrier=b1 asignado ✓
+  4. IA 7 estilos: 7/7 OK ✓
+  5. Paywall gating: IA#1 funciona, IA#2 bloqueada (aiUsed no sube) ✓
+  6. Plantillas F5: game=5, 11 tracks ✓
+  7. Minutos: roster funcional, share btn existe ✓
+  8. Auth: user set, pill visible ✓
+  9. Duplicar + Foto: photoWrap en DOM ✓
+  10. Landing 200 OK + API checkout demo mode ✓
+- Sin errores de consola en todo el flujo.
+
+Stage Summary:
+- Proyecto verificado y listo para handoff.
+- Documento HANDOFF.md creado con estado completo.
