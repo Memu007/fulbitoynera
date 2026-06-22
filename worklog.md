@@ -510,3 +510,25 @@ Work Log:
 Stage Summary:
 - Plantillas completas para F5, F8 y F11 (12 en total).
 - Freno acá.
+
+---
+Task ID: 23
+Agent: main (Z.ai Code)
+Task: Mejorar diseño de jugadores (gradiente 3D, sombra, arqueros ámbar).
+
+Work Log:
+- drawPlayer reescrito:
+  * Gradiente radial 3D: baseCol arriba, darkCol abajo (volumen real).
+  * Sombra más marcada: rgba(0,0,0,.5), ellipse más grande.
+  * Highlight superior brillante: .55 alpha blanco arriba, fade abajo.
+  * Borde fino oscuro (rgba(0,0,0,.45)) en vez de blanco brillante.
+  * Arquero: relleno ámbar #FBBF24 completo (sin anillo amarillo).
+  * Número con sombra sutil debajo (texto blanco con drop shadow).
+- Verificación VLM:
+  * Antes: 6/10 (círculos planos, bordes amarillos "poco refinados").
+  * Ahora: 7/10 (fichas 3D con volumen, arqueros ámbar limpios).
+  * "Rango de profesionalismo aceptable, a un paso de TacticalPad (8/10)".
+
+Stage Summary:
+- Puntaje VLM: 6 → 7/10. Cerramos brecha con competencia.
+- Freno acá.

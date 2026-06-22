@@ -830,29 +830,39 @@ function drawPlayer(p){
   // dinamismo: bob vertical mientras se mueve (simula carrera)
   const moving=(S.mode==='play'||S.mode==='pause')&&p.spd>0.0008;
   if(moving){y+=Math.sin(S.playT*0.018+p.id.length)*r*0.09}
-  const col=p.team==='blue'?'#3B82F6':'#EF4444';
-  // sombra real (contacto con el piso) — la diferencia pro
+  // color base del equipo (arquero usa ámbar para distinguirse)
+  const isGK=p.gk;
+  const baseCol=isGK?'#FBBF24':(p.team==='blue'?'#3B82F6':'#EF4444');
+  const darkCol=isGK?'#B45309':(p.team==='blue'?'#1E40AF':'#991B1B');
+  // sombra real marcada (contacto con el piso) — ficha sobre la mesa
   ctx.save();
-  ctx.fillStyle='rgba(0,0,0,.42)';
-  ctx.beginPath();ctx.ellipse(x,y+r*0.72,r*0.82,r*0.28,0,0,7);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.5)';
+  ctx.beginPath();ctx.ellipse(x,y+r*0.75,r*0.85,r*0.32,0,0,7);ctx.fill();
   ctx.restore();
-  // disco con borde blanco sutil (separa de la cancha verde)
-  ctx.lineWidth=1.5;
-  ctx.strokeStyle='rgba(255,255,255,.92)';
-  ctx.fillStyle=col;
-  C(x,y,r,true);C(x,y,r,false);
-  // highlight superior (da volumen 3D sutil)
-  const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x-r*0.2,y-r*0.25,r*0.85);
-  g.addColorStop(0,'rgba(255,255,255,.32)');g.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=g;C(x,y,r,true);
-  // arquero: anillo ámbar
-  if(p.gk){ctx.strokeStyle='#FBBF24';ctx.lineWidth=2.5;C(x,y,r+2,false)}
+  // disco con gradiente radial 3D (oscuro abajo, claro arriba)
+  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.4,r*0.1,x,y,r);
+  g.addColorStop(0,baseCol);
+  g.addColorStop(0.7,baseCol);
+  g.addColorStop(1,darkCol);
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  // borde fino oscuro (separa de la cancha, más sutil que blanco brillante)
+  ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(0,0,0,.45)';
+  ctx.stroke();
+  // highlight superior brillante (volumen 3D)
+  const hl=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.05,x-r*0.2,y-r*0.25,r*0.75);
+  hl.addColorStop(0,'rgba(255,255,255,.55)');
+  hl.addColorStop(0.6,'rgba(255,255,255,.08)');
+  hl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hl;
+  ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
   // carrier: anillo blanco (tiene la pelota)
   if(S.carrier===p.id&&S.mode!=='play'&&S.mode!=='pause'){
-    ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;C(x,y,r+4,false)
+    ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,r+4,0,7);ctx.stroke()
   }
   // dragging: anillo acento
-  if(S.dragging===p){ctx.strokeStyle='#22D3A6';ctx.lineWidth=3;C(x,y,r+5,false)}
+  if(S.dragging===p){ctx.strokeStyle='#22D3A6';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,r+5,0,7);ctx.stroke()}
   // dinamismo: indicador de dirección (flecha hacia donde se mueve)
   if(moving){
     const ang=Math.atan2(p.vy,p.vx);
@@ -867,10 +877,12 @@ function drawPlayer(p){
     ctx.closePath();ctx.fill();
     ctx.restore();
   }
-  // número (tabular, peso 800)
-  ctx.fillStyle='#fff';
+  // número (tabular, peso 800, blanco con sombra sutil)
+  ctx.fillStyle='rgba(0,0,0,.3)';
   ctx.font=`800 ${r*0.92}px 'Inter',sans-serif`;
   ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(p.gk&&!p.name?'A':p.num,x,y+2);
+  ctx.fillStyle='#fff';
   ctx.fillText(p.gk&&!p.name?'A':p.num,x,y+1);
   // nombre debajo
   if(p.name){
