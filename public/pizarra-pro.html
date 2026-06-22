@@ -363,6 +363,61 @@
   #onboard .dots span.on{background:var(--accent);width:18px}
   @media (prefers-reduced-motion:reduce){.sheet{transition:none}.pill.rec i{animation:none}}
 
+  /* ================= CONTROL DE MINUTOS ================= */
+  #matchTimer{
+    background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+    padding:14px;margin-bottom:12px;text-align:center;
+  }
+  #matchTimer .clock{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:1px}
+  #matchTimer .lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+  #matchTimer .btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  #matchTimer .btns button{
+    border:1px solid var(--line);background:var(--panel);border-radius:10px;
+    padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;color:var(--chalk);
+  }
+  #matchTimer .btns button.primary{background:var(--accent);color:#0E1416;border:none}
+  #matchTimer .btns button.danger{color:var(--rec)}
+  .rosterItem{
+    display:flex;align-items:center;gap:10px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:7px;
+    cursor:pointer;transition:border-color .15s;
+  }
+  .rosterItem.active{border-color:var(--accent)}
+  .rosterItem .sw{
+    width:11px;height:11px;border-radius:50%;flex:0 0 auto;background:var(--muted-2);
+  }
+  .rosterItem.active .sw{background:var(--accent);box-shadow:0 0 8px rgba(34,211,166,.6)}
+  .rosterItem .num{
+    width:28px;height:28px;border-radius:8px;background:var(--bg);color:var(--chalk);
+    font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  }
+  .rosterItem .name{flex:1;font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rosterItem .min{
+    font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--chalk);flex:0 0 auto;
+  }
+  .rosterItem .badge{
+    font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;flex:0 0 auto;letter-spacing:.5px;
+  }
+  .rosterItem .badge.ok{background:#22D3A622;color:var(--accent)}
+  .rosterItem .badge.warn{background:#FBBF2422;color:var(--amber)}
+  .rosterItem .badge.low{background:#EF444422;color:var(--rec)}
+  .rosterItem .del{
+    background:none;border:none;color:var(--muted-2);font-size:16px;cursor:pointer;
+    flex:0 0 auto;padding:4px 8px;
+  }
+  .rosterItem .del:active{color:var(--rec)}
+  .addPlayerRow{display:flex;gap:8px;margin:10px 0}
+  .addPlayerRow input{flex:1;margin:0}
+  .addPlayerRow button{
+    border:none;background:var(--accent);color:#0E1416;border-radius:12px;
+    padding:0 16px;font-weight:800;font-size:13px;cursor:pointer;flex:0 0 auto;
+  }
+  .fairnessHint{
+    background:#22D3A611;border:1px solid #22D3A633;border-radius:12px;padding:10px 12px;
+    margin:10px 0;font-size:12px;color:var(--accent);line-height:1.4;
+  }
+  .fairnessHint.warn{background:#FBBF2411;border-color:#FBBF2433;color:var(--amber)}
+
   /* ================= PRESENTACIÓN ================= */
   /* Pantalla completa sin botones, para proyectar en vestuario */
   body.presenting header,
@@ -409,6 +464,7 @@
     </div>
     <button class="iconBtn" id="hHome" title="Inicio (Landing)">🏠</button>
     <button class="iconBtn" id="hUpgrade" title="Mejorar a Pro">👑</button>
+    <button class="iconBtn" id="hMinutes" title="Control de minutos (inferiores)">⏱️</button>
     <button class="iconBtn" id="hTemplates" title="Plantillas de jugadas">🎴</button>
     <button class="iconBtn" id="hShare" title="Compartir jugada (PRO)">🔗</button>
     <button class="iconBtn" id="hExport" title="Exportar a GIF">🎬</button>
@@ -619,6 +675,11 @@
   </div>
 </div>
 
+<div class="sheet" id="shMinutes">
+  <div class="grab"></div><h2>⏱️ CONTROL DE MINUTOS</h2>
+  <div class="body" id="minutesBody"></div>
+</div>
+
 <div class="sheet" id="shTemplates">
   <div class="grab"></div><h2>🎴 PLANTILLAS DE JUGADAS</h2>
   <div class="body" id="templatesList">
@@ -636,7 +697,7 @@
     <p class="sub">Táctica de fútbol con IA. Dibujá, animá y dejá que la IA complete la jugada.</p>
     <div class="dots"><span class="on"></span><span></span><span></span></div>
     <ol>
-      <li><span class="n">1</span><span>Elegí <b>Fútbol 5, 8 u 11</b> y arrastrá la pelota a un jugador — <b>se la queda</b>.</span></li>
+      <li><span class="n">1</span><span>Elegí <b>Fútbol 5, 8 u 11</b>. <b>Doble-tap</b> sobre un jugador → la pelota vuela a su pie. <b>Mantener presionado</b> → editarlo.</span></li>
       <li><span class="n">2</span><span><b>Grabar</b> → mové pelota y jugadores → <b>IA → Completar</b>: el resto se mueve solo.</span></li>
       <li><span class="n">3</span><span>Reproducí, dibujá flechas y guardá. ¿Dudas? Tocá <b>❔</b> cuando quieras.</span></li>
     </ol>
@@ -1055,7 +1116,7 @@ function attachBall(pl){
   const b=ballObj(),o=ballAtFoot(pl);
   b.x=o.x;b.y=o.y;
   if(S.mode==='rec')addKey(b);
-  if(!same)toast('⚽ La lleva '+(pl.team==='blue'?'Azul':'Rojo')+' '+(pl.name||pl.num)+' — arrastrá la pelota para pasar');
+  if(!same)toast('⚽ La lleva '+(pl.team==='blue'?'Azul':'Rojo')+' '+(pl.name||pl.num));
   draw();
 }
 // radio de asignación de pelota al soltar o pisar (generoso: fácil con el dedo)
@@ -1079,6 +1140,8 @@ function hit(pos){
   return best;
 }
 
+let _longPressT=null,_lpStart=null;
+function clearLongPress(){if(_longPressT){clearTimeout(_longPressT);_longPressT=null}}
 cv.addEventListener('pointerdown',e=>{
   const pos=ptr(e);
   if(S.drawMode){
@@ -1088,14 +1151,28 @@ cv.addEventListener('pointerdown',e=>{
   if(S.mode==='play')return;
   const p=hit(pos);
   if(p){
-    // doble tap → editar
+    // doble-tap en jugador → pelota vuela a su pie (rápido, sin arrastrar)
     const now=performance.now();
     if(!p.ball&&S.lastTap.id===p.id&&now-S.lastTap.t<320){
-      S.lastTap={t:0,id:null};openPlayerEdit(p);return;
+      S.lastTap={t:0,id:null};
+      clearLongPress();
+      attachBall(p);
+      // si está grabando, ya se registró el key en attachBall
+      return;
     }
     S.lastTap={t:now,id:p.id};
     S.dragging=p;S.curFx=null;cv.setPointerCapture(e.pointerId);
     if(S.mode==='rec'){pushUndo();addKey(p)}
+    // long-press (500ms sin moverse) → editar jugador
+    _lpStart={x:pos.x,y:pos.y,id:p.id};
+    clearLongPress();
+    _longPressT=setTimeout(()=>{
+      if(S.dragging===p){
+        S.dragging=null;
+        openPlayerEdit(p);
+        draw();
+      }
+    },500);
     draw();
   }
 });
@@ -1106,6 +1183,8 @@ cv.addEventListener('pointermove',e=>{
     if(Math.hypot(pos.x-lp.x,pos.y-lp.y)>0.006)S.curStroke.pts.push(pos);
     draw();return;
   }
+  // cancelar long-press si se mueve más de un umbral
+  if(_lpStart&&Math.hypot(pos.x-_lpStart.x,pos.y-_lpStart.y)>0.012){clearLongPress();_lpStart=null}
   if(!S.dragging)return;
   const d=S.dragging;
   if(d.ball&&S.carrier)S.carrier=null; // tomar la pelota del pie = empieza un pase
@@ -1127,6 +1206,7 @@ cv.addEventListener('pointermove',e=>{
   draw();
 });
 function endPtr(){
+  clearLongPress();_lpStart=null;
   if(S.drawMode&&S.curStroke){
     if(S.curStroke.pts.length>2)S.drawings.push(S.curStroke);
     S.curStroke=null;draw();return;
@@ -1776,6 +1856,134 @@ document.getElementById('hExport').onclick=()=>{
 // ---- Compartir jugada por link (PRO) ----
 document.getElementById('hShare').onclick=sharePlay;
 document.getElementById('hTemplates').onclick=()=>{openSheet('shTemplates');renderTemplates()};
+document.getElementById('hMinutes').onclick=()=>{openSheet('shMinutes');renderMinutes()};
+
+// ---- Control de minutos (inferiores) ----
+// Plantel standalone: [{id,name,num,playedMs,active}], partido: {running,startMs}
+// Persistido en localStorage. Resuelve el dolor #1 de DT de kids: equidad de minutos.
+const ROSTER_KEY='pizarraPro.roster.v1';
+S.roster=[];
+S.match={running:false,startMs:0,elapsed:0};
+let _matchTick=null;
+function loadRoster(){try{const r=localStorage.getItem(ROSTER_KEY);if(r){const o=JSON.parse(r);S.roster=o.roster||[];S.match=o.match||{running:false,startMs:0,elapsed:0}}}catch(e){}}
+function persistRoster(){try{localStorage.setItem(ROSTER_KEY,JSON.stringify({roster:S.roster,match:S.match}))}catch(e){}}
+function fmtMin(ms){const t=Math.floor(ms/60000);const s=Math.floor((ms%60000)/1000);return t+':'+String(s).padStart(2,'0')}
+function tickMatch(){
+  if(!S.match.running)return;
+  // acumular tiempo a los jugadores activos
+  const now=performance.now();
+  const dt=now-S.match.startMs;
+  S.match.startMs=now;
+  for(const p of S.roster){if(p.active)p.playedMs+=dt}
+  persistRoster();
+  // refrescar solo el reloj y los minutos (no re-render todo)
+  const clock=document.getElementById('matchClock');
+  if(clock){
+    let total=S.match.elapsed;
+    for(const p of S.roster)total+=p.playedMs;
+    clock.textContent=fmtMin(total);
+  }
+  document.querySelectorAll('.rosterItem').forEach(el=>{
+    const id=el.dataset.pid;
+    const p=S.roster.find(x=>x.id===id);
+    if(p)el.querySelector('.min').textContent=fmtMin(p.playedMs);
+  });
+}
+function renderMinutes(){
+  const body=document.getElementById('minutesBody');
+  let total=S.match.elapsed;
+  for(const p of S.roster)total+=p.playedMs;
+  const active=S.roster.filter(p=>p.active).length;
+  // calcular equidad
+  const avg=S.roster.length?total/S.roster.length:0;
+  const sorted=[...S.roster].sort((a,b)=>a.playedMs-b.playedMs);
+  const lowest=sorted[0];
+  let html='<div id="matchTimer">';
+  html+='<div class="clock" id="matchClock">'+fmtMin(total)+'</div>';
+  html+='<div class="lbl">Tiempo de partido · '+active+' en cancha</div>';
+  html+='<div class="btns">';
+  html+='<button class="primary" id="mStart">'+(S.match.running?'⏸ Pausar':'▶ Iniciar')+'</button>';
+  html+='<button id="mReset" class="danger">↺ Reset</button>';
+  html+='</div></div>';
+  // sugerencia de equidad
+  if(S.roster.length>1 && total>30000){
+    const ratio=lowest.playedMs/avg;
+    if(ratio<0.6){
+      html+='<div class="fairnessHint warn">⚠️ '+esc(lowest.name||('#'+lowest.num))+' jugó poco ('+fmtMin(lowest.playedMs)+'). Dale minutos ahora.</div>';
+    } else {
+      html+='<div class="fairnessHint">✓ Minutos equilativos. Buen trabajo.</div>';
+    }
+  }
+  // lista de jugadores
+  if(S.roster.length===0){
+    html+='<p class="empty">Cargá tu plantel abajo. Después tocá ▶ Iniciar y marcá quién entra/sale durante el partido.</p>';
+  } else {
+    html+='<div class="secTitle">PLANTEL (tocá para entrar/salir)</div>';
+    for(const p of [...S.roster].sort((a,b)=>b.playedMs-a.playedMs)){
+      const ratio=avg>0?p.playedMs/avg:1;
+      let badge='';
+      if(total>20000){
+        if(ratio<0.5)badge='<span class="badge low">POCO</span>';
+        else if(ratio<0.85)badge='<span class="badge warn">BAJO</span>';
+        else badge='<span class="badge ok">OK</span>';
+      }
+      html+='<div class="rosterItem'+(p.active?' active':'')+'" data-pid="'+p.id+'">';
+      html+='<span class="sw"></span>';
+      html+='<span class="num">'+(p.num||'?')+'</span>';
+      html+='<span class="name">'+esc(p.name||('Jugador '+(p.num||'')))+'</span>';
+      html+=badge;
+      html+='<span class="min">'+fmtMin(p.playedMs)+'</span>';
+      html+='<button class="del" data-del="'+p.id+'">✕</button>';
+      html+='</div>';
+    }
+  }
+  // agregar jugador
+  html+='<div class="secTitle" style="margin-top:14px">AGREGAR JUGADOR</div>';
+  html+='<div class="addPlayerRow">';
+  html+='<input type="text" id="newPlName" placeholder="Nombre (ej: Juani)" maxlength="14">';
+  html+='<input type="number" id="newPlNum" placeholder="N°" min="0" max="99" style="max-width:70px;margin:0">';
+  html+='<button id="addPlBtn">+</button>';
+  html+='</div>';
+  html+='<p class="hint">Los minutos se guardan solos. Si salís de la app, al volver seguís donde dejaste.</p>';
+  body.innerHTML=html;
+  // events
+  document.getElementById('mStart').onclick=()=>{
+    if(S.match.running){
+      S.match.running=false;
+      clearInterval(_matchTick);
+    } else {
+      S.match.running=true;
+      S.match.startMs=performance.now();
+      _matchTick=setInterval(tickMatch,1000);
+    }
+    persistRoster();
+    renderMinutes();
+  };
+  document.getElementById('mReset').onclick=()=>{
+    if(!confirm('¿Resetear todos los minutos a 0?'))return;
+    S.match.running=false;S.match.elapsed=0;clearInterval(_matchTick);
+    for(const p of S.roster){p.playedMs=0;p.active=false}
+    persistRoster();renderMinutes();
+  };
+  document.getElementById('addPlBtn').onclick=()=>{
+    const name=document.getElementById('newPlName').value.trim().slice(0,14);
+    const num=parseInt(document.getElementById('newPlNum').value)||S.roster.length+1;
+    S.roster.push({id:'p'+Date.now(),name,num,playedMs:0,active:false});
+    persistRoster();renderMinutes();
+    setTimeout(()=>{const i=document.getElementById('newPlName');if(i)i.focus()},100);
+  };
+  body.querySelectorAll('.rosterItem').forEach(el=>{
+    el.onclick=(e)=>{
+      if(e.target.dataset.del){
+        const id=e.target.dataset.del;
+        S.roster=S.roster.filter(p=>p.id!==id);
+        persistRoster();renderMinutes();return;
+      }
+      const p=S.roster.find(x=>x.id===el.dataset.pid);
+      if(p){p.active=!p.active;persistRoster();renderMinutes()}
+    };
+  });
+}
 
 // ---- Plantillas de jugadas ----
 function renderTemplates(){
@@ -2150,6 +2358,7 @@ document.getElementById('obOk').onclick=()=>{document.getElementById('onboard').
 // ---------------- Init ----------------
 loadSaved();
 loadPlan();
+loadRoster();
 buildPlayers();
 resize();
 setMode('idle');

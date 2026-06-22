@@ -574,3 +574,52 @@ Stage Summary:
 - EVOLUCIÓN FINAL DE LA SESIÓN: 6 → 7 → 7.5 → 8 → 8.5/10.
 - Nivel TacticalPad alcanzado (8/10) y superado (8.5/10) en inmersión.
 - Freno acá. Producto monetizable a $2-5/mes en Latam con la IA como diferenciador.
+
+---
+Task ID: 26 (Loop A)
+Agent: main (Z.ai Code)
+Task: Doble-tap = pelota vuela al pie del jugador.
+
+Work Log:
+- pointerdown reescrito:
+  * Doble-tap en jugador (no pelota) dentro de 320ms → attachBall instantáneo.
+  * Long-press (500ms sin moverse) → openPlayerEdit (reemplaza doble-tap para editar).
+  * Long-press se cancela si el dedo se mueve más de 1.2% del campo.
+  * Long-press se cancela en pointerup.
+- Toast de attachBall más corto: "⚽ La lleva Azul 8" (sin texto extra).
+- Onboarding actualizado: explica doble-tap (pelota al pie) y mantener presionado (editar).
+- Verificado: doble-tap en jugador azul → carrier=b1, pelota en el pie (offset 0.042
+  adelante del jugador). Sin errores.
+
+Stage Summary:
+- Velocidad de armado mejorada: 1 toque = pelota al pie (antes requería arrastrar).
+- Edición de jugador movida a long-press (gesto más intencional, no interfiere).
+- Próximo Loop F: Minutos jugados + vista de equidad.
+
+---
+Task ID: 27 (Loop F)
+Agent: main (Z.ai Code)
+Task: Control de minutos jugados + vista de equidad (inferiores).
+
+Work Log:
+- Nuevo botón ⏱️ en header → sheet shMinutes.
+- Estado: S.roster=[{id,name,num,playedMs,active}], S.match={running,startMs,elapsed}.
+- Persistido en localStorage 'pizarraPro.roster.v1' (sobrevive reload).
+- UI:
+  * Reloj central con tiempo total del partido.
+  * Botones Iniciar/Pausar + Reset.
+  * Lista de jugadores: cada uno con número, nombre, minutos jugados, badge de equidad
+    (OK/BAJO/POCO según ratio vs promedio), toggle activo/inactivo al tocar.
+  * Agregar jugador (nombre + número).
+  * Eliminar jugador (botón ✕).
+  * Sugerencia de equidad: "⚠️ X jugó poco,dale minutos" si el que menos jugó
+    tiene <60% del promedio.
+- tickMatch() cada 1s: acumula dt a jugadores activos, actualiza UI sin re-render completo.
+- Verificado: 3 jugadores agregados, 2 activados, timer corre 3s → Juani 0:03,
+  Bauti 0:03, Tobi 0:00 (inactivo no acumula). Sin errores.
+
+Stage Summary:
+- Feature standalone (no depende de la cancha) que resuelve el dolor #1 de DT
+  de inferiores: tracking de minutos y equidad.
+- Persiste en localStorage, funciona offline.
+- Freno acá. Dos loops completos (A + F).
