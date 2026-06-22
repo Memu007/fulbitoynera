@@ -554,3 +554,23 @@ Stage Summary:
 - LLEGAMOS A 8/10 en cancha. Nivel TacticalPad.
 - Producto completo 7.5/10. Para 9/10: sombras en fichas + ocultar UI en fullscreen.
 - Freno acá por hoy. Evolución: 6 → 7 → 7.5/10 en una sesión.
+
+---
+Task ID: 25
+Agent: main (Z.ai Code)
+Task: Focus mode — atenuar UI durante play/pause para foco en cancha.
+
+Work Log:
+- CSS body.focus: header y #rail opacity .25, scrubRow y btnRow opacity .55.
+  Hover sobre cualquier zona de UI la vuelve a opacity 1 (acceso cuando hace falta).
+- setMode() togglea body.focus en play/pause (no en preview IA).
+- Verificación VLM:
+  * Antes: 7.5/10.
+  * Ahora: 8.5/10. "Inmersivo como TacticalPad", "cancha como protagonista",
+    "atenuación efectiva y consistente".
+  * Para 9/10: slider con mayor contraste en estado atenuado, botón Guardar más sutil.
+
+Stage Summary:
+- EVOLUCIÓN FINAL DE LA SESIÓN: 6 → 7 → 7.5 → 8 → 8.5/10.
+- Nivel TacticalPad alcanzado (8/10) y superado (8.5/10) en inmersión.
+- Freno acá. Producto monetizable a $2-5/mes en Latam con la IA como diferenciador.

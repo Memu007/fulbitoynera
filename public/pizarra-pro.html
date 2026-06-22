@@ -383,6 +383,19 @@
   body.presenting #presentExit:active{opacity:1;transform:scale(.92)}
   body.presenting #presentExit:hover{opacity:1}
   #presentExit{display:none}
+
+  /* ================= FOCUS MODE (durante play/pause) ================= */
+  /* Atenua UI para que la cancha sea la protagonista, como apps premium */
+  body.focus header,
+  body.focus #rail{opacity:.25;transition:opacity .3s}
+  body.focus #scrubRow,
+  body.focus #btnRow{opacity:.55;transition:opacity .3s}
+  body.focus #fieldWrap:hover ~ header,
+  body.focus #fieldWrap:hover ~ #rail{opacity:1}
+  /* al tocar cualquier zona de UI, vuelve a opacidad completa */
+  body.focus header:hover,
+  body.focus #rail:hover,
+  body.focus #controls:hover{opacity:1 !important}
 </style>
 </head>
 <body>
@@ -1661,6 +1674,8 @@ function setMode(m){
   document.getElementById('pPlay').classList.toggle('show',m==='play'&&!S.preview);
   document.getElementById('pPause').classList.toggle('show',m==='pause');
   document.getElementById('undoFloat').classList.toggle('show',m==='rec');
+  // Focus mode: atenuar UI durante play/pause para foco en cancha
+  document.body.classList.toggle('focus',(m==='play'||m==='pause')&&!S.preview);
   updateUI();
 }
 function updateUI(){
