@@ -491,3 +491,22 @@ Work Log:
 Stage Summary:
 - Feature de plantillas listo. 6 jugadas prearmadas para que el DT arranque rápido.
 - Freno acá, no sigo con más loops.
+
+---
+Task ID: 22
+Agent: main (Z.ai Code)
+Task: Plantillas F5 y F8.
+
+Work Log:
+- Agregadas 6 plantillas nuevas a templates.js:
+  F5: Pase al pivote, Rotación y desmarque, Contraataque rápido
+  F8: Salida por banda, Contraataque 3v2, Presión a la salida rival
+- loadTemplate() actualizado: respeta t.game (antes forzaba F11).
+  Cambia a la modalidad correcta y formación default de cada una.
+- Hint del sheet actualizado (ya no dice "solo F11").
+- Verificado: 12 plantillas totales. F5 carga 11 tracks y reproduce,
+  F8 carga 17 tracks y reproduce. Sin errores.
+
+Stage Summary:
+- Plantillas completas para F5, F8 y F11 (12 en total).
+- Freno acá.

@@ -264,5 +264,277 @@ window.PLAYS_TEMPLATES = [
         {t:5000, x:0.48, y:0.18}
       ]
     }
+  },
+
+  // ============ FÚTBOL 5 ============
+  {
+    id: 'f5-pivot',
+    name: 'F5: Pase al pivote',
+    game: 5,
+    cat: 'Fútbol 5',
+    desc: 'Salida corta, pase al pivote, giro y definición.',
+    att: 'blue',
+    duration: 3500,
+    tracks: {
+      ball: [
+        {t:0, x:0.50, y:0.75},
+        {t:800, x:0.50, y:0.55},
+        {t:1800, x:0.50, y:0.35},
+        {t:3000, x:0.45, y:0.18},
+        {t:3500, x:0.45, y:0.18}
+      ],
+      // arquero que arranca
+      b0: [
+        {t:0, x:0.50, y:0.88},
+        {t:800, x:0.50, y:0.82},
+        {t:3500, x:0.50, y:0.82}
+      ],
+      // pivote recibe y define
+      b4: [
+        {t:0, x:0.50, y:0.45},
+        {t:1800, x:0.50, y:0.35},
+        {t:3000, x:0.45, y:0.18},
+        {t:3500, x:0.45, y:0.18}
+      ],
+      // compañero acompaña
+      b3: [
+        {t:0, x:0.30, y:0.60},
+        {t:2000, x:0.35, y:0.40},
+        {t:3500, x:0.40, y:0.30}
+      ],
+      // defensa rival
+      r1: [
+        {t:0, x:0.35, y:0.35},
+        {t:2000, x:0.45, y:0.30},
+        {t:3500, x:0.45, y:0.25}
+      ]
+    }
+  },
+  {
+    id: 'f5-rotacion',
+    name: 'F5: Rotación y desmarque',
+    game: 5,
+    cat: 'Fútbol 5',
+    desc: 'Rotación de jugadores, desmarque de apoyo, triangulación corta.',
+    att: 'blue',
+    duration: 4000,
+    tracks: {
+      ball: [
+        {t:0, x:0.50, y:0.65},
+        {t:1000, x:0.30, y:0.55},
+        {t:2000, x:0.70, y:0.45},
+        {t:3000, x:0.50, y:0.25},
+        {t:4000, x:0.50, y:0.25}
+      ],
+      b2: [
+        {t:0, x:0.70, y:0.70},
+        {t:1000, x:0.30, y:0.55},
+        {t:2000, x:0.50, y:0.55},
+        {t:4000, x:0.55, y:0.40}
+      ],
+      b3: [
+        {t:0, x:0.30, y:0.55},
+        {t:1000, x:0.30, y:0.55},
+        {t:2000, x:0.70, y:0.45},
+        {t:4000, x:0.70, y:0.35}
+      ],
+      b4: [
+        {t:0, x:0.50, y:0.45},
+        {t:2000, x:0.50, y:0.40},
+        {t:3000, x:0.50, y:0.25},
+        {t:4000, x:0.50, y:0.25}
+      ],
+      // defensa rival que sigue la rotación
+      r3: [
+        {t:0, x:0.50, y:0.30},
+        {t:2000, x:0.55, y:0.30},
+        {t:4000, x:0.55, y:0.25}
+      ]
+    }
+  },
+  {
+    id: 'f5-contra',
+    name: 'F5: Contraataque rápido',
+    game: 5,
+    cat: 'Fútbol 5',
+    desc: 'Robo en defensa, transición vertical rápida, 2vs1 y definición.',
+    att: 'blue',
+    duration: 3000,
+    tracks: {
+      ball: [
+        {t:0, x:0.50, y:0.80},
+        {t:600, x:0.40, y:0.60},
+        {t:1500, x:0.55, y:0.30},
+        {t:2500, x:0.50, y:0.15},
+        {t:3000, x:0.50, y:0.15}
+      ],
+      b3: [
+        {t:0, x:0.30, y:0.60},
+        {t:600, x:0.40, y:0.60},
+        {t:1500, x:0.45, y:0.40},
+        {t:3000, x:0.50, y:0.35}
+      ],
+      b4: [
+        {t:0, x:0.50, y:0.45},
+        {t:1500, x:0.55, y:0.30},
+        {t:2500, x:0.50, y:0.15},
+        {t:3000, x:0.50, y:0.15}
+      ],
+      // defensa rival mal parada
+      r2: [
+        {t:0, x:0.45, y:0.40},
+        {t:1000, x:0.50, y:0.35},
+        {t:2500, x:0.50, y:0.20},
+        {t:3000, x:0.50, y:0.20}
+      ]
+    }
+  },
+
+  // ============ FÚTBOL 8 ============
+  {
+    id: 'f8-salida-banda',
+    name: 'F8: Salida por banda',
+    game: 8,
+    cat: 'Fútbol 8',
+    desc: 'Salida desde atrás con lateral, centro al área, remate.',
+    att: 'blue',
+    duration: 4500,
+    tracks: {
+      ball: [
+        {t:0, x:0.50, y:0.85},
+        {t:1000, x:0.20, y:0.65},
+        {t:2200, x:0.15, y:0.35},
+        {t:3500, x:0.50, y:0.18},
+        {t:4500, x:0.50, y:0.18}
+      ],
+      // arquero arranca
+      b0: [
+        {t:0, x:0.50, y:0.90},
+        {t:1000, x:0.40, y:0.85},
+        {t:4500, x:0.50, y:0.88}
+      ],
+      // lateral sube por banda
+      b1: [
+        {t:0, x:0.25, y:0.72},
+        {t:1000, x:0.20, y:0.65},
+        {t:2200, x:0.15, y:0.35},
+        {t:3500, x:0.20, y:0.30},
+        {t:4500, x:0.25, y:0.30}
+      ],
+      // delantero al área
+      b7: [
+        {t:0, x:0.50, y:0.30},
+        {t:2500, x:0.50, y:0.20},
+        {t:3500, x:0.50, y:0.18},
+        {t:4500, x:0.50, y:0.18}
+      ],
+      // mediocampista acompaña
+      b5: [
+        {t:0, x:0.50, y:0.55},
+        {t:2200, x:0.40, y:0.40},
+        {t:4500, x:0.45, y:0.30}
+      ],
+      // defensa rival
+      r2: [
+        {t:0, x:0.40, y:0.25},
+        {t:2200, x:0.45, y:0.20},
+        {t:4500, x:0.48, y:0.18}
+      ]
+    }
+  },
+  {
+    id: 'f8-contra-3v2',
+    name: 'F8: Contraataque 3v2',
+    game: 8,
+    cat: 'Fútbol 8',
+    desc: 'Recupero, salida rápida con 3 atacantes vs 2 defensores, definición.',
+    att: 'blue',
+    duration: 4000,
+    tracks: {
+      ball: [
+        {t:0, x:0.50, y:0.75},
+        {t:800, x:0.50, y:0.50},
+        {t:2000, x:0.35, y:0.25},
+        {t:3200, x:0.50, y:0.12},
+        {t:4000, x:0.50, y:0.12}
+      ],
+      // recuperador y pasador
+      b5: [
+        {t:0, x:0.50, y:0.60},
+        {t:800, x:0.50, y:0.50},
+        {t:2000, x:0.50, y:0.40},
+        {t:4000, x:0.50, y:0.35}
+      ],
+      // delantero por izquierda
+      b7: [
+        {t:0, x:0.35, y:0.40},
+        {t:1500, x:0.35, y:0.25},
+        {t:3200, x:0.45, y:0.15},
+        {t:4000, x:0.50, y:0.12}
+      ],
+      // wing por derecha
+      b6: [
+        {t:0, x:0.65, y:0.45},
+        {t:2000, x:0.55, y:0.30},
+        {t:4000, x:0.55, y:0.20}
+      ],
+      // 2 defensores rivales
+      r2: [
+        {t:0, x:0.40, y:0.25},
+        {t:2000, x:0.40, y:0.20},
+        {t:4000, x:0.45, y:0.15}
+      ],
+      r3: [
+        {t:0, x:0.60, y:0.25},
+        {t:2000, x:0.55, y:0.20},
+        {t:4000, x:0.55, y:0.18}
+      ]
+    }
+  },
+  {
+    id: 'f8-presion-salida',
+    name: 'F8: Presión a la salida rival',
+    game: 8,
+    cat: 'Fútbol 8',
+    desc: 'Delanteros presionan salida del rival, forzan error, recuperan y definen.',
+    att: 'blue',
+    duration: 4500,
+    tracks: {
+      ball: [
+        {t:0, x:0.50, y:0.12},
+        {t:1200, x:0.30, y:0.22},
+        {t:2500, x:0.50, y:0.40},
+        {t:3500, x:0.50, y:0.18},
+        {t:4500, x:0.50, y:0.18}
+      ],
+      // delantero presiona al arquero
+      b7: [
+        {t:0, x:0.50, y:0.30},
+        {t:1200, x:0.40, y:0.20},
+        {t:2500, x:0.50, y:0.40},
+        {t:4500, x:0.50, y:0.35}
+      ],
+      // mediocampista corta la salida
+      b5: [
+        {t:0, x:0.40, y:0.45},
+        {t:1200, x:0.30, y:0.30},
+        {t:2500, x:0.50, y:0.40},
+        {t:3500, x:0.50, y:0.25},
+        {t:4500, x:0.50, y:0.25}
+      ],
+      // defensa rival intenta salir
+      r3: [
+        {t:0, x:0.30, y:0.25},
+        {t:1200, x:0.30, y:0.22},
+        {t:2500, x:0.40, y:0.30},
+        {t:4500, x:0.40, y:0.30}
+      ],
+      // arquero rival
+      r0: [
+        {t:0, x:0.50, y:0.10},
+        {t:1200, x:0.45, y:0.12},
+        {t:4500, x:0.50, y:0.10}
+      ]
+    }
   }
 ];

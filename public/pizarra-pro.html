@@ -1760,7 +1760,7 @@ function renderTemplates(){
       </div>`;
     });
   }
-  html+='<p class="hint" style="margin-top:14px">Las plantillas cargan una jugada de Fútbol 11. Podés editarla, pasarla a IA o guardarla.</p>';
+  html+='<p class="hint" style="margin-top:14px">Las plantillas cargan en su modalidad (F5, F8 o F11). Podés editarlas, pasarlas a IA o guardarlas.</p>';
   list.innerHTML=html;
   list.querySelectorAll('.opt').forEach(el=>{
     el.onclick=()=>loadTemplate(el.dataset.tpl);
@@ -1770,10 +1770,11 @@ function loadTemplate(id){
   const t=PLAYS_TEMPLATES.find(p=>p.id===id);
   if(!t){toast('Plantilla no encontrada');return}
   closeSheets();
-  // Cambiar a F11 si no lo está
-  if(S.game!==11){
-    S.game=11;S.team1=11;S.team2=11;
-    S.form1='4-3-3';S.form2='4-3-3';
+  // Cambiar al game de la plantilla si no coincide
+  if(S.game!==t.game){
+    S.game=t.game;S.team1=t.game;S.team2=t.game;
+    S.form1=t.game===5?'1-2-1':t.game===8?'3-3-1':'4-3-3';
+    S.form2=S.form1;
     syncGameSeg();buildPlayers();
   } else {
     buildPlayers(true);
