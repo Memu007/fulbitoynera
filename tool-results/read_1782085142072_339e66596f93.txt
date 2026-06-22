@@ -1,0 +1,1309 @@
+     1→================================================================================
+     2→FILE: 01_once.json
+     3→TITLE: Once Sport Coach Board
+     4→URL: https://once.sport/coach-board
+     5→--------------------------------------------------------------------------------
+     6→Once Sport Coach Board 
+     7→
+     8→ Products 
+     9→ ▼ 
+    10→
+    11→ Analyser
+    12→
+    13→ A complete video analysis software for any sport
+    14→
+    15→ Telestrator
+    16→
+    17→ Telestration software with superb visualisations
+    18→
+    19→ Coach Board
+    20→
+    21→ Easiest tactical board to use in the world of sports
+    22→
+    23→ Autocam
+    24→
+    25→ Automated sports recording solution
+    26→
+    27→ Product comparison
+    28→
+    29→ Pricing 
+    30→
+    31→ Sports 
+    32→ ▼ 
+    33→
+    34→ Football 
+    35→ Basketball 
+    36→ Handball 
+    37→ Futsal 
+    38→ American Football 
+    39→ Hockey 
+    40→ Rugby 
+    41→ Other sports 
+    42→
+    43→ Resources 
+    44→ ▼ 
+    45→
+    46→ Blog 
+    47→ Features 
+    48→ FAQ 
+    49→ Certification 
+    50→
+    51→ About us 
+    52→ ▼ 
+    53→
+    54→ About 
+    55→ Clients and Partners 
+    56→ Contact us 
+    57→
+    58→ Book a Call 
+    59→
+    60→ Login 
+    61→
+    62→ EN 
+    63→ ▼ 
+    64→
+    65→ EN 
+    66→
+    67→ FR 
+    68→
+    69→ DE 
+    70→
+    71→ PT 
+    72→
+    73→ IT 
+    74→
+    75→ ES 
+    76→
+    77→ Free trial 
+    78→
+    79→ Once Sport Coach Board
+    80→
+    81→ Once Sport Coach Board is your best friend for creating drills, trainings, lineups, and tactical analysis.
+    82→
+    83→ Free trial
+    84→
+    85→ Buy now
+    86→
+    87→ Easiest tactical board to use in the world of sports
+    88→
+    89→ Once Sport Coach Board elevates the meaning of a tactical pad. It is a simple way to create training sessions or tactical analyses for both professionals and amateurs.
+    90→
+    91→ 01
+    92→
+    93→ Animate your drill or analysis
+    94→
+    95→ 02
+    96→
+    97→ Suitable for a multitude of sports
+    98→
+    99→ 03
+   100→
+   101→ Intuitive Interface for ease of use
+   102→
+   103→ 04
+   104→
+   105→ Work offline – No Internet connection needed
+   106→
+   107→ 05
+   108→
+   109→ A variety of sharing and export options
+   110→
+   111→ -->
+   112→
+   113→ Utilize animations in various sports
+   114→
+   115→ Use animations to display movement with ease in a number of sports – football, basketball, ice hockey, american football, rugby, handball, futsal, field hockey, and roller hockey. Add notes to describe your thoughts. Export any way you want – as an image, a PDF, or as a video.
+   116→
+   117→ 01
+   118→
+   119→ Use animations to display movement with ease in a number of sports – football, basketball, ice hockey, american football, rugby, handball, futsal, field hockey, and roller hockey.
+   120→
+   121→ 02
+   122→
+   123→ Add notes to describe your thoughts.
+   124→
+   125→ 03
+   126→
+   127→ Export any way you want – as an image, a PDF, or as a video.
+   128→
+   129→ -->
+   130→
+   131→ How does Once Sport Coach Board work?
+   132→
+   133→ 1. CREATE A DRILL OR ANALYSE
+   134→
+   135→ Create a drill, a training, or a tactical analysis in just a few minutes. No Internet connection needed!
+   136→
+   137→ 2. PRESENT AND SHARE!
+   138→
+   139→ Export your work to download, print, or share. Additionally, you can present your work directly from the software!
+   140→
+   141→ Get to know all features
+   142→
+   143→ Once Sport Coach Board is packed with features that make your work professional, quick, and efficient.
+   144→
+   145→ Explore all features
+   146→
+   147→ Main advantages
+   148→
+   149→ -->
+   150→
+   151→ Easy & Intuitive
+   152→
+   153→ The quickest and easiest workflow in the industry.
+   154→
+   155→ -->
+   156→
+   157→ All-in-One Solution
+   158→
+   159→ Analysis, tactics, recording – you can do a lot with Once Sport.
+   160→
+   161→ -->
+   162→
+   163→ TV-Like Quality
+   164→
+   165→ Create videos like you see on the TV.
+   166→
+   167→ -->
+   168→
+   169→ Saves you money
+   170→
+   171→ Best quality-price ratio! We aim to offer professional software to everyone.
+   172→
+   173→ -->
+   174→
+   175→ Work Anywhere, Anytime
+   176→
+   177→ Use most features offline and stay productive wherever you are.
+   178→
+   179→ -->
+   180→
+   181→ Superior Support
+   182→
+   183→ We offer 24/7 customer service in 7 different languages.
+   184→
+   185→ Growing together with our clients
+   186→
+   187→ Director of the Professional Football Scouts Association 
+   188→
+   189→ -->
+   190→
+   191→ Click to learn more
+   192→
+   193→ "We are happy to be working with Once Sport and to have them as a part of our panel of featured partners. Once Sport Analyser doesn't only help our users build on their knowledge of tools and applications but also significantly increase the effectiveness of their reports."
+   194→
+   195→ Adam Hobson
+   196→
+   197→ Director of the Professional Football Scouts Association
+   198→
+   199→ Video analyst 
+   200→
+   201→ -->
+   202→
+   203→ Click to learn more
+   204→
+   205→ "Once Sport Analyser has exceeded my expectations, as a simple, but mighty software. It helps me in all aspects of my work – pre-match and post-match analysis, communication with the head coach, and communication with players. Young players need video analysis to help their growth, and Once Sport Analyser has proven its worth."
+   206→
+   207→ Martin Kolar
+   208→
+   209→ Video analyst, GNK Dinamo Zagreb U19
+   210→
+   211→ Head of video analysis in Women Training Center 
+   212→
+   213→ "Thanks to the ease of use and the quality of the telestration, a software like Once Sport helps an analyst's day to day work. It only takes a few minutes to create a design that's both relevant and impactful for our target audience. Finally, its affordability in relation to their competitors makes it a major asset for amateur, semi-pro, and even higher-level clubs."
+   214→
+   215→ Olivier Degrenne
+   216→
+   217→ Head of video analysis in Women Training Center, Paris FC
+   218→
+   219→ More Reviews
+   220→
+   221→ OUR CLIENTS
+   222→
+   223→ ... 
+   224→
+   225→ Get Once Sport Coach Board now!
+   226→
+   227→ Get Once Sport Coach Board and create tactics and trainings in just a few clicks. Less time lost – more games won.
+   228→
+   229→ Buy now
+   230→
+   231→ Free trial
+   232→
+   233→ Want to do video analysis? Try Once Sport Analyser 
+   234→
+   235→ Once Sport Analyser is a user-friendly software for coaches and analysts. If you want to create professional live or post-match analysis, this is the tool for you! With advanced tagging options, automated tracking, 3D animated graphics, and live analysis options, Once Sport Analyser is the best value-for-money option on the market.
+   236→
+   237→14-day Free Trial available – no credit card required!
+   238→
+   239→ LEARN MORE
+   240→
+   241→ FREE TRIAL
+   242→
+   243→ Want to record games? Try Once Sport Autocam 
+   244→
+   245→ Once Sport Autocam is an easy-to-use offline tool for creating TV-like footage from panorama videos with the help of AI technology . Take a video recorded with any camera that covers the entire pitch and turn it into footage that looks like it was filmed by a camera operator. Our AI-powered software uses neural networks and computer vision to adjust your recording to give you a video ready for watching or analysing. Free Trial available – no credit card required!
+   246→
+   247→ GET A QUOTE
+   248→
+   249→ LEARN MORE
+   250→
+   251→ EN
+   252→
+   253→ FR
+   254→
+   255→ DE
+   256→
+   257→ PT
+   258→
+   259→ IT
+   260→
+   261→ ES
+   262→
+   263→ Product & Solutions
+   264→
+   265→ Analyser
+   266→
+   267→ Telestrator
+   268→
+   269→ Coach Board
+   270→
+   271→ Autocam
+   272→
+   273→ Certification
+   274→
+   275→ eBook
+   276→
+   277→ Free trial
+   278→
+   279→ More Information
+   280→
+   281→ Home
+   282→
+   283→ Blog
+   284→
+   285→ Pricing
+   286→
+   287→ Clients and Partners
+   288→
+   289→ About
+   290→
+   291→ Legal
+   292→
+   293→ GET SOCIAL
+   294→
+   295→ We use cookies to improve your experience. By clicking "Accept", you agree to our Privacy Policy
+   296→ (details) .
+   297→
+   298→ Decline
+   299→
+   300→ ACCEPT
+   301→================================================================================
+   302→FILE: 02_ctb_review.json
+   303→TITLE: Coach Tactic Board Review: Can This App Replace A Coach’s White Board?
+   304→URL: https://sportstechnologyblog.com/2020/11/09/coach-tactic-board-review-can-this-app-replace-a-coachs-white-board
+   305→--------------------------------------------------------------------------------
+   306→Coach Tactic Board Review: Can This App Replace A Coach’s White Board? – Sports Technology Blog 
+   307→
+   308→ Skip to content 
+   309→
+   310→ Search for: 
+   311→
+   312→ Search 
+   313→
+   314→ Close 
+   315→
+   316→ Close Menu 
+   317→
+   318→ Sports Tech 
+   319→
+   320→ Product Reviews 
+   321→
+   322→ Product Dev 
+   323→
+   324→ Research 
+   325→
+   326→ News & Events 
+   327→
+   328→ Startup Spotlight 
+   329→
+   330→ Guides & Tips 
+   331→
+   332→ About Us 
+   333→
+   334→ What Is STB Doing Now 
+   335→
+   336→ Contact Us 
+   337→
+   338→ Expand child menu 
+   339→
+   340→ Sports Tech Jobs 
+   341→
+   342→ Sports Technology Blog 
+   343→
+   344→ Your Trusted Source For All Things Sports & Health Tech Related
+   345→
+   346→ Sports Tech 
+   347→
+   348→ Product Reviews 
+   349→
+   350→ Product Dev 
+   351→
+   352→ Research 
+   353→
+   354→ News & Events 
+   355→
+   356→ Startup Spotlight 
+   357→
+   358→ Guides & Tips 
+   359→
+   360→ About Us 
+   361→
+   362→ What Is STB Doing Now 
+   363→
+   364→ Contact Us 
+   365→
+   366→ Sports Tech Jobs 
+   367→
+   368→ Menu 
+   369→
+   370→ Search 
+   371→
+   372→ Coach Tactic Board Review: Can This App Replace A Coach’s White Board?
+   373→
+   374→ Menu 
+   375→
+   376→ Back to Top 
+   377→
+   378→ Product Reviews Sports Technology 
+   379→ Coach Tactic Board Review: Can This App Replace A Coach’s White Board?
+   380→
+   381→ by Salim November 9, 2020 November 10, 2020 
+   382→
+   383→ Leave a Comment on Coach Tactic Board Review: Can This App Replace A Coach’s White Board? 
+   384→
+   385→ This review looks to explore the Coach Tactic Board app and analyse whether it is suitable to replace a coach's whiteboard 
+   386→
+   387→ Whether you’re a player or coach a common problem you would have faced is successfully implementing new drills and tactics. In tackling the issue whiteboards have been the traditional weapon of choice. Despite being a powerful teaching tool, there are known limitations.
+   388→
+   389→ Perhaps the biggest drawback is the reliance on the coach being present to explain the tactics as well as there being no capability to replay the session when a player is not present or if a player wants to revisit a tactic in their own time.  Bluelinden have identified these issues and have aspired to build on this tried and trusted method through their virtual white board apps for IOS and Android 
+   390→
+   391→ Image of traditional whiteboard for coaching 
+   392→
+   393→ What The App Does
+   394→
+   395→ The Coach Tactic Board series of apps provides users with the familiarity of a whiteboard’s layout with the added functional capabilities of technology. Users are able to setup formations, create tactics and design drills. Both the drills and tactics can be created using over 20 types of equipment such as cones and hurdles. The screen can then be annotated with lines to display player movements and then recorded play by play and outputted as a video. Once exported, the drills/tactics can then be watched at the click of a button and shared amongst players prior to a training session or match. This means less time for coaches explaining drills during sessions and more time for players to do them. 
+   396→
+   397→ Although this all sounds good on paper, the question remains if a virtual whiteboard dependent on the relatively small screen size of a tablet can really replace a traditional white board? 
+   398→
+   399→ Screenshot of the app 
+   400→
+   401→ Which Version of the App To Choose?
+   402→
+   403→ Despite similar functionality, there is a separate Coach Tactic Board app for each sport including soccer, basketball, futsal and squash. The apps are further broken down to a free version and a paid version for each sport. While the paid version is relatively cheap $4.99USD or $7.99AUD (IOS and Android) you may feel tempted to stick with the free version of the app as it has many of the same features. That being said the free version does have the regular annoying pop up ad. 
+   404→
+   405→ There is also the option to buy 6 sports apps in a bundle for $15 AUD. Though more often than not a coach will only be involved with one sport therefore not need all the sports available. Nonetheless, this option may be attractive to sporting organisations involved with several sports. Due to the relatively low cost for the value the app provides we recommend considering purchasing the premium version of the app. Unlike many apps on the market it is just a once of payment so you are not locked into any contract. 
+   406→
+   407→ List of some of Blue Lindens Coach Tactic Board Apps 
+   408→
+   409→ Setup
+   410→
+   411→ For this review we will be looking at the Coach Tactic Board: Soccer++ which is the paid soccer version of the app. A 9.7-inch iPad has been chosen to review the app as it has greater screen real estate than an iPhone. Ideally though, the largest version of the iPad pro would be more suited due to it having a bigger screen. Unfortunately, this wasn’t available to us at the time of writing. 
+   412→
+   413→ The setup of the app is extremely straight forward. Upon opening it doesn’t ask to create a profile or anything of the like. The first screen you see is a picture of a field with players on it in the classic 4-4-2 formation. The simplicity and directness of this initial screens set the scene for much of the app’s functionality.
+   414→
+   415→ Product Function
+   416→
+   417→ The app essentially consists of two key modes. These are the home screen which acts as a traditional whiteboard and the the apps main mode in where you build drills which we will refer to through the review as a “Drill Builder Mode”.
+   418→
+   419→ Mode 1: Home Screen 
+   420→
+   421→ The home screen is setup like a whiteboard in the sense it is made up of a soccer field with markers which are used to represent the home team and opposing players. In this mode there is also the option for annotating the whiteboard with lines, selecting formation and adding player information. 
+   422→
+   423→ Selecting Formation 
+   424→
+   425→ Via clicking the folder button users can select over 50 pre-configured formations. These range from the widely known 4-4-2 to less common 7 a side formations. If you wanted extra customisations such as having your wingers’ wider than a default formation, user can simply drag and drop the player to the position they want. You can also have players outside the field which represent substitutes. We found setting up a lineup to be extremely easy to use and worked smoothly as intended. These custom formations can then be saved and used in future for both this mode and the Drill Builder Mode. 
+   426→
+   427→ List of some of the formations 
+   428→
+   429→ Selecting Field 
+   430→
+   431→ In the settings, the user has the option to select 4 different field backgrounds. These include a full-
+   432→================================================================================
+   433→FILE: 03_coachblitz.json
+   434→TITLE: Coach Tactic Board Review (2026): Features, Limits, Better Alternative
+   435→URL: https://coachblitz.com/en/reviews/coach-tactic-board
+   436→--------------------------------------------------------------------------------
+   437→Coach Tactic Board Review (2026): Features, Limits, Better Alternative 
+   438→
+   439→ Coach Blitz 
+   440→ Features Blog Demo ⋯ Library Download Deutsche English Español Français Italiano Português 
+   441→
+   442→ Features Library Blog Demo Download Deutsche English Español Français Italiano Português 
+   443→
+   444→ Coach Tactic Board: Soccer review
+   445→
+   446→ Coach Tactic Board: Soccer review (2026): who it’s for, what it does well, where it falls short
+   447→
+   448→ Coach Tactic Board: Soccer is a soccer tactics whiteboard app built to turn coaching ideas into visuals. You place players on a pitch, draw runs and passes, build drills with training equipment objects, animate sequences, and export/share what you create so players and assistants can see the same picture.
+   449→
+   450→ It’s excellent when the coaching problem is communication : “Here is the shape, here is the movement, here is the timing.”
+   451→
+   452→ It becomes less complete when the coaching problem is workflow : planning sessions efficiently, keeping practice/game details organized, managing match-day substitutions and minutes, logging events, and building a clean record of what happened across the season.
+   453→
+   454→ This review is written for coaches deciding whether Coach Tactic Board is “the tool,” or whether it’s better treated as a tactics layer inside a larger coaching stack.
+   455→
+   456→ Getting started: account creation and onboarding friction
+   457→
+   458→ Coach Tactic Board: Soccer is straightforward to start using because it is centered around a whiteboard workflow rather than a team portal workflow:
+   459→
+   460→ start with a board (full pitch / half pitch / training layouts)
+   461→
+   462→ place players and draw movement/passing cues
+   463→
+   464→ save boards into a personal library
+   465→
+   466→ organize into folders as your library grows
+   467→
+   468→ The friction is practical:
+   469→
+   470→ ads and upgrade prompts can break flow during creation and export
+   471→
+   472→ the value of the app depends on how cleanly you can save, retrieve, duplicate, and adapt boards over time
+   473→
+   474→ If you need an app where families join, messages flow through, and schedules synchronize, Coach Tactic Board is not built as that kind of system. It is a tactics whiteboard first.
+   475→
+   476→ What it does best
+   477→
+   478→ 1) Tactics and drill creation that stays fast
+   479→
+   480→ Coach Tactic Board is built like a digital clipboard:
+   481→
+   482→ ready-made tactics you can start from
+   483→
+   484→ equipment objects for training (cones, balls, ladders, and other items)
+   485→
+   486→ multiple line styles for movement and passing cues
+   487→
+   488→ multiple board modes (full-field, half-field, training layouts, and a plain board)
+   489→
+   490→ unlimited saves and folder organization
+   491→
+   492→ How coaches use this well:
+   493→
+   494→ pre-game: build a “roles and triggers” board (pressing cues, build-out shape, defensive block)
+   495→
+   496→ training: turn the board into a drill by adding equipment and turning movement into repetition
+   497→
+   498→ halftime: show one clear adjustment quickly
+   499→
+   500→ 2) Animation for timing and sequences
+   501→
+   502→ Animated plays matter because many soccer problems are timing problems. Coach Tactic Board supports animation and exports animations as MP4, which makes it realistic to share a play sequence after a session.
+   503→
+   504→ 3) Team/player objects for role clarity
+   505→
+   506→ Coach Tactic Board supports teams and players (including photos) and supports substitutions by moving players within the board. This improves teaching clarity because diagrams can match roles and responsibilities instead of generic dots.
+   507→
+   508→ 4) Saving, folders, and reuse
+   509→
+   510→ Coach Tactic Board supports unlimited saves and folder organization. The best way to keep it usable is to treat boards as templates and maintain a clear folder structure by category (build-out, press, set pieces, warm-ups, finishing, small-sided games).
+   511→
+   512→ 5) Exporting and sharing
+   513→
+   514→ Coach Tactic Board exports boards as images and PDF, and it exports animations as MP4. Export is what turns a tactics board into a reusable coaching library.
+   515→
+   516→ Where it becomes frustrating
+   517→
+   518→ 1) Ads and upgrade prompts break coaching flow
+   519→
+   520→ A tactics board is often used under time pressure. Interruptions—ads, prompts, or gating at the wrong moment—matter more here than in a casual app.
+   521→
+   522→ 2) Library growth turns organization into work
+   523→
+   524→ With a season’s worth of drills and set pieces saved, the daily experience becomes: find the right board fast, duplicate it, and adjust it without fuss. This only stays smooth if you maintain your library intentionally.
+   525→
+   526→ 3) Small-sided formats can feel less “native”
+   527→
+   528→ For 7v7 and 9v9, coaches want clean player counts, spacing, and quick toggles. A tactics board can handle small-sided coaching, but it is still a diagram tool first, not a system designed around rotations and match formats.
+   529→
+   530→ 4) Precision work becomes unavoidable on crowded boards
+   531→
+   532→ Overlapping players, detailed set pieces, and dense movement patterns expose the usual whiteboard pain points: selection, clean line drawing, and readability.
+   533→
+   534→ 5) It does not connect tactics to the weekly coaching calendar
+   535→
+   536→ Coach Tactic Board is not built around weekly operations: practice/game scheduling, session structure, practice flow, match records, or season reporting.
+   537→
+   538→ Game-day reality: the gaps that matter to coaches
+   539→
+   540→ This is the key weakness for many coaches searching “Coach Tactic Board review” or “Coach Tactic Board alternative”:
+   541→
+   542→ Coach Tactic Board helps you draw what you want to do. It does not help you run what actually happened.
+   543→
+   544→ Substitutions (weakness)
+   545→
+   546→ Coach Tactic Board lets you move players around the board and simulate a substitution. That is a teaching tool—not a match-day rotation system.
+   547→
+   548→ What’s missing is the coach-critical part:
+   549→
+   550→ no minutes accounting tied to substitutions
+   551→
+   552→ no timeline of who played when
+   553→
+   554→ no “fairness” view that prevents accidental uneven playing time
+   555→
+   556→ Why that matters: if you don’t track minutes, you end up guessing. If a parent asks “how much did my kid play,” you are reconstructing it from memory or a separate sheet.
+   557→
+   558→ Live match events and stats (weakness)
+   559→
+   560→ Coach Tactic Board is not a live match logging tool for goals, assists, cards, injuries, or key moments that become a match record.
+   561→
+   562→ Why that matters: the longer yo
+   563→================================================================================
+   564→FILE: 04_loveadmin.json
+   565→TITLE: Six of the best football coaching and tactics software | LoveAdmin
+   566→URL: https://loveadmin.com/coaching-and-development/six-of-the-best-football-coaching-and-tactics-software
+   567→--------------------------------------------------------------------------------
+   568→Six of the best football coaching and tactics software | LoveAdmin 
+   569→
+   570→ This website uses cookies to optimise your online user experience. Some of the cookies we use are essential for the site to work. By continuing to use our site you agree to us using cookies in accordance with our Cookie Policy. 
+   571→
+   572→ Settings Accept 
+   573→
+   574→ Privacy Overview 
+   575→ This website uses cookies to improve your experience while you navigate through the website. Out of these, the cookies that are categorized as necessary are stored on your browser as they are essential for the working of basic functionalities of the website. We also use third-party cookies that help us analyze and understand how you use this website. These cookies will be stored in your browser only with your consent. You also have the option to opt-out of these cookies. But opting out of some of these cookies may affect your browsing experience.
+   576→ For more information on how Google's third-party cookies operate and handle your data, see:  Google Privacy Policy 
+   577→
+   578→ Necessary Always Active 
+   579→ Necessary cookies are absolutely essential for the website to function properly. These cookies ensure basic functionalities and security features of the website, anonymously.
+   580→
+   581→ Cookie
+   582→ __hssrc
+   583→
+   584→ Duration
+   585→ session
+   586→
+   587→ Description
+   588→ This cookie is set by Hubspot whenever it changes the session cookie. The __hssrc cookie set to 1 indicates that the user has restarted the browser, and if the cookie does not exist, it is assumed to be a new session.
+   589→
+   590→ Cookie
+   591→ JSESSIONID
+   592→
+   593→ Duration
+   594→ session
+   595→
+   596→ Description
+   597→ The JSESSIONID cookie is used by New Relic to store a session identifier so that New Relic can monitor session counts for an application.
+   598→
+   599→ Cookie
+   600→ _GRECAPTCHA
+   601→
+   602→ Duration
+   603→ 6 months
+   604→
+   605→ Description
+   606→ This cookie is set by the Google recaptcha service to identify bots to protect the website against malicious spam attacks.
+   607→
+   608→ Cookie
+   609→ cookielawinfo-checkbox-advertisement
+   610→
+   611→ Duration
+   612→ 1 year
+   613→
+   614→ Description
+   615→ Set by the GDPR Cookie Consent plugin, this cookie is used to record the user consent for the cookies in the "Advertisement" category .
+   616→
+   617→ Cookie
+   618→ cookielawinfo-checkbox-analytics
+   619→
+   620→ Duration
+   621→ 1 year
+   622→
+   623→ Description
+   624→ This cookie is set by GDPR Cookie Consent plugin. The cookie is used to store the user consent for the cookies in the category "Analytics".
+   625→
+   626→ Cookie
+   627→ cookielawinfo-checkbox-others
+   628→
+   629→ Duration
+   630→ 1 year
+   631→
+   632→ Description
+   633→ This cookie is set by GDPR Cookie Consent plugin. The cookie is used to store the user consent for the cookies in the category "Other.
+   634→
+   635→ Cookie
+   636→ viewed_cookie_policy
+   637→
+   638→ Duration
+   639→ 11 months
+   640→
+   641→ Description
+   642→ The cookie is set by the GDPR Cookie Consent plugin and is used to store whether or not user has consented to the use of cookies. It does not store any personal data.
+   643→
+   644→ Cookie
+   645→ cookielawinfo-checkbox-necessary
+   646→
+   647→ Duration
+   648→ 1 year
+   649→
+   650→ Description
+   651→ This cookie is set by GDPR Cookie Consent plugin. The cookies is used to store the user consent for the cookies in the category "Necessary".
+   652→
+   653→ Cookie
+   654→ cookielawinfo-checkbox-functional
+   655→
+   656→ Duration
+   657→ 1 year
+   658→
+   659→ Description
+   660→ The cookie is set by GDPR cookie consent to record the user consent for the cookies in the category "Functional".
+   661→
+   662→ Cookie
+   663→ cookielawinfo-checkbox-performance
+   664→
+   665→ Duration
+   666→ 1 year
+   667→
+   668→ Description
+   669→ This cookie is set by GDPR Cookie Consent plugin. The cookie is used to store the user consent for the cookies in the category "Performance".
+   670→
+   671→ Cookie
+   672→ lang
+   673→
+   674→ Duration
+   675→ session
+   676→
+   677→ Description
+   678→ LinkedIn sets this cookie to remember a user's language setting.
+   679→
+   680→ Cookie
+   681→ CONSENT
+   682→
+   683→ Duration
+   684→ 2 years
+   685→
+   686→ Description
+   687→ YouTube sets this cookie via embedded youtube-videos and registers anonymous statistical data.
+   688→
+   689→ Cookie
+   690→ yt-remote-device-id
+   691→
+   692→ Duration
+   693→ Never Expires
+   694→
+   695→ Description
+   696→ YouTube sets this cookie to store the video preferences of the user using embedded YouTube video.
+   697→
+   698→ Cookie
+   699→ yt-remote-connected-devices
+   700→
+   701→ Duration
+   702→ Never Expires
+   703→
+   704→ Description
+   705→ YouTube sets this cookie to store the video preferences of the user using embedded YouTube video.
+   706→
+   707→ Cookie
+   708→ YSC
+   709→
+   710→ Duration
+   711→ session
+   712→
+   713→ Description
+   714→ YSC cookie is set by Youtube and is used to track the views of embedded videos on Youtube pages.
+   715→
+   716→ Cookie
+   717→ VISITOR_INFO1_LIVE
+   718→
+   719→ Duration
+   720→ 6 months
+   721→
+   722→ Description
+   723→ A cookie set by YouTube to measure bandwidth that determines whether the user gets the new or old player interface.
+   724→
+   725→ Cookie
+   726→ __Secure-ROLLOUT_TOKEN
+   727→
+   728→ Duration
+   729→ 6 months
+   730→
+   731→ Description
+   732→ Description is currently not available.
+   733→
+   734→ Cookie
+   735→ _cfuvid
+   736→
+   737→ Duration
+   738→ session
+   739→
+   740→ Description
+   741→ Calendly sets this cookie to track users across sessions to optimize user experience by maintaining session consistency and providing personalized services
+   742→
+   743→ Cookie
+   744→ elementor
+   745→
+   746→ Duration
+   747→ Never Expires
+   748→
+   749→ Description
+   750→ The website's WordPress theme uses this cookie. It allows the website owner to implement or change the website's content in real-time.
+   751→
+   752→ Cookie
+   753→ wpEmojiSettingsSupports
+   754→
+   755→ Duration
+   756→ session
+   757→
+   758→ Description
+   759→ WordPress sets this cookie when a user interacts with emojis on a WordPress site. It helps determine if the user's browser can display emojis properly.
+   760→
+   761→ Cookie
+   762→ cookieyes-consent
+   763→
+   764→ Duration
+   765→ 1 year
+   766→
+   767→ Description
+   768→ CookieYes sets this cookie to remember users' consent preferences so that their preferences are respected on subsequent visits to this site. It does not collect or store any personal information about the site visitors.
+   769→
+   770→ Cookie
+   771→ rc::a
+   772→
+   773→ Duration
+   774→ Never Expires
+   775→
+   776→ Description
+   777→ This cookie is set by the Google recaptcha service to identify bots to protect the website against malicious spam attacks.
+   778→
+   779→ Cookie
+   780→ rc::f
+   781→
+   782→ Duration
+   783→ Never Expires
+   784→
+   785→ Description
+   786→ This cookie is set by the Google recaptcha service to identify bots to protect the website against malicious spam attacks.
+   787→
+   788→ Cookie
+   789→ rc::b
+   790→
+   791→ Duration
+   792→ session
+   793→
+   794→ Description
+   795→ This cookie is set by the Google recaptcha service to identify bots to protect the website against malicious spam attacks.
+   796→
+   797→ Cookie
+   798→ rc::c
+   799→
+   800→ Duration
+   801→ session
+   802→
+   803→ Description
+   804→ This cookie is set by the Google recaptcha service to identify bots to protect the website agai
+   805→================================================================================
+   806→FILE: 05_uxcam_onboarding.json
+   807→TITLE: 12 Apps with Great User Onboarding (2026 Examples)
+   808→URL: https://uxcam.com/blog/10-apps-with-great-user-onboarding
+   809→--------------------------------------------------------------------------------
+   810→12 Apps with Great User Onboarding (2026 Examples) 
+   811→
+   812→ 4.7 STARS ON G2
+   813→
+   814→ Try our product analytics for free. No card required.
+   815→ Try UXCam for free 
+   816→
+   817→ Why UXCam
+   818→ WHY UXCAM
+   819→
+   820→ AI Analyst
+   821→ Get expert-level answers in seconds 
+   822→
+   823→ Mobile app analytics
+   824→ Trust the industry standard for mobile 
+   825→
+   826→ Web analytics
+   827→ Analyze your web apps and websites 
+   828→
+   829→ Security & compliance
+   830→ Keep your data secure 
+   831→
+   832→ Integrations
+   833→ Integrate with your tech stack 
+   834→
+   835→ UPDATES
+   836→
+   837→ Introducing Tara AI
+   838→ AI analyst for product teams 
+   839→
+   840→ Product
+   841→ QUALITATIVE ANALYTICS
+   842→
+   843→ UX analytics
+   844→ Deliver the perfect experience 
+   845→
+   846→ QUANTITATIVE ANALYTICS
+   847→
+   848→ Product analytics
+   849→ Track product success metrics 
+   850→
+   851→ UX analytics
+   852→
+   853→ Tara AI
+   854→ Get answers from our AI analyst 
+   855→
+   856→ Session replay
+   857→ See natural user behavior 
+   858→
+   859→ Heatmaps
+   860→ Visualize user habits 
+   861→
+   862→ User journey analytics
+   863→ Understand user flows 
+   864→
+   865→ Issue analytics
+   866→ Resolve issues effectively 
+   867→
+   868→ Solutions
+   869→ Solutions
+   870→
+   871→ Understand UX
+   872→ Analyze user behavior quickly 
+   873→
+   874→ Drive engagement
+   875→ Create a sticky product 
+   876→
+   877→ Increase conversions
+   878→ Improve key metrics 
+   879→
+   880→ Resolve issues
+   881→ Reduce ticket resolution time 
+   882→
+   883→ Industries
+   884→
+   885→ Ecommerce
+   886→ Optimize checkout flows 
+   887→
+   888→ Healthcare
+   889→ Deliver frictionless digital care 
+   890→
+   891→ Finance
+   892→ Simplify loan, card, and investment journeys 
+   893→
+   894→ Telecommunications
+   895→ Keep customers connected 
+   896→
+   897→ Resources Using UXCam
+   898→
+   899→ Developer docs
+   900→ Set up UXCam today 
+   901→
+   902→ Help center
+   903→ Get support and best practices 
+   904→
+   905→ Product updates
+   906→ Stay on top of the latest features 
+   907→
+   908→ FAQ
+   909→ Receive quick answers 
+   910→
+   911→ Best practices
+   912→
+   913→ Case studies
+   914→ See successful UXCam customers 
+   915→
+   916→ Blog
+   917→ Educate yourself on mobile app PM 
+   918→
+   919→ Academy
+   920→ Upskill with our courses 
+   921→
+   922→ Webinars & Ebooks
+   923→ Read comprehensive guides 
+   924→
+   925→ More
+   926→
+   927→ Partners
+   928→ Become a UXCam partner 
+   929→
+   930→ About us
+   931→ Learn more about our company 
+   932→
+   933→ Case studies
+   934→ Inspiring stories by real customers 
+   935→
+   936→ Pricing 
+   937→
+   938→ EN Choose language
+   939→ English Español Português 
+   940→
+   941→ Login 
+   942→ Start free trial Get a demo 
+   943→ Get a demo 
+   944→ Why UXCam 
+   945→
+   946→ AI Analyst
+   947→ Get expert-level answers in seconds 
+   948→
+   949→ Mobile app analytics
+   950→ Trust the industry standard for mobile 
+   951→
+   952→ Web analytics
+   953→ Analyze your web apps and websites 
+   954→
+   955→ Security & compliance
+   956→ Keep your data secure 
+   957→
+   958→ Integrations
+   959→ Integrate with your tech stack 
+   960→
+   961→ Introducing Tara AI
+   962→ AI analyst for product teams 
+   963→
+   964→ Product 
+   965→ QUALITATIVE ANALYTICS
+   966→
+   967→ Tara AI
+   968→ Get answers from our AI analyst 
+   969→
+   970→ Session replay
+   971→ See natural user behavior 
+   972→
+   973→ Heatmaps
+   974→ Visualize user habits 
+   975→
+   976→ User journey analytics
+   977→ Understand user flows 
+   978→
+   979→ Issue analytics
+   980→ Resolve issues effectively 
+   981→
+   982→ QUANTITATIVE ANALYTICS
+   983→
+   984→ Dashboards
+   985→ Generate reports automatically 
+   986→
+   987→ Funnels
+   988→ See where users drop off 
+   989→
+   990→ Retention analytics
+   991→ Analyze retention & churn 
+   992→
+   993→ Segments
+   994→ Slice & dice data with ease 
+   995→
+   996→ Solutions 
+   997→
+   998→ Understand UX
+   999→ Analyze user behavior quickly 
+  1000→
+  1001→ Drive engagement
+  1002→ Create a sticky product 
+  1003→
+  1004→ Increase conversions
+  1005→ Improve key metrics 
+  1006→
+  1007→ Resolve issues
+  1008→ Reduce ticket resolution time 
+  1009→
+  1010→ Ecommerce
+  1011→ Optimize checkout flows 
+  1012→
+  1013→ Healthcare
+  1014→ Deliver frictionless digital care 
+  1015→
+  1016→ Finance
+  1017→ Simplify loan, card, and investment journeys 
+  1018→
+  1019→ Telecommunications
+  1020→ Keep customers connected 
+  1021→
+  1022→ Resources 
+  1023→ Using UXCam
+  1024→
+  1025→ Developer docs
+  1026→ Set up UXCam today 
+  1027→
+  1028→ Help center
+  1029→ Get support and best practices 
+  1030→
+  1031→ Product updates
+  1032→ Stay on top of the latest features 
+  1033→
+  1034→ FAQ
+  1035→ Receive quick answers 
+  1036→
+  1037→ Best practices
+  1038→
+  1039→ Case studies
+  1040→ See successful UXCam customers 
+  1041→
+  1042→ Blog
+  1043→ Educate yourself on mobile app PM 
+  1044→
+  1045→ Academy
+  1046→ Upskill with our courses 
+  1047→
+  1048→ Webinars & Ebooks
+  1049→ Read comprehensive guides 
+  1050→
+  1051→ More
+  1052→
+  1053→ Partners
+  1054→ Become a UXCam partner 
+  1055→
+  1056→ About us
+  1057→ Learn more about our company 
+  1058→
+  1059→ Case studies
+  1060→ Inspiring stories by real customers 
+  1061→
+  1062→ Pricing
+  1063→
+  1064→ Choose language
+  1065→ English Español Português 
+  1066→
+  1067→ Start free trial Get a demo 
+  1068→
+  1069→ BLOG / Article 
+  1070→
+  1071→ PUBLISHED 9 July, 2025 •
+  1072→ UPDATED 27 April, 2026
+  1073→ 16 MIN READ
+  1074→
+  1075→ SHARE THIS POST 
+  1076→
+  1077→ 12 Apps with Great User Onboarding (2026 Examples)
+  1078→ Product best practices
+  1079→ User Onboarding
+  1080→
+  1081→ BY Silvanus Alt, PhD
+  1082→ SHARE THIS POST 
+  1083→
+  1084→ TABLE OF CONTENTS
+  1085→ The 12 best app onboarding flows to study in 2026 
+  1086→ Instagram's onboarding flow 
+  1087→ SoundCloud's onboarding flow 
+  1088→ LinkedIn's onboarding flow 
+  1089→ Wise's onboarding flow 
+  1090→ MyFitnessPal's onboarding flow 
+  1091→ Binance's onboarding flow 
+  1092→ Strava's onboarding flow 
+  1093→ Tinder's onboarding flow 
+  1094→ Expensify's onboarding flow 
+  1095→ Duolingo's onboarding flow 
+  1096→ Headspace's onboarding flow 
+  1097→ Notion's onboarding flow 
+  1098→ 15 onboarding patterns and pitfalls worth studying 
+  1099→ Industry-specific onboarding considerations 
+  1100→ Onboarding tools by category 
+  1101→ 10 common onboarding mistakes 
+  1102→ How to get started: an onboarding maturity model 
+  1103→ What makes great app onboarding 
+  1104→ Improve your app onboarding with UXCam 
+  1105→ How AI session analysis is changing onboarding optimization 
+  1106→
+  1107→ The first session is where most apps lose 70-90% of their users. AppsFlyer's mobile benchmarks put median day-1 retention at around 25% across categories, which means three out of four installs never come back. The 12 apps in this guide land in the top decile on day-1 retention, and they share a remarkably small set of patterns: a meaningful first action, progressive disclosure, and an empty state that feels filled. Each example below shows one of those patterns nailed in production.
+  1108→ Here's what's covered:
+  1109→ 12 best-in-class onboarding flows, with the specific pattern each one nails
+  1110→
+  1111→ The five onboarding patterns that consistently lift activation
+  1112→
+  1113→ 13 patterns and pitfalls to apply to your own onboarding
+  1114→
+  1115→ The 12 best mobile app onboarding flows worth studying in 2026: Duolingo, Calm, Headspace, Notion, Linear, Spotify, TikTok, Robinhood, Revolut, Strava, Slack, and Figma. Each demonstrates a specific pattern (progressive disclosure, picker quiz, demo project, social proof) that generalizes across categories more often than most teams expect.
+  1116→ The 12 best app onboarding flows to study in 2026
+  1117→ Instagram 
+  1118→
+  1119→ SoundCloud 
+  1120→
+  1121→ LinkedIn 
+  1122→
+  1123→ Wise (formerly TransferWise)
+  1124→
+  1125→ MyFitnessPal 
+  1126→
+  1127→ Binance 
+  1128→
+  1129→ Strava 
+  1130→
+  1131→ Tinder 
+  1132→
+  1133→ Expensify 
+  1134→
+  1135→ Duolingo 
+  1136→
+  1137→ Headspace 
+  1138→
+  1139→================================================================================
+  1140→FILE: 06_nngroup_darkmode.json
+  1141→TITLE: Dark Mode: How Users Think About It and Issues to Avoid
+  1142→URL: https://www.nngroup.com/articles/dark-mode-users-issues
+  1143→--------------------------------------------------------------------------------
+  1144→Dark Mode: How Users Think About It and Issues to Avoid - NN/G 
+  1145→
+  1146→ We value your privacy
+  1147→ This website or its third-party tools process personal data. You can opt out of the sale of your personal information by clicking on the “Do Not Sell or Share My Personal Information” link.
+  1148→
+  1149→ Do Not Sell or Share My Personal Information 
+  1150→
+  1151→ Opt-out Preferences 
+  1152→ We use third-party cookies that help us analyse how you use this website, store your preferences, and provide the content and advertisements that are relevant to you. However, you can opt out of these cookies by checking "Do Not Sell or Share My Personal Information" and clicking the "Save My Preferences" button. Once you opt out, you can opt in again at any time by unchecking "Do Not Sell or Share My Personal Information" and clicking the "Save My Preferences" button.
+  1153→
+  1154→ Do Not Sell or Share My Personal Information
+  1155→
+  1156→ Cancel Save My Preferences 
+  1157→
+  1158→ Your opt-out preference has been honored.
+  1159→
+  1160→ Banner closes automatically in s...
+  1161→
+  1162→ Powered by 
+  1163→
+  1164→ Skip to content 
+  1165→
+  1166→ September Exclusive | Buy 2, Get 3rd Free on Live Online Courses
+  1167→
+  1168→ Enroll Today
+  1169→
+  1170→ Nielsen Norman Group 
+  1171→
+  1172→ Nielsen Norman Group 
+  1173→
+  1174→ UX Training & Courses
+  1175→
+  1176→ Live Online
+  1177→
+  1178→ All Live Online Courses
+  1179→
+  1180→ Upcoming Live Online Training
+  1181→
+  1182→ UX Certification
+  1183→
+  1184→ Private Team Training
+  1185→
+  1186→ Group Discount Pricing
+  1187→
+  1188→ Self-Paced
+  1189→
+  1190→ Self-Paced Courses
+  1191→
+  1192→ Articles & Resources
+  1193→
+  1194→ Articles & Videos
+  1195→
+  1196→ Reports & Books
+  1197→
+  1198→ The NN/G UX Podcast
+  1199→
+  1200→ Consulting
+  1201→
+  1202→ All Consulting Services
+  1203→
+  1204→ Customized Research
+  1205→
+  1206→ Expert Review
+  1207→
+  1208→ Intensive Applied Workshops
+  1209→
+  1210→ Keynote Speaking
+  1211→
+  1212→ User Testing
+  1213→
+  1214→ UX Maturity Assessment
+  1215→
+  1216→ About Us
+  1217→
+  1218→ About NNGroup
+  1219→
+  1220→ People
+  1221→
+  1222→ Clients
+  1223→
+  1224→ News & Careers
+  1225→
+  1226→ FAQs
+  1227→
+  1228→ Contact Us
+  1229→
+  1230→ Search 
+  1231→
+  1232→ When autocomplete results are available use up and down arrows to review and enter to select. Touch device users, explore by touch or with swipe gestures. 
+  1233→
+  1234→ 0 
+  1235→
+  1236→ Log In 
+  1237→
+  1238→ 14 
+  1239→
+  1240→ Dark Mode: How Users Think About It and Issues to Avoid
+  1241→
+  1242→ Tanner Kohler, Amy Zhang 
+  1243→
+  1244→ Tanner Kohler and
+  1245→
+  1246→ Amy Zhang 
+  1247→
+  1248→ August 27, 2023 
+  1249→
+  1250→ 2023-08-27 
+  1251→
+  1252→ Share
+  1253→
+  1254→ Email article
+  1255→
+  1256→ Share on LinkedIn
+  1257→
+  1258→ Share on Twitter
+  1259→
+  1260→ Summary: 
+  1261→ Dark mode is popular, but not always a critical feature. Users behave similarly without it. They think about it at the system level, not the application level.
+  1262→
+  1263→ Dark mode is more popular than ever. You might even think it’s essential — at least if you were to read many of the web-design articles devoted to the topic. However, it takes valuable time and resources to fully support dark mode and “wear it well” because most designs are built in light mode first. To understand how much dark mode impacts users, we recently conducted a survey and some  mobile usability-testing sessions in dark mode on mobile.
+  1264→
+  1265→ In This Article:
+  1266→
+  1267→ Why People Say They Use Dark Mode 
+  1268→
+  1269→ Why People Say They Use Dark Mode 
+  1270→
+  1271→ What Users Expect Regarding Dark Mode 
+  1272→
+  1273→ Dark Mode Issues to Avoid 
+  1274→
+  1275→ Dark Mode: Best Practices 
+  1276→
+  1277→ References 
+  1278→
+  1279→ Why People Say They Use Dark Mode
+  1280→
+  1281→ In a recent survey of 115 mobile users asking what mode they generally have their mobile device in, roughly 1/3 said dark mode, 1/3 said light mode, and 1/3 said a combination of both. The argument that dark mode improves the user experience (and accessibility in some cases) always seems to circle back to the same few reasons, mentioned by users, designers, and developers alike:
+  1282→
+  1283→ Reduced eye strain
+  1284→
+  1285→ Battery savings
+  1286→
+  1287→ Aesthetic appeal
+  1288→
+  1289→ Improved accessibility for those with visual impairments (e.g., cataracts)
+  1290→
+  1291→ After updating to allow for dark mode, the Google Docs application on Android touts that it’s, “Easier on the eyes at night. Easier on the battery during the day.” 
+  1292→
+  1293→ Let’s take a closer look at the commonly cited reasons for supporting and using dark mode.
+  1294→
+  1295→ Reduced Eye Strain
+  1296→
+  1297→ Reducing eye strain is the most common reason users with normal vision mention for using dark mode. As one research participant put it, “ My eyes have always been very sensitive to bright lights. So ideally, I use dark mode on everything I can. [...] I don't think I can go back to normal. [I have] a lot less eye strain. I don't think I'm getting headaches as much […]” 
+  1298→
+  1299→ While dark mode is not guaranteed to reduce headaches, this belief is widespread and motivates many users to permanently set their devices to dark mode. 
+  1300→
+  1301→ Dark mode does slightly reduce the amount of light being taken in by the retina and might feel easier on the eyes during a single session — particularly in dark environments. However, some research has failed to find a significant difference in reported measures of eye strain and headaches when participants complete tasks in both light mode and dark mode.
+  1302→
+  1303→ One study compared participants’ levels of eye fatigue while reading passages in both dark and light modes within an immersive  virtual reality (VR) headset. This setup allowed the researchers to control all lighting conditions and isolate the effects of the dark and light modes better than simply having participants look at screens in a brightly lit room. The researchers found that dark mode was best at reducing eye fatigue when the entire virtual environment was dimly lit, yet dark mode's advantage over a dimly lit light mode was still very small . It seems that the brightness level of the screen and surrounding environment make as much of an impact on eye fatigue as the color of the design.
+  1304→
+  1305→ Battery Savings
+  1306→
+  1307→ Another widespread notion is that enabling dark mode in the smartphone’s operating-system settings will automatically save battery across the board (similar to Low-power mode or Battery-saver mode ).
+  1308→
+  1309→ When asked why they use dark mode, some survey respondents commented, “[dark mode] uses less battery than light mode” or “to save battery power.” Most users are likely to switch dark mode on in the operating-system settings, assuming they are enjoying the maximum battery-saving benefits dark mode has to offer across the device (whether individual designs support dark mode or not), and do not think about it again. This is because mos

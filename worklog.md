@@ -130,3 +130,79 @@ Stage Summary:
 - Animación sin overshoot (centripetal) y sin jitter (RDP).
 - Listo para próxima iteración: modelo keyframes+paths editables, capas canvas,
   más estilos IA, monetización.
+
+---
+Task ID: 10
+Agent: main (Z.ai Code)
+Task: Investigación de mercado + UX + monetización + usuarios (4 agentes paralelos).
+
+Work Log:
+- Lance 4 subagents en paralelo para investigar:
+  * Competencia y pricing (TacticalPad, Coach Tactic Board, Hudl, Once Sport, etc.)
+  * UX/UI de apps tácticas pro (paleta, tipografía, layout, microinteracciones)
+  * Modelos de monetización (RevenueCat, Adapty, PPP, fiscalidad AR)
+  * Features que valoran entrenadores (Reddit, reviews, foros)
+- Síntesis de hallazgos clave:
+  * HUECO DE MERCADO: ninguna app comercial tiene IA que complete jugadas.
+    Queja #1 en Reddit. DeepMind validó con Liverpool (TacticAI, Nature 2024).
+  * Se ve amateur por: verde saturado, sin sombras, toolbar amontonado,
+    iconos inconsistentes. NO es funcionalidad, es coherencia visual.
+  * Pricing: USA $49.99/año, España €29.99, Latam PPP 60-70% off.
+    Plan Club B2B $199/año (Hudl cobra $400+).
+  * Trial 7 días opt-in en plan anual (convierte 45.7%).
+  * Feature gating: Free = 3 jugadas + 1 IA/día; Pro = ilimitado + video + cloud.
+  * Feature prioritario MVP: "Simulador de respuesta del rival" (nuestra IA).
+
+Stage Summary:
+- Plan de producto definido. Ahora a ejecutar el rediseño comercial completo.
+
+---
+Task ID: 11
+Agent: main (Z.ai Code)
+Task: Rediseño comercial completo — dark mode pro + paywall + feature gating.
+
+Work Log:
+- CSS reescrito con paleta profesional (informe UX):
+  * bg #0E1416, surface #161D21, surface-2 #1F282D (elevación por gris)
+  * text #E8EDF0 (no blanco puro), muted #9AA7AD
+  * cancha verde apagado #1E5E3A (broadcast, no neón)
+  * azul #3B82F6 / rojo #EF4444 / balón ámbar #FBBF24 / acento menta #22D3A6
+  * Inter typography (Google Fonts) + tabular nums
+  * shadow tokens para cards y elementos flotantes
+- Header rediseñado: minimal 52dp, logo con icono gradiente, badge FREE/PRO
+- Onboarding: 3 pasos con dots de progreso, subtitulo, demo
+- drawPitch: verde apagado, franjas sutiles, viñeta
+- drawPlayer: sombra real de contacto + borde blanco + highlight 3D
+  (LA diferencia amateur→pro según VLM: "fichas sobre la mesa" vs "círculos pegados")
+- drawBall: ámbar con gradiente para alta visibilidad sobre verde
+- Estelas actualizadas a nueva paleta (azul/rojo/ámbar)
+- Paywall completo (sheet shPlans):
+  * 3 planes: Pro Anual ($2.499, "MÁS POPULAR"), Pro Mensual ($499), Club ($199)
+  * Lista de features Pro (✓) vs Free (🔒)
+  * CTA "PROBAR 7 DÍAS GRATIS"
+  * Selección de plan funcional
+- Feature gating implementado:
+  * S.plan = 'free'|'pro', persistido en localStorage
+  * FREE: 1 jugada IA/día, 3 jugadas guardadas máx
+  * PRO: todo ilimitado
+  * canUseAI(), registerAIUse(), canSavePlay()
+  * previewComplete() bloquea 2da IA en FREE → abre paywall
+  * saveOk() bloquea 4ta jugada en FREE → abre paywall
+  * Badge del header cambia FREE/PRO
+- Verificación VLM:
+  * Board: 8/10 profesionalismo. "Se ve como Hudl/Linear/Notion",
+    "fichas sobre la mesa con sombra y volumen", "cancha tipo broadcast pro".
+  * Paywall: 8/10 vende bien. "Jerarquía efectiva guía al anual",
+    "features bien diferenciadas".
+- Verificación funcional:
+  * FREE: 1ra IA OK, 2da → paywall automático ✓
+  * PRO: IA ilimitada (3 usos seguidos) ✓
+  * Badge cambia FREE/PRO ✓
+  * Sin errores de consola.
+
+Stage Summary:
+- App transformada de "proyecto amateur" a "producto comercial 8/10".
+- Paywall profesional con pricing Latam (ARS) y 3 planes.
+- Feature gating funcional Free vs Pro.
+- Persistencia de plan en localStorage.
+- Listo para: demo a usuarios, landing page externa, integración Stripe/StoreKit.
