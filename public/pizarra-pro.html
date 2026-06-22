@@ -8,6 +8,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="icon" type="image/png" href="/icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pizarra Pro">
 <script src="/gif.js"></script>
 <style>
   :root{
@@ -386,7 +393,9 @@
       <h1>Pizarra <em>Pro</em></h1>
       <span class="pro-badge free" id="planBadge">FREE</span>
     </div>
+    <button class="iconBtn" id="hHome" title="Inicio (Landing)">🏠</button>
     <button class="iconBtn" id="hUpgrade" title="Mejorar a Pro">👑</button>
+    <button class="iconBtn" id="hShare" title="Compartir jugada (PRO)">🔗</button>
     <button class="iconBtn" id="hExport" title="Exportar a GIF">🎬</button>
     <button class="iconBtn" id="hPlays" title="Mis jugadas">📂</button>
     <button class="iconBtn" id="hHelp" title="Ayuda">❔</button>
@@ -665,6 +674,9 @@ const STYLES=[
   {id:'attack',   n:'Ofensivo',    i:'🔥'},
   {id:'wings',    n:'Por bandas',  i:'↔️'},
   {id:'defense',  n:'Defensivo',   i:'🛡️'},
+  {id:'counter',  n:'Contraataque', i:'⚡'},
+  {id:'press',    n:'Presión alta', i:'🎯'},
+  {id:'buildup',  n:'Salida arco',  i:'🥅'},
 ];
 
 const FORMATIONS={
@@ -1326,7 +1338,7 @@ function completePlay(baseTracks,duration,style,attOverride){
 
   // corredores especiales del equipo atacante (estilo)
   let winger=null,striker=null;
-  if(style==='attack'||style==='wings'||style==='balanced'){
+  if(style==='attack'||style==='wings'||style==='balanced'||style==='counter'||style==='buildup'){
     const b0=ballAt(0),side=b0.x<0.5?'L':'R';
     let wBest=0;
     S.players.forEach(p=>{
@@ -1345,7 +1357,8 @@ function completePlay(baseTracks,duration,style,attOverride){
     });
   }
 
-  const depth= style==='attack'?0.26 : style==='defense'?0.07 : style==='wings'?0.16 : 0.16;
+  const depth= style==='attack'?0.26 : style==='defense'?0.07 : style==='wings'?0.16
+            : style==='counter'?0.42 : style==='press'?0.05 : style==='buildup'?0.12 : 0.16;
   const out={};
   const steps=Math.max(2,Math.ceil(duration/SAMPLE));
 
@@ -1365,17 +1378,54 @@ function completePlay(baseTracks,duration,style,attOverride){
       if(p.gk){ // arquero: se desplaza lateralmente siguiendo la pelota, pegado a su arco
         x=0.5+(b.x-0.5)*0.28;
         y=p.team==='blue'?clamp(a.y,0.87,0.94):clamp(a.y,0.06,0.13);
+        // Salida desde arquero: el arquero del equipo atacante sale un poco con la pelota al inicio
+        if(style==='buildup' && p.team===att && prog<0.15){
+          y=a.y + dAtt*0.04*(0.15-prog)/0.15;
+        }
       }
       else if(p.team===att){
         // compañero de apoyo
         x=a.x+(b.x-a.x)*0.22;
         y=a.y + dAtt*depth*prog;
+
+        // ---- CONTRAATAQUE: el delantero pica al vacío, los demás corren rápido en apoyo ----
+        if(style==='counter'){
+          if(id===striker){ // delantero pica al área rápido, al espacio
+            const gy=att==='blue'?0.15:0.85;
+            const gx=b.x<0.5?0.62:0.38; // al palo contrario de donde va la pelota
+            x=a.x+(gx-a.x)*Math.min(1,prog*1.8);
+            y=a.y+(gy-a.y)*Math.min(1,prog*1.6);
+          } else if(id!==winger){ // mediocampistas corren en apoyo vertical, rápido
+            y=a.y + dAtt*(depth+0.08)*Math.min(1,prog*1.3);
+            x=a.x+(b.x-a.x)*0.35;
+          }
+        }
+
+        // ---- PRESIÓN ALTA: los atacantes presionan al rival con la pelota (no aplica mucho acá, es ofensivo) ----
+        // (presion lo usan los defensores rivales, ver bloque defensor abajo)
+        if(style==='press'){
+          // delanteros del equipo atacante hacen pressing sobre la defensa rival
+          y=a.y + dAtt*0.05*prog; // se quedan arriba esperando robo
+        }
+
+        // ---- SALIDA DESDE EL ARCO: defensores se abren, mediocampistas se ofrecen ----
+        if(style==='buildup'){
+          if(prog<0.3){ // fase inicial: abrir la salida
+            const wide=Math.abs(a.x-0.5);
+            x=a.x+(a.x<0.5?-0.15:0.15)*wide*prog/0.3;
+            y=a.y + dAtt*0.05*(prog/0.3);
+          } else { // fase de progresión: subir con la pelota
+            x=a.x+(b.x-a.x)*0.2;
+            y=a.y + dAtt*depth*((prog-0.3)/0.7);
+          }
+        }
+
         if(id===winger){ // desborde por banda
           const tx=ballAt(0).x<0.5?0.10:0.90;
           x=a.x+(tx-a.x)*Math.min(1,prog*1.5);
           y=a.y + dAtt*(depth+0.16)*prog;
         }
-        if(id===striker){ // ataque al área / primer palo
+        if(id===striker && style!=='counter'){ // ataque al área / primer palo
           const gy=att==='blue'?0.12:0.88;
           x=a.x+(0.5+(b.x-0.5)*0.4-a.x)*prog;
           y=a.y+(gy-a.y)*Math.min(1,prog*1.25);
@@ -1395,7 +1445,32 @@ function completePlay(baseTracks,duration,style,attOverride){
           x=a.x+(b.x-a.x)*0.18+(0.5-a.x)*0.18;
           y=a.y+retreat*1.4*prog;
         }
-        if(id===presser){ // sale a presionar al portador, tapando el camino al arco
+
+        // ---- PRESIÓN ALTA: la defensa entera sube y presiona muy agresivamente ----
+        if(style==='press'){
+          if(id===presser){ // presionador directo: sale rápido al portador
+            const reach=Math.min(1,0.4+prog*1.4);
+            x=a.x+(b.x-a.x)*reach;
+            y=a.y+(b.y-a.y)*reach;
+          } else { // compañeros: suben la línea, reducen espacio
+            x=a.x+(b.x-a.x)*0.45;
+            y=a.y + (def==='blue'?0.18:-0.18)*prog; // suben la línea defensiva
+          }
+        }
+
+        // ---- CONTRAATAQUE: la defensa queda mal parada, reacciona tarde (se replega lento) ----
+        if(style==='counter'){
+          // defensa desordenada, replegando con delay
+          x=a.x+(b.x-a.x)*0.15;
+          y=a.y + retreat*0.6*prog; // replegan más lento (quedaron mal parados)
+          if(id===presser){ // el más cercano intenta alcanzar al delantero
+            const reach=Math.min(0.8,prog*1.2);
+            x=a.x+(b.x-a.x)*reach;
+            y=a.y+(b.y-a.y)*reach*0.7;
+          }
+        }
+
+        if(id===presser && style!=='press' && style!=='counter'){ // presionador estándar
           const off=def==='blue'?0.055:-0.055;
           const reach=Math.min(1,0.25+prog*1.1);
           x=a.x+(b.x-a.x)*reach;
@@ -1585,6 +1660,7 @@ function updateUI(){
   document.getElementById('rTeams').disabled=pl||pa||rec||pv;
   document.getElementById('rAI').disabled=pl&&!pv||rec;
   document.getElementById('hExport').disabled=!has||rec||pl;
+  document.getElementById('hShare').disabled=!has||rec;
 }
 
 document.getElementById('bRec').onclick=()=>S.mode==='rec'?stopRec():startRec();
@@ -1638,6 +1714,7 @@ function exitPresent(){
 document.getElementById('hPlays').onclick=()=>openSheet('shPlays');
 document.getElementById('hHelp').onclick=()=>document.getElementById('onboard').style.display='flex';
 document.getElementById('hUpgrade').onclick=()=>openSheet('shPlans');
+document.getElementById('hHome').onclick=()=>{try{top.location.href='/landing';}catch(e){location.href='/landing';}};
 document.getElementById('chipSpeed').onclick=()=>openSheet('shSpeed');
 document.getElementById('chipLoop').onclick=()=>{
   S.loop=!S.loop;
@@ -1651,6 +1728,71 @@ document.getElementById('hExport').onclick=()=>{
   }
   exportGIF();
 };
+
+// ---- Compartir jugada por link (PRO) ----
+document.getElementById('hShare').onclick=sharePlay;
+function sharePlay(){
+  if(!hasPlay()){toast('Grabá una jugada antes de compartir');return}
+  if(S.plan!=='pro'){
+    closeSheets();
+    toast('🔒 Compartir por link es PRO — pasate y compartí con tu plantel');
+    setTimeout(()=>openSheet('shPlans'),300);
+    return;
+  }
+  // Codificar la jugada en base64 para embeber en el URL (sin backend)
+  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num});
+  const payload={
+    n:'Jugada compartida',
+    g:S.game,t1:S.team1,t2:S.team2,f1:S.form1,f2:S.form2,
+    d:S.duration,
+    t:S.tracks,
+    dr:S.drawings||[],
+    m:meta
+  };
+  try{
+    const json=JSON.stringify(payload);
+    // Usar btoa con UTF-8 safe
+    const b64=btoa(unescape(encodeURIComponent(json)));
+    const url=location.origin+'/pizarra-pro.html?play='+b64;
+    if(navigator.share){
+      navigator.share({title:'Pizarra Pro — Jugada táctica',text:'Mirá esta jugada:',url}).catch(()=>{});
+    } else {
+      // Fallback: copiar al portapapeles
+      navigator.clipboard.writeText(url).then(()=>{
+        toast('🔗 Link copiado — pegalo en WhatsApp');
+      }).catch(()=>{
+        // Fallback del fallback: mostrar input
+        prompt('Copiá este link:',url);
+      });
+    }
+  }catch(e){
+    toast('No pudimos generar el link (jugada muy grande)');
+  }
+}
+// Al cargar, si hay ?play= en el URL, cargar la jugada compartida
+function loadSharedPlay(){
+  const params=new URLSearchParams(location.search);
+  const playData=params.get('play');
+  if(!playData)return false;
+  try{
+    const json=decodeURIComponent(escape(atob(playData)));
+    const p=JSON.parse(json);
+    discardPreview(true);
+    S.game=p.g||5;S.team1=p.t1||5;S.team2=p.t2||5;S.form1=p.f1||'1-2-1';S.form2=p.f2||'1-2-1';
+    syncGameSeg();buildPlayers();
+    if(p.m)S.players.forEach(pl=>{const m=p.m[pl.id];if(m){pl.name=m.name||'';pl.num=m.num||pl.num}});
+    S.tracks=p.t||{};S.duration=p.d||0;S.drawings=p.dr||[];
+    S.carrier=null;S.fx=[];S.playT=0;
+    resize();applyFrame(0);setMode('idle');
+    // Auto-reproducir la jugada compartida
+    setTimeout(()=>{play();},500);
+    toast('🔗 Jugada compartida cargada — reproduciendo');
+    return true;
+  }catch(e){
+    toast('No pudimos cargar la jugada compartida');
+    return false;
+  }
+}
 
 // ---- Paywall / planes ----
 const FREE_AI_DAILY=1;
@@ -1689,11 +1831,29 @@ document.querySelectorAll('#shPlans .planCard').forEach(card=>{
     card.classList.add('sel');
   };
 });
-document.getElementById('plansCta').onclick=()=>{
-  // En producción esto dispararía el flujo de pago (Stripe / StoreKit / Billing).
-  // Para el demo: activa trial de 7 días → plan='pro'.
-  S.plan='pro';persistPlan();updatePlanBadge();closeSheets();
-  toast('✨ 7 días PRO gratis activados — disfrutá la IA ilimitada');
+document.getElementById('plansCta').onclick=async()=>{
+  const sel=document.querySelector('#shPlans .planCard.sel');
+  const plan=sel?sel.dataset.plan:'pro-yearly';
+  const btn=document.getElementById('plansCta');
+  const orig=btn.textContent;
+  btn.textContent='PROCESANDO…';btn.disabled=true;
+  try{
+    const res=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan})});
+    const data=await res.json();
+    if(data.error){toast('Error: '+data.error);return}
+    if(data.redirectUrl){
+      // Modo producción: redirigir a Stripe Checkout
+      window.top.location.href=data.redirectUrl;
+    } else {
+      // Modo demo: activar trial simulado
+      S.plan='pro';persistPlan();updatePlanBadge();closeSheets();
+      toast('✨ 7 días PRO gratis activados — disfrutá la IA ilimitada');
+    }
+  }catch(e){
+    toast('No pudimos procesar el pago. Intentá de nuevo.');
+  }finally{
+    btn.textContent=orig;btn.disabled=false;
+  }
 };
 
 function pushUndo(){
@@ -1892,6 +2052,46 @@ resize();
 setMode('idle');
 renderSpeeds();
 updatePlanBadge();
+// Si hay una jugada compartida en el URL (?play=...), cargarla y reproducirla
+loadSharedPlay();
+
+// ---- PWA: Service Worker + Install prompt ----
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  // mostrar toast de instalación después de un rato
+  setTimeout(()=>{
+    if(deferredPrompt && !localStorage.getItem('pizarraPro.installDismissed')){
+      showInstallToast();
+    }
+  },8000);
+});
+function showInstallToast(){
+  const t=document.getElementById('toast');
+  t.innerHTML='📲 <button id="installYes" style="background:none;border:none;color:var(--accent);font-weight:800;cursor:pointer;text-decoration:underline">Instalar app</button>';
+  t.style.maxWidth='none';t.style.whiteSpace='normal';
+  t.classList.add('show');
+  clearTimeout(toastT);
+  document.getElementById('installYes').onclick=async()=>{
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt();
+    const {outcome}=await deferredPrompt.userChoice;
+    deferredPrompt=null;
+    t.classList.remove('show');
+    if(outcome==='accepted')localStorage.setItem('pizarraPro.installDismissed','1');
+  };
+  toastT=setTimeout(()=>t.classList.remove('show'),6000);
+}
+window.addEventListener('appinstalled',()=>{
+  localStorage.setItem('pizarraPro.installDismissed','1');
+  toast('✓ App instalada — encontrala en tu pantalla de inicio');
+});
 </script>
 </body>
 </html>

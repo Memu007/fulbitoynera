@@ -1,0 +1,50 @@
+{
+  "name": "Pizarra Pro — Táctica con IA",
+  "short_name": "Pizarra Pro",
+  "description": "Pizarra táctica de fútbol con IA. Grabá jugadas, animá y dejá que la IA complete el movimiento del rival.",
+  "start_url": "/pizarra-pro.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1416",
+  "theme_color": "#0E1416",
+  "categories": ["sports", "productivity", "education"],
+  "lang": "es",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nueva jugada",
+      "short_name": "Nuevo",
+      "description": "Empezar a grabar una jugada nueva",
+      "url": "/pizarra-pro.html?action=new",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mis jugadas",
+      "short_name": "Jugadas",
+      "description": "Ver jugadas guardadas",
+      "url": "/pizarra-pro.html?action=plays",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
