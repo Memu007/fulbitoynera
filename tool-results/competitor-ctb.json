@@ -1,0 +1,36 @@
+{
+  "success": true,
+  "query": "Coach Tactic Board Soccer app interface screenshot",
+  "count": 4,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/48c2efec948b.png",
+      "caption": "The image displays the text \"Can A Coaching Board App Replace Your Whiteboard?\" alongside a tablet and a whiteboard.",
+      "source": "Sports Technology Blog",
+      "original_width": "1200px",
+      "original_height": "675px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/e72983eba9d3.jpg",
+      "caption": "A digital soccer tactical board displays player positions, a ball, and a drawing tools menu.",
+      "source": "BlueStacks",
+      "original_width": "1080px",
+      "original_height": "2400px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/fe6716f7077f.png",
+      "caption": "A digital soccer field interface with toolbar options: TAKE BALL, PLAYER MOVEMENT, CONES, FREE LINE, DELETE ALL.",
+      "source": "Aptoide",
+      "original_width": "1280px",
+      "original_height": "800px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/67f55980fd4c.jpg",
+      "caption": "A 13.7-inch soccer tactical board with a field diagram, numbered markers, and dimensions labeled.",
+      "source": "Amazon.com",
+      "original_width": "1600px",
+      "original_height": "1600px"
+    }
+  ]
+}

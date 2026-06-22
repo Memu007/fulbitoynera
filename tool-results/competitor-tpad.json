@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "query": "TacticalPad soccer app interface screenshot dark",
+  "count": 3,
+  "ranked": true,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/97533774e426.jpg",
+      "caption": "A digital tactical board displays player positions for Home and Away teams on a blue court. Text: TacticTab, Home Team, Away Team, 1 Player through 6 Player.",
+      "source": "Microsoft Store",
+      "original_width": "2149px",
+      "original_height": "1426px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/ef0059ea155e.jpg",
+      "caption": "A 3D soccer tactical animation from TacticalPad software, featuring players on a field with a video feed.",
+      "source": "TacticalPad",
+      "original_width": "1280px",
+      "original_height": "720px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/afa6dfe38919.jpg",
+      "caption": "A digital tablet displays a soccer field diagram with a stylus on the side. suitable for background image",
+      "source": "Amazon.ae",
+      "original_width": "1000px",
+      "original_height": "799px"
+    }
+  ]
+}
