@@ -1,0 +1,1076 @@
+     1→'use client'
+     2→
+     3→/**
+     4→ * Pizarra Pro — Landing comercial.
+     5→ *
+     6→ * Vive en /landing para no pisar la app principal (que está en / vía iframe).
+     7→ * Es una página de venta: copy persuasivo, dark mode profesional, paleta de la
+     8→ * app (menta #22D3A6 como acento, NO indigo/azul como primario).
+     9→ *
+    10→ * Estructura:
+    11→ *   1. Sticky header (logo + Probar gratis)
+    12→ *   2. Hero (headline + 2 CTAs + mockup de cancha en canvas)
+    13→ *   3. Cómo funciona (3 pasos)
+    14→ *   4. Features (grid de 6)
+    15→ *   5. Diferenciador (vs TacticalPad / Coach Tactic Board)
+    16→ *   6. Pricing (3 planes, central destacado)
+    17→ *   7. Testimonial (placeholder)
+    18→ *   8. Footer (links + copyright + Hecho en Argentina 🇦🇷)
+    19→ */
+    20→
+    21→import { Inter } from 'next/font/google'
+    22→import Link from 'next/link'
+    23→import { useEffect, useRef, useState } from 'react'
+    24→import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+    25→import {
+    26→  Brain,
+    27→  Trophy,
+    28→  Film,
+    29→  Repeat,
+    30→  MonitorDown,
+    31→  HardDrive,
+    32→  Check,
+    33→  ArrowRight,
+    34→  Sparkles,
+    35→  Menu,
+    36→  X,
+    37→  PencilLine,
+    38→  Bot,
+    39→  Share2,
+    40→  Zap,
+    41→  Star,
+    42→  ShieldCheck,
+    43→} from 'lucide-react'
+    44→
+    45→const inter = Inter({
+    46→  subsets: ['latin'],
+    47→  variable: '--font-inter',
+    48→  display: 'swap',
+    49→  weight: ['400', '500', '600', '700', '800', '900'],
+    50→})
+    51→
+    52→/* ─────────────────────────  PALETA  ───────────────────────── */
+    53→const C = {
+    54→  bg: '#0E1416',
+    55→  surface: '#161D21',
+    56→  surface2: '#1F282D',
+    57→  line: 'rgba(255,255,255,0.08)',
+    58→  text: '#E8EDF0',
+    59→  muted: '#9AA7AD',
+    60→  accent: '#22D3A6', // menta — CTA
+    61→  accentDark: '#0F9D77',
+    62→  amber: '#FBBF24',
+    63→  blue: '#3B82F6',
+    64→  red: '#EF4444',
+    65→  chalk: '#1E5E3A',
+    66→  chalkDark: '#173F2A',
+    67→} as const
+    68→
+    69→/* ─────────────────────  MOCKUP CANVAS  ──────────────────────
+    70→ * Dibuja una cancha de fútbol 5 con jugadores, pelota y flechas
+    71→ * de jugada. Animación sutil: la pelota viaja por un camino y
+    72→ * hay un resplandor pulsante en el jugador con la pelota.
+    73→ */
+    74→function FieldMockup() {
+    75→  const ref = useRef<HTMLCanvasElement>(null)
+    76→  const reduce = useReducedMotion()
+    77→
+    78→  useEffect(() => {
+    79→    const c = ref.current
+    80→    if (!c) return
+    81→    const ctx = c.getContext('2d')
+    82→    if (!ctx) return
+    83→
+    84→    const DPR = Math.min(window.devicePixelRatio || 1, 2)
+    85→    const W = 640
+    86→    const H = 420
+    87→    c.width = W * DPR
+    88→    c.height = H * DPR
+    89→    c.style.width = '100%'
+    90→    c.style.height = 'auto'
+    91→    ctx.scale(DPR, DPR)
+    92→
+    93→    // posiciones de jugadores (en coords 0..1, x=horizontal, y=vertical)
+    94→    // Azul ataca hacia la derecha (x creciente), Rojo defiende.
+    95→    const blue = [
+    96→      { x: 0.18, y: 0.5 }, // arquero
+    97→      { x: 0.34, y: 0.28 },
+    98→      { x: 0.34, y: 0.72 },
+    99→      { x: 0.52, y: 0.4 },
+   100→      { x: 0.52, y: 0.6 },
+   101→    ]
+   102→    const red = [
+   103→      { x: 0.82, y: 0.5 },
+   104→      { x: 0.66, y: 0.28 },
+   105→      { x: 0.66, y: 0.72 },
+   106→      { x: 0.48, y: 0.32 },
+   107→      { x: 0.48, y: 0.68 },
+   108→    ]
+   109→    // camino de la pelota: pase del #4 azul al #5 azul (centro)
+   110→    const ballPath = [
+   111→      { x: 0.52, y: 0.4 },
+   112→      { x: 0.62, y: 0.5 },
+   113→      { x: 0.7, y: 0.55 },
+   114→    ]
+   115→    // flecha IA: movimiento sugerido del #5 azul al hueco
+   116→    const aiArrow = { from: { x: 0.52, y: 0.6 }, to: { x: 0.72, y: 0.62 } }
+   117→
+   118→    const lighten = (hex: string, amt: number) => {
+   119→      const n = parseInt(hex.slice(1), 16)
+   120→      const r = Math.min(255, (n >> 16) + Math.round(255 * amt))
+   121→      const g = Math.min(255, ((n >> 8) & 0xff) + Math.round(255 * amt))
+   122→      const b = Math.min(255, (n & 0xff) + Math.round(255 * amt))
+   123→      return `rgb(${r},${g},${b})`
+   124→    }
+   125→
+   126→    const drawArrow = (
+   127→      x1: number,
+   128→      y1: number,
+   129→      x2: number,
+   130→      y2: number,
+   131→      color: string,
+   132→      dashed: boolean,
+   133→    ) => {
+   134→      ctx.save()
+   135→      ctx.strokeStyle = color
+   136→      ctx.fillStyle = color
+   137→      ctx.lineWidth = 3
+   138→      if (dashed) ctx.setLineDash([7, 5])
+   139→      ctx.beginPath()
+   140→      ctx.moveTo(x1, y1)
+   141→      ctx.lineTo(x2, y2)
+   142→      ctx.stroke()
+   143→      ctx.setLineDash([])
+   144→      // punta
+   145→      const ang = Math.atan2(y2 - y1, x2 - x1)
+   146→      const ah = 10
+   147→      ctx.beginPath()
+   148→      ctx.moveTo(x2, y2)
+   149→      ctx.lineTo(x2 - ah * Math.cos(ang - 0.4), y2 - ah * Math.sin(ang - 0.4))
+   150→      ctx.lineTo(x2 - ah * Math.cos(ang + 0.4), y2 - ah * Math.sin(ang + 0.4))
+   151→      ctx.closePath()
+   152→      ctx.fill()
+   153→      ctx.restore()
+   154→    }
+   155→
+   156→    const drawPlayer = (
+   157→      x: number,
+   158→      y: number,
+   159→      color: string,
+   160→      hasBall: boolean,
+   161→      t: number,
+   162→    ) => {
+   163→      const r = 14
+   164→      // sombra
+   165→      ctx.beginPath()
+   166→      ctx.ellipse(x, y + r + 3, r * 0.9, r * 0.35, 0, 0, Math.PI * 2)
+   167→      ctx.fillStyle = 'rgba(0,0,0,0.4)'
+   168→      ctx.fill()
+   169→      // glow si tiene pelota
+   170→      if (hasBall) {
+   171→        const pulse = 0.6 + 0.4 * Math.sin(t / 400)
+   172→        ctx.beginPath()
+   173→        ctx.arc(x, y, r + 6, 0, Math.PI * 2)
+   174→        ctx.fillStyle = `rgba(251,191,36,${0.18 * pulse})`
+   175→        ctx.fill()
+   176→      }
+   177→      // cuerpo
+   178→      const g = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, r)
+   179→      g.addColorStop(0, lighten(color, 0.25))
+   180→      g.addColorStop(1, color)
+   181→      ctx.beginPath()
+   182→      ctx.arc(x, y, r, 0, Math.PI * 2)
+   183→      ctx.fillStyle = g
+   184→      ctx.fill()
+   185→      // borde blanco
+   186→      ctx.lineWidth = 2
+   187→      ctx.strokeStyle = 'rgba(255,255,255,0.85)'
+   188→      ctx.stroke()
+   189→      // highlight
+   190→      ctx.beginPath()
+   191→      ctx.arc(x - 4, y - 4, 4, 0, Math.PI * 2)
+   192→      ctx.fillStyle = 'rgba(255,255,255,0.35)'
+   193→      ctx.fill()
+   194→    }
+   195→
+   196→    const drawBall = (x: number, y: number, t: number) => {
+   197→      const r = 7
+   198→      // sombra
+   199→      ctx.beginPath()
+   200→      ctx.ellipse(x, y + r + 2, r * 0.9, r * 0.3, 0, 0, Math.PI * 2)
+   201→      ctx.fillStyle = 'rgba(0,0,0,0.45)'
+   202→      ctx.fill()
+   203→      // glow
+   204→      const pulse = 0.5 + 0.5 * Math.sin(t / 300)
+   205→      ctx.beginPath()
+   206→      ctx.arc(x, y, r + 5, 0, Math.PI * 2)
+   207→      ctx.fillStyle = `rgba(251,191,36,${0.25 * pulse})`
+   208→      ctx.fill()
+   209→      // balón
+   210→      const g = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, r)
+   211→      g.addColorStop(0, '#FFF7CC')
+   212→      g.addColorStop(1, C.amber)
+   213→      ctx.beginPath()
+   214→      ctx.arc(x, y, r, 0, Math.PI * 2)
+   215→      ctx.fillStyle = g
+   216→      ctx.fill()
+   217→      ctx.lineWidth = 1.2
+   218→      ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+   219→      ctx.stroke()
+   220→    }
+   221→
+   222→    const draw = (t: number) => {
+   223→      ctx.clearRect(0, 0, W, H)
+   224→      // césped con franjas
+   225→      for (let i = 0; i < 10; i++) {
+   226→        ctx.fillStyle = i % 2 === 0 ? C.chalk : C.chalkDark
+   227→        ctx.fillRect((W / 10) * i, 0, W / 10, H)
+   228→      }
+   229→      // viñeta
+   230→      const grd = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.75)
+   231→      grd.addColorStop(0, 'rgba(0,0,0,0)')
+   232→      grd.addColorStop(1, 'rgba(0,0,0,0.45)')
+   233→      ctx.fillStyle = grd
+   234→      ctx.fillRect(0, 0, W, H)
+   235→
+   236→      // líneas de tiza
+   237→      ctx.strokeStyle = 'rgba(255,255,255,0.75)'
+   238→      ctx.lineWidth = 2
+   239→      ctx.strokeRect(16, 16, W - 32, H - 32)
+   240→      // línea de medio campo
+   241→      ctx.beginPath()
+   242→      ctx.moveTo(W / 2, 16)
+   243→      ctx.lineTo(W / 2, H - 16)
+   244→      ctx.stroke()
+   245→      // círculo central
+   246→      ctx.beginPath()
+   247→      ctx.arc(W / 2, H / 2, 48, 0, Math.PI * 2)
+   248→      ctx.stroke()
+   249→      // áreas
+   250→      ctx.strokeRect(16, H / 2 - 70, 70, 140)
+   251→      ctx.strokeRect(W - 86, H / 2 - 70, 70, 140)
+   252→
+   253→      // flecha IA (trazada, menta) — primero para que quede debajo
+   254→      drawArrow(aiArrow.from.x * W, aiArrow.from.y * H, aiArrow.to.x * W, aiArrow.to.y * H, C.accent, true)
+   255→
+   256→      // pelota viajando
+   257→      const cycle = (t / 2600) % 1
+   258→      const seg = cycle * (ballPath.length - 1)
+   259→      const i = Math.floor(seg)
+   260→      const f = seg - i
+   261→      const a = ballPath[i]
+   262→      const b = ballPath[Math.min(i + 1, ballPath.length - 1)]
+   263→      const bx = (a.x + (b.x - a.x) * f) * W
+   264→      const by = (a.y + (b.y - a.y) * f) * H
+   265→
+   266→      // jugadores azules
+   267→      blue.forEach((p, idx) => drawPlayer(p.x * W, p.y * H, C.blue, idx === 3, t))
+   268→      // jugadores rojos
+   269→      red.forEach((p) => drawPlayer(p.x * W, p.y * H, C.red, false, t))
+   270→
+   271→      // pelota
+   272→      drawBall(bx, by, t)
+   273→
+   274→      // etiqueta "IA" sobre la flecha
+   275→      ctx.fillStyle = C.accent
+   276→      ctx.font = '700 11px Inter, sans-serif'
+   277→      ctx.fillText('✨ IA', aiArrow.to.x * W + 10, aiArrow.to.y * H - 6)
+   278→    }
+   279→
+   280→    let raf = 0
+   281→    const start = performance.now()
+   282→    const loop = (now: number) => {
+   283→      draw(now - start)
+   284→      raf = requestAnimationFrame(loop)
+   285→    }
+   286→    if (reduce) {
+   287→      draw(0)
+   288→    } else {
+   289→      raf = requestAnimationFrame(loop)
+   290→    }
+   291→    return () => cancelAnimationFrame(raf)
+   292→  }, [reduce])
+   293→
+   294→  return (
+   295→    <div
+   296→      className="relative w-full overflow-hidden rounded-2xl border shadow-2xl"
+   297→      style={{
+   298→        borderColor: C.line,
+   299→        background: C.chalkDark,
+   300→        boxShadow: '0 30px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(34,211,166,0.15)',
+   301→      }}
+   302→    >
+   303→      <canvas ref={ref} className="block w-full" />
+   304→      {/* badge flotante "IA completando" */}
+   305→      <div
+   306→        className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold backdrop-blur"
+   307→        style={{ background: 'rgba(14,20,22,0.7)', color: C.accent, border: `1px solid ${C.accent}` }}
+   308→      >
+   309→        <Sparkles size={13} />
+   310→        IA completando jugada…
+   311→      </div>
+   312→    </div>
+   313→  )
+   314→}
+   315→
+   316→/* ─────────────────────────  HEADER  ───────────────────────── */
+   317→function Header() {
+   318→  const [open, setOpen] = useState(false)
+   319→  const [scrolled, setScrolled] = useState(false)
+   320→  useEffect(() => {
+   321→    const onScroll = () => setScrolled(window.scrollY > 12)
+   322→    window.addEventListener('scroll', onScroll, { passive: true })
+   323→    return () => window.removeEventListener('scroll', onScroll)
+   324→  }, [])
+   325→
+   326→  return (
+   327→    <header
+   328→      className="sticky top-0 z-50 transition-all"
+   329→      style={{
+   330→        background: scrolled ? 'rgba(14,20,22,0.85)' : 'rgba(14,20,22,0.6)',
+   331→        backdropFilter: 'blur(14px)',
+   332→        borderBottom: `1px solid ${scrolled ? C.line : 'transparent'}`,
+   333→      }}
+   334→    >
+   335→      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
+   336→        {/* Logo */}
+   337→        <Link href="/landing" className="flex items-center gap-2.5">
+   338→          <span
+   339→            className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-black"
+   340→            style={{
+   341→              background: `linear-gradient(135deg, ${C.accent}, ${C.accentDark})`,
+   342→              color: C.bg,
+   343→              boxShadow: `0 4px 12px ${C.accent}55`,
+   344→            }}
+   345→          >
+   346→            ⚽
+   347→          </span>
+   348→          <span className="text-[15px] font-extrabold tracking-tight" style={{ color: C.text }}>
+   349→            Pizarra <span style={{ color: C.accent }}>Pro</span>
+   350→          </span>
+   351→        </Link>
+   352→
+   353→        {/* Nav desktop */}
+   354→        <nav className="ml-6 hidden items-center gap-7 md:flex">
+   355→          <a href="#como-funciona" className="text-sm font-medium transition-colors hover:text-white" style={{ color: C.muted }}>
+   356→            Cómo funciona
+   357→          </a>
+   358→          <a href="#features" className="text-sm font-medium transition-colors hover:text-white" style={{ color: C.muted }}>
+   359→            Features
+   360→          </a>
+   361→          <a href="#planes" className="text-sm font-medium transition-colors hover:text-white" style={{ color: C.muted }}>
+   362→            Planes
+   363→          </a>
+   364→        </nav>
+   365→
+   366→        <div className="ml-auto flex items-center gap-2">
+   367→          <Link
+   368→            href="/"
+   369→            className="hidden text-sm font-semibold transition-colors hover:text-white sm:inline"
+   370→            style={{ color: C.muted }}
+   371→          >
+   372→            Iniciar sesión
+   373→          </Link>
+   374→          <Link
+   375→            href="/"
+   376→            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
+   377→            style={{
+   378→              background: C.accent,
+   379→              color: C.bg,
+   380→              boxShadow: `0 4px 16px ${C.accent}40`,
+   381→            }}
+   382→          >
+   383→            Probar gratis
+   384→            <ArrowRight size={15} />
+   385→          </Link>
+   386→          {/* mobile menu toggle */}
+   387→          <button
+   388→            onClick={() => setOpen((v) => !v)}
+   389→            aria-label="Menú"
+   390→            className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-lg border md:hidden"
+   391→            style={{ borderColor: C.line, color: C.text, background: C.surface }}
+   392→          >
+   393→            {open ? <X size={18} /> : <Menu size={18} />}
+   394→          </button>
+   395→        </div>
+   396→      </div>
+   397→
+   398→      {/* Mobile menu */}
+   399→      <AnimatePresence>
+   400→        {open && (
+   401→          <motion.div
+   402→            initial={{ height: 0, opacity: 0 }}
+   403→            animate={{ height: 'auto', opacity: 1 }}
+   404→            exit={{ height: 0, opacity: 0 }}
+   405→            transition={{ duration: 0.2 }}
+   406→            className="overflow-hidden md:hidden"
+   407→            style={{ background: C.surface, borderBottom: `1px solid ${C.line}` }}
+   408→          >
+   409→            <div className="flex flex-col gap-1 px-4 py-3">
+   410→              {[
+   411→                { href: '#como-funciona', label: 'Cómo funciona' },
+   412→                { href: '#features', label: 'Features' },
+   413→                { href: '#planes', label: 'Planes' },
+   414→              ].map((i) => (
+   415→                <a
+   416→                  key={i.href}
+   417→                  href={i.href}
+   418→                  onClick={() => setOpen(false)}
+   419→                  className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5"
+   420→                  style={{ color: C.text }}
+   421→                >
+   422→                  {i.label}
+   423→                </a>
+   424→              ))}
+   425→            </div>
+   426→          </motion.div>
+   427→        )}
+   428→      </AnimatePresence>
+   429→    </header>
+   430→  )
+   431→}
+   432→
+   433→/* ─────────────────────────  HERO  ─────────────────────────── */
+   434→function Hero() {
+   435→  return (
+   436→    <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16">
+   437→      {/* glow background */}
+   438→      <div
+   439→        className="pointer-events-none absolute inset-0 -z-10"
+   440→        style={{
+   441→          background: `radial-gradient(800px 400px at 70% 0%, ${C.accent}1A, transparent 70%), radial-gradient(600px 300px at 10% 20%, ${C.blue}12, transparent 70%)`,
+   442→        }}
+   443→      />
+   444→      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-12">
+   445→        {/* Left: copy */}
+   446→        <motion.div
+   447→          initial={{ opacity: 0, y: 20 }}
+   448→          animate={{ opacity: 1, y: 0 }}
+   449→          transition={{ duration: 0.5 }}
+   450→        >
+   451→          <div
+   452→            className="mb-5 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold"
+   453→            style={{ background: `${C.accent}1F`, color: C.accent, border: `1px solid ${C.accent}55` }}
+   454→          >
+   455→            <Sparkles size={13} />
+   456→            La primera pizarra táctica con IA que completa la jugada
+   457→          </div>
+   458→
+   459→          <h1
+   460→            className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
+   461→            style={{ color: C.text }}
+   462→          >
+   463→            Táctica de fútbol con IA.{' '}
+   464→            <span style={{ color: C.accent }}>Dibujá, la IA completa.</span>
+   465→          </h1>
+   466→
+   467→          <p className="mt-5 max-w-xl text-base leading-relaxed sm:text-lg" style={{ color: C.muted }}>
+   468→            Grabá tu jugada, dejá que la IA simule cómo responde el rival. Para entrenadores de
+   469→            fútbol 5, 8 y 11. En tu celu, sin instalar nada.
+   470→          </p>
+   471→
+   472→          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+   473→            <Link
+   474→              href="/"
+   475→              className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold transition-all hover:scale-[1.03] active:scale-95"
+   476→              style={{
+   477→                background: C.accent,
+   478→                color: C.bg,
+   479→                boxShadow: `0 8px 28px ${C.accent}40`,
+   480→              }}
+   481→            >
+   482→              Probar gratis
+   483→              <ArrowRight size={18} />
+   484→            </Link>
+   485→            <a
+   486→              href="#planes"
+   487→              className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold transition-all hover:scale-[1.03] hover:bg-white/5 active:scale-95"
+   488→              style={{ color: C.text, border: `1px solid ${C.line}`, background: C.surface }}
+   489→            >
+   490→              Ver planes
+   491→            </a>
+   492→          </div>
+   493→
+   494→          {/* trust line */}
+   495→          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium" style={{ color: C.muted }}>
+   496→            <span className="inline-flex items-center gap-1.5">
+   497→              <Check size={14} style={{ color: C.accent }} /> Sin registro
+   498→            </span>
+   499→            <span className="inline-flex items-center gap-1.5">
+   500→              <Check size={14} style={{ color: C.accent }} /> Funciona offline
+   501→            </span>
+   502→            <span className="inline-flex items-center gap-1.5">
+   503→              <Check size={14} style={{ color: C.accent }} /> Hecho en Argentina 🇦🇷
+   504→            </span>
+   505→          </div>
+   506→        </motion.div>
+   507→
+   508→        {/* Right: mockup */}
+   509→        <motion.div
+   510→          initial={{ opacity: 0, scale: 0.96 }}
+   511→          animate={{ opacity: 1, scale: 1 }}
+   512→          transition={{ duration: 0.6, delay: 0.15 }}
+   513→          className="relative"
+   514→        >
+   515→          <FieldMockup />
+   516→          {/* stats below mockup */}
+   517→          <div className="mt-4 grid grid-cols-3 gap-3">
+   518→            {[
+   519→              { v: '5·8·11', l: 'Fútbol' },
+   520→              { v: '0.5–8x', l: 'Velocidades' },
+   521→              { v: 'GIF', l: 'Exportá y compartí' },
+   522→            ].map((s) => (
+   523→              <div
+   524→                key={s.l}
+   525→                className="rounded-xl border p-3 text-center"
+   526→                style={{ borderColor: C.line, background: C.surface }}
+   527→              >
+   528→                <div className="text-base font-extrabold sm:text-lg" style={{ color: C.accent }}>
+   529→                  {s.v}
+   530→                </div>
+   531→                <div className="text-[11px] font-medium" style={{ color: C.muted }}>
+   532→                  {s.l}
+   533→                </div>
+   534→              </div>
+   535→            ))}
+   536→          </div>
+   537→        </motion.div>
+   538→      </div>
+   539→    </section>
+   540→  )
+   541→}
+   542→
+   543→/* ────────────────────  CÓMO FUNCIONA  ─────────────────────── */
+   544→function HowItWorks() {
+   545→  const steps = [
+   546→    {
+   547→      icon: PencilLine,
+   548→      n: '1',
+   549→      title: 'Dibujá tu jugada',
+   550→      body: 'Arrastrá jugadores y pelota como en una pizarra real. Grabá cada movimiento con su tiempo. Fútbol 5, 8 u 11 con formaciones reales.',
+   551→    },
+   552→    {
+   553→      icon: Bot,
+   554→      n: '2',
+   555→      title: 'La IA completa el resto',
+   556→      body: 'No dibujes a 22 jugadores. La IA simula cómo se mueve el rival y cómo continúan tus compañeros a partir de lo que grabaste.',
+   557→    },
+   558→    {
+   559→      icon: Share2,
+   560→      n: '3',
+   561→      title: 'Reproducí, exportá y compartí',
+   562→      body: 'Velocidad de 0.5x a 8x, modo loop, exportá a GIF y mandalo por WhatsApp al plantel. O activá Modo Presentación para el vestuario.',
+   563→    },
+   564→  ]
+   565→  return (
+   566→    <section id="como-funciona" className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-24">
+   567→      <div className="mx-auto max-w-6xl">
+   568→        <div className="mb-12 text-center">
+   569→          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: C.accent }}>
+   570→            Cómo funciona
+   571→          </span>
+   572→          <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: C.text }}>
+   573→            Tres pasos. Listo para el entretiempo.
+   574→          </h2>
+   575→          <p className="mx-auto mt-3 max-w-2xl text-base" style={{ color: C.muted }}>
+   576→            Diseñado para que un DT arme una jugada en menos de un minuto, sin manuales.
+   577→          </p>
+   578→        </div>
+   579→
+   580→        <div className="grid gap-5 md:grid-cols-3">
+   581→          {steps.map((s, i) => (
+   582→            <motion.div
+   583→              key={s.n}
+   584→              initial={{ opacity: 0, y: 24 }}
+   585→              whileInView={{ opacity: 1, y: 0 }}
+   586→              viewport={{ once: true, margin: '-60px' }}
+   587→              transition={{ duration: 0.45, delay: i * 0.08 }}
+   588→              className="group relative rounded-2xl border p-6 transition-all hover:scale-[1.02]"
+   589→              style={{ borderColor: C.line, background: C.surface }}
+   590→            >
+   591→              <div className="mb-5 flex items-center gap-3">
+   592→                <span
+   593→                  className="flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+   594→                  style={{ background: `${C.accent}1F`, color: C.accent, border: `1px solid ${C.accent}55` }}
+   595→                >
+   596→                  <s.icon size={22} />
+   597→                </span>
+   598→                <span className="text-4xl font-black" style={{ color: `${C.accent}33` }}>
+   599→                  {s.n}
+   600→                </span>
+   601→              </div>
+   602→              <h3 className="mb-2 text-lg font-bold" style={{ color: C.text }}>
+   603→                {s.title}
+   604→              </h3>
+   605→              <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
+   606→                {s.body}
+   607→              </p>
+   608→            </motion.div>
+   609→          ))}
+   610→        </div>
+   611→      </div>
+   612→    </section>
+   613→  )
+   614→}
+   615→
+   616→/* ──────────────────────  FEATURES  ────────────────────────── */
+   617→function Features() {
+   618→  const items = [
+   619→    { icon: Brain, title: 'IA que simula al rival', body: 'No más “y si el marcador hace esto…”. La IA mueve al rival y a tus compañeros desde lo que grabaste.' },
+   620→    { icon: Trophy, title: 'Fútbol 5, 8 y 11', body: 'Formaciones reales por modalidad. Cambiá con un toque, la cancha se adapta sola.' },
+   621→    { icon: Film, title: 'Exportar a GIF', body: 'Generá un GIF liviano y mandalo por WhatsApp. Llega a todo el plantel en un toque.' },
+   622→    { icon: Repeat, title: 'Reproducción con loop y velocidades', body: 'De 0.5x para analizar hasta 8x “Relámpago”. Loop automático para repasar.' },
+   623→    { icon: MonitorDown, title: 'Modo presentación para vestuario', body: 'Pantalla completa, sin botones, auto-loop. Conectá el celu al monitor y al vestuario.' },
+   624→    { icon: HardDrive, title: 'Jugadas guardadas en tu dispositivo', body: 'Tus jugadas viven en tu celu. Sin cuenta, sin nube, sin que se te olviden las claves.' },
+   625→  ]
+   626→  return (
+   627→    <section id="features" className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-24" style={{ background: C.surface }}>
+   628→      <div className="mx-auto max-w-6xl">
+   629→        <div className="mb-12 text-center">
+   630→          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: C.accent }}>
+   631→            Features
+   632→          </span>
+   633→          <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: C.text }}>
+   634→            Todo lo que un DT necesita. Nada que estorbe.
+   635→          </h2>
+   636→        </div>
+   637→
+   638→        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   639→          {items.map((f, i) => (
+   640→            <motion.div
+   641→              key={f.title}
+   642→              initial={{ opacity: 0, y: 18 }}
+   643→              whileInView={{ opacity: 1, y: 0 }}
+   644→              viewport={{ once: true, margin: '-50px' }}
+   645→              transition={{ duration: 0.4, delay: (i % 3) * 0.06 }}
+   646→              className="group rounded-2xl border p-5 transition-all hover:scale-[1.02] hover:border-white/15"
+   647→              style={{ borderColor: C.line, background: C.surface2 }}
+   648→            >
+   649→              <span
+   650→                className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+   651→                style={{ background: `${C.accent}1F`, color: C.accent }}
+   652→              >
+   653→                <f.icon size={22} />
+   654→              </span>
+   655→              <h3 className="mb-1.5 text-base font-bold" style={{ color: C.text }}>
+   656→                {f.title}
+   657→              </h3>
+   658→              <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
+   659→                {f.body}
+   660→              </p>
+   661→            </motion.div>
+   662→          ))}
+   663→        </div>
+   664→      </div>
+   665→    </section>
+   666→  )
+   667→}
+   668→
+   669→/* ───────────────────  DIFERENCIADOR  ──────────────────────── */
+   670→function Differentiator() {
+   671→  const rows = [
+   672→    { f: 'IA que completa la jugada', us: true, them: false },
+   673→    { f: 'Fútbol 5, 8 y 11 en una app', us: true, them: 'Parcial' },
+   674→    { f: 'Exportar a GIF para WhatsApp', us: true, them: 'Parcial' },
+   675→    { f: 'Modo presentación vestuario', us: true, them: false },
+   676→    { f: 'Funciona offline en el celu', us: true, them: false },
+   677→    { f: 'Precio Latam (PPP)', us: true, them: false },
+   678→  ]
+   679→  return (
+   680→    <section className="px-4 py-16 sm:px-6 sm:py-24">
+   681→      <div className="mx-auto max-w-5xl">
+   682→        <div className="mb-12 text-center">
+   683→          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: C.accent }}>
+   684→            Por qué Pizarra Pro
+   685→          </span>
+   686→          <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: C.text }}>
+   687→            No dibujes a 22 jugadores. Dibujá los tuyos.
+   688→          </h2>
+   689→          <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed" style={{ color: C.muted }}>
+   690→            A diferencia de <strong style={{ color: C.text }}>TacticalPad</strong> o{' '}
+   691→            <strong style={{ color: C.text }}>Coach Tactic Board</strong>, nosotros tenemos una IA que
+   692→            completa la jugada. Vos dibujás a los tuyos; la IA mueve al rival y a tus compañeros.
+   693→            Menos tiempo dibujando, más tiempo pensando.
+   694→          </p>
+   695→        </div>
+   696→
+   697→        <div
+   698→          className="overflow-hidden rounded-2xl border"
+   699→          style={{ borderColor: C.line, background: C.surface }}
+   700→        >
+   701→          <div className="grid grid-cols-3 border-b text-sm font-bold" style={{ borderColor: C.line }}>
+   702→            <div className="p-4" style={{ color: C.muted }}>
+   703→              Feature
+   704→            </div>
+   705→            <div className="p-4 text-center" style={{ color: C.accent }}>
+   706→              Pizarra Pro
+   707→            </div>
+   708→            <div className="p-4 text-center" style={{ color: C.muted }}>
+   709→              Otras pizarras
+   710→            </div>
+   711→          </div>
+   712→          {rows.map((r, i) => (
+   713→            <div
+   714→              key={r.f}
+   715→              className="grid grid-cols-3 border-b last:border-b-0 text-sm"
+   716→              style={{ borderColor: C.line, background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
+   717→            >
+   718→              <div className="p-4 font-medium" style={{ color: C.text }}>
+   719→                {r.f}
+   720→              </div>
+   721→              <div className="flex items-center justify-center p-4">
+   722→                {r.us === true ? (
+   723→                  <Check size={18} style={{ color: C.accent }} />
+   724→                ) : (
+   725→                  <span style={{ color: C.muted }}>{r.us}</span>
+   726→                )}
+   727→              </div>
+   728→              <div className="flex items-center justify-center p-4">
+   729→                {r.them === true ? (
+   730→                  <Check size={18} style={{ color: C.muted }} />
+   731→                ) : r.them === false ? (
+   732→                  <X size={16} style={{ color: C.red }} />
+   733→                ) : (
+   734→                  <span style={{ color: C.amber }}>{r.them}</span>
+   735→                )}
+   736→              </div>
+   737→            </div>
+   738→          ))}
+   739→        </div>
+   740→      </div>
+   741→    </section>
+   742→  )
+   743→}
+   744→
+   745→/* ─────────────────────  PRICING  ──────────────────────────── */
+   746→function Pricing() {
+   747→  const plans = [
+   748→    {
+   749→      name: 'Free',
+   750→      price: '$0',
+   751→      period: 'para siempre',
+   752→      desc: 'Para probar la pizarra y la IA sin compromiso.',
+   753→      cta: 'Empezar',
+   754→      featured: false,
+   755→      sub: '',
+   756→      features: [
+   757→        { t: 'Pizarra completa (F5, F8, F11)', on: true },
+   758→        { t: '3 jugadas guardadas', on: true },
+   759→        { t: '1 IA por día', on: true },
+   760→        { t: 'Exportar a GIF', on: false },
+   761→        { t: 'IA ilimitada', on: false },
+   762→        { t: 'Modo presentación', on: false },
+   763→      ],
+   764→    },
+   765→    {
+   766→      name: 'Pro Anual',
+   767→      price: '$2.499',
+   768→      period: '/año',
+   769→      desc: 'Para el DT que usa la pizarra cada semana. Todo desbloqueado.',
+   770→      cta: 'Probar 7 días gratis',
+   771→      featured: true,
+   772→      badge: 'MÁS POPULAR',
+   773→      sub: '7 días gratis · después $2.499/año',
+   774→      features: [
+   775→        { t: 'Todo lo de Free', on: true },
+   776→        { t: 'IA ilimitada', on: true },
+   777→        { t: 'Jugadas ilimitadas', on: true },
+   778→        { t: 'Exportar a GIF sin marca', on: true },
+   779→        { t: 'Modo presentación', on: true },
+   780→        { t: 'Velocidad 8x “Relámpago”', on: true },
+   781→      ],
+   782→    },
+   783→    {
+   784→      name: 'Club',
+   785→      price: '$199',
+   786→      period: '/año por entrenador',
+   787→      desc: 'Para escuelitas y clubes con varios DTs y biblioteca compartida.',
+   788→      cta: 'Empezar',
+   789→      featured: false,
+   790→      sub: 'Mínimo 5 entrenadores',
+   791→      features: [
+   792→        { t: 'Todo lo de Pro', on: true },
+   793→        { t: 'Hasta 5 entrenadores', on: true },
+   794→        { t: 'Biblioteca de jugadas compartida', on: true },
+   795→        { t: 'Etiquetado por categoría', on: true },
+   796→        { t: 'Soporte prioritario', on: true },
+   797→        { t: 'Factura A/B', on: true },
+   798→      ],
+   799→    },
+   800→  ]
+   801→
+   802→  return (
+   803→    <section id="planes" className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-24" style={{ background: C.surface }}>
+   804→      <div className="mx-auto max-w-6xl">
+   805→        <div className="mb-12 text-center">
+   806→          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: C.accent }}>
+   807→            Planes
+   808→          </span>
+   809→          <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: C.text }}>
+   810→            Empezá gratis. Mejorate cuando te sirva.
+   811→          </h2>
+   812→          <p className="mx-auto mt-3 max-w-2xl text-base" style={{ color: C.muted }}>
+   813→            Precios en pesos argentinos. Sin sorpresas, cancelás cuando quieras.
+   814→          </p>
+   815→        </div>
+   816→
+   817→        <div className="grid items-stretch gap-5 md:grid-cols-3">
+   818→          {plans.map((p, i) => (
+   819→            <motion.div
+   820→              key={p.name}
+   821→              initial={{ opacity: 0, y: 24 }}
+   822→              whileInView={{ opacity: 1, y: 0 }}
+   823→              viewport={{ once: true, margin: '-50px' }}
+   824→              transition={{ duration: 0.45, delay: i * 0.08 }}
+   825→              className="relative flex flex-col rounded-2xl border p-6 transition-all hover:scale-[1.02]"
+   826→              style={{
+   827→                borderColor: p.featured ? C.accent : C.line,
+   828→                background: p.featured ? `linear-gradient(180deg, ${C.accent}12, ${C.surface2})` : C.surface2,
+   829→                boxShadow: p.featured ? `0 16px 48px -12px ${C.accent}33` : 'none',
+   830→              }}
+   831→            >
+   832→              {p.badge && (
+   833→                <div
+   834→                  className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider"
+   835→                  style={{ background: C.accent, color: C.bg }}
+   836→                >
+   837→                  {p.badge}
+   838→                </div>
+   839→              )}
+   840→              <h3 className="text-lg font-extrabold" style={{ color: C.text }}>
+   841→                {p.name}
+   842→              </h3>
+   843→              <p className="mt-1 text-sm" style={{ color: C.muted }}>
+   844→                {p.desc}
+   845→              </p>
+   846→
+   847→              <div className="mt-5 flex items-baseline gap-1">
+   848→                <span className="text-4xl font-black tracking-tight" style={{ color: C.text }}>
+   849→                  {p.price}
+   850→                </span>
+   851→                <span className="text-sm font-medium" style={{ color: C.muted }}>
+   852→                  {p.period}
+   853→                </span>
+   854→              </div>
+   855→              {p.sub && (
+   856→                <p className="mt-1 text-xs font-semibold" style={{ color: p.featured ? C.accent : C.muted }}>
+   857→                  {p.sub}
+   858→                </p>
+   859→              )}
+   860→
+   861→              <ul className="mt-6 flex-1 space-y-3">
+   862→                {p.features.map((f) => (
+   863→                  <li key={f.t} className="flex items-start gap-2.5 text-sm">
+   864→                    {f.on ? (
+   865→                      <Check size={16} className="mt-0.5 shrink-0" style={{ color: C.accent }} />
+   866→                    ) : (
+   867→                      <X size={16} className="mt-0.5 shrink-0" style={{ color: C.muted, opacity: 0.5 }} />
+   868→                    )}
+   869→                    <span style={{ color: f.on ? C.text : C.muted, opacity: f.on ? 1 : 0.6 }}>
+   870→                      {f.t}
+   871→                    </span>
+   872→                  </li>
+   873→                ))}
+   874→              </ul>
+   875→
+   876→              <Link
+   877→                href="/"
+   878→                className="mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
+   879→                style={
+   880→                  p.featured
+   881→                    ? { background: C.accent, color: C.bg, boxShadow: `0 6px 22px ${C.accent}40` }
+   882→                    : { background: C.surface, color: C.text, border: `1px solid ${C.line}` }
+   883→                }
+   884→              >
+   885→                {p.cta}
+   886→                <ArrowRight size={15} />
+   887→              </Link>
+   888→            </motion.div>
+   889→          ))}
+   890→        </div>
+   891→
+   892→        <p className="mt-8 flex items-center justify-center gap-2 text-xs" style={{ color: C.muted }}>
+   893→          <ShieldCheck size={14} style={{ color: C.accent }} />
+   894→          Pago seguro · Cancelás cuando quieras · Sin renovación sorpresa
+   895→        </p>
+   896→      </div>
+   897→    </section>
+   898→  )
+   899→}
+   900→
+   901→/* ────────────────────  TESTIMONIAL  ───────────────────────── */
+   902→function Testimonial() {
+   903→  return (
+   904→    <section className="px-4 py-16 sm:px-6 sm:py-24">
+   905→      <div className="mx-auto max-w-3xl">
+   906→        <motion.div
+   907→          initial={{ opacity: 0, y: 24 }}
+   908→          whileInView={{ opacity: 1, y: 0 }}
+   909→          viewport={{ once: true, margin: '-60px' }}
+   910→          transition={{ duration: 0.5 }}
+   911→          className="relative rounded-3xl border p-8 sm:p-12"
+   912→          style={{
+   913→            borderColor: C.line,
+   914→            background: `linear-gradient(135deg, ${C.surface2}, ${C.surface})`,
+   915→          }}
+   916→        >
+   917→          {/* comilla gigante */}
+   918→          <div
+   919→            className="pointer-events-none absolute right-6 top-2 select-none font-black leading-none"
+   920→            style={{ color: `${C.accent}22`, fontSize: '120px' }}
+   921→          >
+   922→            ”
+   923→          </div>
+   924→
+   925→          <div className="mb-5 flex gap-1" style={{ color: C.amber }}>
+   926→            {Array.from({ length: 5 }).map((_, i) => (
+   927→              <Star key={i} size={18} fill="currentColor" stroke="none" />
+   928→            ))}
+   929→          </div>
+   930→
+   931→          <blockquote
+   932→            className="relative text-xl font-semibold leading-relaxed sm:text-2xl"
+   933→            style={{ color: C.text }}
+   934→          >
+   935→            “Lo uso para explicar ajustes al entretiempo. La IA me muestra variantes que no había
+   936→            pensado.”
+   937→          </blockquote>
+   938→
+   939→          <div className="mt-6 flex items-center gap-3">
+   940→            <div
+   941→              className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black"
+   942→              style={{ background: `${C.accent}22`, color: C.accent, border: `1px solid ${C.accent}55` }}
+   943→            >
+   944→              MJ
+   945→            </div>
+   946→            <div>
+   947→              <div className="text-sm font-bold" style={{ color: C.text }}>
+   948→                Mariano J.
+   949→              </div>
+   950→              <div className="text-xs" style={{ color: C.muted }}>
+   951→                DT de juveniles · Buenos Aires
+   952→              </div>
+   953→            </div>
+   954→            <span
+   955→              className="ml-auto rounded-full px-2.5 py-1 text-[10px] font-bold"
+   956→              style={{ background: `${C.amber}22`, color: C.amber }}
+   957→            >
+   958→              Usuario Pro
+   959→            </span>
+   960→          </div>
+   961→        </motion.div>
+   962→      </div>
+   963→    </section>
+   964→  )
+   965→}
+   966→
+   967→/* ───────────────────  CTA FINAL + FOOTER  ─────────────────── */
+   968→function FinalCTA() {
+   969→  return (
+   970→    <section className="px-4 pb-20 sm:px-6">
+   971→      <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl p-8 text-center sm:p-14" style={{ background: `linear-gradient(135deg, ${C.accent}, ${C.accentDark})` }}>
+   972→        <Zap size={32} className="mx-auto mb-3" style={{ color: C.bg }} />
+   973→        <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: C.bg }}>
+   974→          Tu próxima jugada empieza acá.
+   975→        </h2>
+   976→        <p className="mx-auto mt-3 max-w-xl text-base" style={{ color: 'rgba(14,20,22,0.8)' }}>
+   977→          Abrí la pizarra, dibujá, dejá que la IA complete. En 60 segundos tenés una jugada lista
+   978→          para mandar al plantel.
+   979→        </p>
+   980→        <Link
+   981→          href="/"
+   982→          className="mt-7 inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-bold transition-all hover:scale-[1.03] active:scale-95"
+   983→          style={{ background: C.bg, color: C.text, boxShadow: '0 8px 28px rgba(0,0,0,0.3)' }}
+   984→        >
+   985→          Probar gratis
+   986→          <ArrowRight size={18} />
+   987→        </Link>
+   988→      </div>
+   989→    </section>
+   990→  )
+   991→}
+   992→
+   993→function Footer() {
+   994→  const links = [
+   995→    { href: '#features', label: 'Producto' },
+   996→    { href: '#planes', label: 'Planes' },
+   997→    { href: '/', label: 'Ayuda' },
+   998→    { href: '/', label: 'Términos' },
+   999→    { href: '/', label: 'Privacidad' },
+  1000→  ]
+  1001→  return (
+  1002→    <footer className="mt-auto border-t px-4 py-10 sm:px-6" style={{ borderColor: C.line, background: C.bg }}>
+  1003→      <div className="mx-auto max-w-6xl">
+  1004→        <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
+  1005→          {/* marca */}
+  1006→          <div>
+  1007→            <Link href="/landing" className="flex items-center gap-2.5">
+  1008→              <span
+  1009→                className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-black"
+  1010→                style={{ background: `linear-gradient(135deg, ${C.accent}, ${C.accentDark})`, color: C.bg }}
+  1011→              >
+  1012→                ⚽
+  1013→              </span>
+  1014→              <span className="text-[15px] font-extrabold tracking-tight" style={{ color: C.text }}>
+  1015→                Pizarra <span style={{ color: C.accent }}>Pro</span>
+  1016→              </span>
+  1017→            </Link>
+  1018→            <p className="mt-3 max-w-xs text-xs leading-relaxed" style={{ color: C.muted }}>
+  1019→              La pizarra táctica con IA para entrenadores de fútbol 5, 8 y 11. Hecha en Argentina
+  1020→              para Latinoamérica.
+  1021→            </p>
+  1022→          </div>
+  1023→
+  1024→          {/* links */}
+  1025→          <div className="flex flex-wrap gap-x-8 gap-y-3">
+  1026→            {links.map((l) => (
+  1027→              <a
+  1028→                key={l.label}
+  1029→                href={l.href}
+  1030→                className="text-sm font-medium transition-colors hover:text-white"
+  1031→                style={{ color: C.muted }}
+  1032→              >
+  1033→                {l.label}
+  1034→              </a>
+  1035→            ))}
+  1036→          </div>
+  1037→        </div>
+  1038→
+  1039→        <div
+  1040→          className="mt-8 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs sm:flex-row"
+  1041→          style={{ borderColor: C.line, color: C.muted }}
+  1042→        >
+  1043→          <span>© 2025 Pizarra Pro. Todos los derechos reservados.</span>
+  1044→          <span className="inline-flex items-center gap-1.5">
+  1045→            Hecho en Argentina
+  1046→            <span className="text-base leading-none">🇦🇷</span>
+  1047→          </span>
+  1048→        </div>
+  1049→      </div>
+  1050→    </footer>
+  1051→  )
+  1052→}
+  1053→
+  1054→/* ───────────────────────  PAGE  ───────────────────────────── */
+  1055→export default function LandingPage() {
+  1056→  return (
+  1057→    <div
+  1058→      className={`${inter.variable} flex min-h-screen flex-col`}
+  1059→      style={{ fontFamily: 'var(--font-inter), system-ui, -apple-system, sans-serif', background: C.bg, color: C.text }}
+  1060→    >
+  1061→      <Header />
+  1062→      <main className="flex-1">
+  1063→        <Hero />
+  1064→        <HowItWorks />
+  1065→        <Features />
+  1066→        <Differentiator />
+  1067→        <Pricing />
+  1068→        <Testimonial />
+  1069→        <FinalCTA />
+  1070→      </main>
+  1071→      <Footer />
+  1072→    </div>
+  1073→  )
+  1074→}
+
+[showing lines 1-1074 of 1075; use offset=1075 with limit to continue reading]

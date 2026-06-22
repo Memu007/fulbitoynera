@@ -1,0 +1,764 @@
+  2001→document.getElementById('chipLoop').onclick=()=>{
+  2002→  S.loop=!S.loop;
+  2003→  document.getElementById('chipLoop').classList.toggle('on',S.loop);
+  2004→  toast(S.loop?'🔁 Repetición en bucle':'Repetición desactivada');
+  2005→};
+  2006→document.getElementById('undoFloat').onclick=undoRec;
+  2007→document.getElementById('hExport').onclick=()=>{
+  2008→  if(S.plan==='free' && S.saved.length>=1 && S.aiUsedToday>=1){
+  2009→    // allow GIF export but show upgrade nudge after 1st
+  2010→  }
+  2011→  exportGIF();
+  2012→};
+  2013→
+  2014→// ---- Compartir jugada por link (PRO) ----
+  2015→document.getElementById('hShare').onclick=sharePlay;
+  2016→document.getElementById('hTemplates').onclick=()=>{openSheet('shTemplates');renderTemplates()};
+  2017→document.getElementById('hMinutes').onclick=()=>{openSheet('shMinutes');renderMinutes()};
+  2018→
+  2019→// ---- Control de minutos (inferiores) ----
+  2020→// Plantel standalone: [{id,name,num,playedMs,active}], partido: {running,startMs}
+  2021→// Persistido en localStorage. Resuelve el dolor #1 de DT de kids: equidad de minutos.
+  2022→const ROSTER_KEY='pizarraPro.roster.v1';
+  2023→S.roster=[];
+  2024→S.match={running:false,startMs:0,elapsed:0};
+  2025→let _matchTick=null;
+  2026→function loadRoster(){try{const r=localStorage.getItem(ROSTER_KEY);if(r){const o=JSON.parse(r);S.roster=o.roster||[];S.match=o.match||{running:false,startMs:0,elapsed:0}}}catch(e){}}
+  2027→function persistRoster(){try{localStorage.setItem(ROSTER_KEY,JSON.stringify({roster:S.roster,match:S.match}))}catch(e){}}
+  2028→function fmtMin(ms){const t=Math.floor(ms/60000);const s=Math.floor((ms%60000)/1000);return t+':'+String(s).padStart(2,'0')}
+  2029→function tickMatch(){
+  2030→  if(!S.match.running)return;
+  2031→  // acumular tiempo a los jugadores activos
+  2032→  const now=performance.now();
+  2033→  const dt=now-S.match.startMs;
+  2034→  S.match.startMs=now;
+  2035→  for(const p of S.roster){if(p.active)p.playedMs+=dt}
+  2036→  persistRoster();
+  2037→  // refrescar solo el reloj y los minutos (no re-render todo)
+  2038→  const clock=document.getElementById('matchClock');
+  2039→  if(clock){
+  2040→    let total=S.match.elapsed;
+  2041→    for(const p of S.roster)total+=p.playedMs;
+  2042→    clock.textContent=fmtMin(total);
+  2043→  }
+  2044→  document.querySelectorAll('.rosterItem').forEach(el=>{
+  2045→    const id=el.dataset.pid;
+  2046→    const p=S.roster.find(x=>x.id===id);
+  2047→    if(p)el.querySelector('.min').textContent=fmtMin(p.playedMs);
+  2048→  });
+  2049→}
+  2050→function renderMinutes(){
+  2051→  const body=document.getElementById('minutesBody');
+  2052→  let total=S.match.elapsed;
+  2053→  for(const p of S.roster)total+=p.playedMs;
+  2054→  const active=S.roster.filter(p=>p.active).length;
+  2055→  // calcular equidad
+  2056→  const avg=S.roster.length?total/S.roster.length:0;
+  2057→  const sorted=[...S.roster].sort((a,b)=>a.playedMs-b.playedMs);
+  2058→  const lowest=sorted[0];
+  2059→  let html='<div id="matchTimer">';
+  2060→  html+='<div class="clock" id="matchClock">'+fmtMin(total)+'</div>';
+  2061→  html+='<div class="lbl">Tiempo de partido · '+active+' en cancha</div>';
+  2062→  html+='<div class="btns">';
+  2063→  html+='<button class="primary" id="mStart">'+(S.match.running?'⏸ Pausar':'▶ Iniciar')+'</button>';
+  2064→  html+='<button id="mShare" style="background:var(--accent);color:#0E1416;border:none">📤 WhatsApp</button>';
+  2065→  html+='<button id="mReset" class="danger">↺ Reset</button>';
+  2066→  html+='</div></div>';
+  2067→  // sugerencia de equidad
+  2068→  if(S.roster.length>1 && total>30000){
+  2069→    const ratio=lowest.playedMs/avg;
+  2070→    if(ratio<0.6){
+  2071→      html+='<div class="fairnessHint warn">⚠️ '+esc(lowest.name||('#'+lowest.num))+' jugó poco ('+fmtMin(lowest.playedMs)+'). Dale minutos ahora.</div>';
+  2072→    } else {
+  2073→      html+='<div class="fairnessHint">✓ Minutos equilativos. Buen trabajo.</div>';
+  2074→    }
+  2075→  }
+  2076→  // lista de jugadores
+  2077→  if(S.roster.length===0){
+  2078→    html+='<p class="empty">Cargá tu plantel abajo. Después tocá ▶ Iniciar y marcá quién entra/sale durante el partido.</p>';
+  2079→  } else {
+  2080→    html+='<div class="secTitle">PLANTEL (tocá para entrar/salir)</div>';
+  2081→    for(const p of [...S.roster].sort((a,b)=>b.playedMs-a.playedMs)){
+  2082→      const ratio=avg>0?p.playedMs/avg:1;
+  2083→      let badge='';
+  2084→      if(total>20000){
+  2085→        if(ratio<0.5)badge='<span class="badge low">POCO</span>';
+  2086→        else if(ratio<0.85)badge='<span class="badge warn">BAJO</span>';
+  2087→        else badge='<span class="badge ok">OK</span>';
+  2088→      }
+  2089→      html+='<div class="rosterItem'+(p.active?' active':'')+'" data-pid="'+p.id+'">';
+  2090→      html+='<span class="sw"></span>';
+  2091→      html+='<span class="num">'+(p.num||'?')+'</span>';
+  2092→      html+='<span class="name">'+esc(p.name||('Jugador '+(p.num||'')))+'</span>';
+  2093→      html+=badge;
+  2094→      html+='<span class="min">'+fmtMin(p.playedMs)+'</span>';
+  2095→      html+='<button class="del" data-del="'+p.id+'">✕</button>';
+  2096→      html+='</div>';
+  2097→    }
+  2098→  }
+  2099→  // agregar jugador
+  2100→  html+='<div class="secTitle" style="margin-top:14px">AGREGAR JUGADOR</div>';
+  2101→  html+='<div class="addPlayerRow">';
+  2102→  html+='<input type="text" id="newPlName" placeholder="Nombre (ej: Juani)" maxlength="14">';
+  2103→  html+='<input type="number" id="newPlNum" placeholder="N°" min="0" max="99" style="max-width:70px;margin:0">';
+  2104→  html+='<button id="addPlBtn">+</button>';
+  2105→  html+='</div>';
+  2106→  html+='<p class="hint">Los minutos se guardan solos. Si salís de la app, al volver seguís donde dejaste.</p>';
+  2107→  body.innerHTML=html;
+  2108→  // events
+  2109→  document.getElementById('mStart').onclick=()=>{
+  2110→    if(S.match.running){
+  2111→      S.match.running=false;
+  2112→      clearInterval(_matchTick);
+  2113→    } else {
+  2114→      S.match.running=true;
+  2115→      S.match.startMs=performance.now();
+  2116→      _matchTick=setInterval(tickMatch,1000);
+  2117→    }
+  2118→    persistRoster();
+  2119→    renderMinutes();
+  2120→  };
+  2121→  document.getElementById('mShare').onclick=()=>{
+  2122→    if(S.roster.length===0){toast('Cargá jugadores antes de compartir');return}
+  2123→    // Pausar el timer para que los minutos no cambien al compartir
+  2124→    const wasRunning=S.match.running;
+  2125→    if(wasRunning){document.getElementById('mStart').click()}
+  2126→    // Generar texto plano para WhatsApp
+  2127→    let txt='*⏱️ Minutos jugados*\n';
+  2128→    txt+=' Partido: '+fmtMin(S.roster.reduce((a,p)=>a+p.playedMs,0))+'\n\n';
+  2129→    const sorted=[...S.roster].sort((a,b)=>b.playedMs-a.playedMs);
+  2130→    for(const p of sorted){
+  2131→      const name=p.name||('Jugador '+(p.num||'?'));
+  2132→      const min=fmtMin(p.playedMs);
+  2133→      const ratio=S.roster.length>0?p.playedMs/(S.roster.reduce((a,x)=>a+x.playedMs,0)/S.roster.length||1):1;
+  2134→      const mark=ratio<0.5?'🔴':ratio<0.85?'🟡':'🟢';
+  2135→      txt+=mark+' #'+(p.num||'?')+' '+name+': '+min+'\n';
+  2136→    }
+  2137→    txt+='\n_Pizarra Pro_';
+  2138→    // WhatsApp: usar wa.me si hay app, si no copiar al portapapeles
+  2139→    const waUrl='https://wa.me/?text='+encodeURIComponent(txt);
+  2140→    if(navigator.share){
+  2141→      navigator.share({title:'Minutos jugados',text}).catch(()=>{
+  2142→        window.open(waUrl,'_blank');
+  2143→      });
+  2144→    } else {
+  2145→      // Copiar al portapapeles y abrir WhatsApp
+  2146→      navigator.clipboard.writeText(txt).then(()=>{
+  2147→        toast('📋 Copiado — abriendo WhatsApp...');
+  2148→        setTimeout(()=>window.open(waUrl,'_blank'),500);
+  2149→      }).catch(()=>{
+  2150→        window.open(waUrl,'_blank');
+  2151→      });
+  2152→    }
+  2153→  };
+  2154→  document.getElementById('mReset').onclick=()=>{
+  2155→    if(!confirm('¿Resetear todos los minutos a 0?'))return;
+  2156→    S.match.running=false;S.match.elapsed=0;clearInterval(_matchTick);
+  2157→    for(const p of S.roster){p.playedMs=0;p.active=false}
+  2158→    persistRoster();renderMinutes();
+  2159→  };
+  2160→  document.getElementById('addPlBtn').onclick=()=>{
+  2161→    const name=document.getElementById('newPlName').value.trim().slice(0,14);
+  2162→    const num=parseInt(document.getElementById('newPlNum').value)||S.roster.length+1;
+  2163→    S.roster.push({id:'p'+Date.now(),name,num,playedMs:0,active:false});
+  2164→    persistRoster();renderMinutes();
+  2165→    setTimeout(()=>{const i=document.getElementById('newPlName');if(i)i.focus()},100);
+  2166→  };
+  2167→  body.querySelectorAll('.rosterItem').forEach(el=>{
+  2168→    el.onclick=(e)=>{
+  2169→      if(e.target.dataset.del){
+  2170→        const id=e.target.dataset.del;
+  2171→        S.roster=S.roster.filter(p=>p.id!==id);
+  2172→        persistRoster();renderMinutes();return;
+  2173→      }
+  2174→      const p=S.roster.find(x=>x.id===el.dataset.pid);
+  2175→      if(p){p.active=!p.active;persistRoster();renderMinutes()}
+  2176→    };
+  2177→  });
+  2178→}
+  2179→
+  2180→// ---- Plantillas de jugadas ----
+  2181→function renderTemplates(){
+  2182→  const list=document.getElementById('templatesList');
+  2183→  if(typeof PLAYS_TEMPLATES==='undefined'){list.innerHTML='<p class="empty">No se pudieron cargar las plantillas.</p>';return}
+  2184→  // Agrupar por categoría
+  2185→  const byCat={};
+  2186→  PLAYS_TEMPLATES.forEach(t=>{(byCat[t.cat]=byCat[t.cat]||[]).push(t)});
+  2187→  let html='<p class="hint" style="text-align:left;padding:0 4px 14px">Cargá una jugada lista para ver, editar o guardar.</p>';
+  2188→  for(const cat in byCat){
+  2189→    html+=`<div class="secTitle">${esc(cat)}</div>`;
+  2190→    byCat[cat].forEach(t=>{
+  2191→      html+=`<div class="opt" data-tpl="${t.id}" style="cursor:pointer">
+  2192→        <span class="ic" style="background:${t.att==='blue'?'#3B82F622':'#EF444422'}">${t.att==='blue'?'🔵':'🔴'}</span>
+  2193→        <span class="tx"><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></span>
+  2194→        <span class="ck" style="opacity:1">▶</span>
+  2195→      </div>`;
+  2196→    });
+  2197→  }
+  2198→  html+='<p class="hint" style="margin-top:14px">Las plantillas cargan en su modalidad (F5, F8 o F11). Podés editarlas, pasarlas a IA o guardarlas.</p>';
+  2199→  list.innerHTML=html;
+  2200→  list.querySelectorAll('.opt').forEach(el=>{
+  2201→    el.onclick=()=>loadTemplate(el.dataset.tpl);
+  2202→  });
+  2203→}
+  2204→function loadTemplate(id){
+  2205→  const t=PLAYS_TEMPLATES.find(p=>p.id===id);
+  2206→  if(!t){toast('Plantilla no encontrada');return}
+  2207→  closeSheets();
+  2208→  // Cambiar al game de la plantilla si no coincide
+  2209→  if(S.game!==t.game){
+  2210→    S.game=t.game;S.team1=t.game;S.team2=t.game;
+  2211→    S.form1=t.game===5?'1-2-1':t.game===8?'3-3-1':'4-3-3';
+  2212→    S.form2=S.form1;
+  2213→    syncGameSeg();buildPlayers();
+  2214→  } else {
+  2215→    buildPlayers(true);
+  2216→    applyFormationsQuiet();
+  2217→  }
+  2218→  discardPreview(true);
+  2219→  // Construir tracks completas: los jugadores que no están en la plantilla quedan quietos
+  2220→  S.tracks={};
+  2221→  for(const p of S.players){
+  2222→    if(t.tracks[p.id]){
+  2223→      S.tracks[p.id]=JSON.parse(JSON.stringify(t.tracks[p.id]));
+  2224→    } else {
+  2225→      S.tracks[p.id]=[{t:0,x:p.x,y:p.y},{t:t.duration,x:p.x,y:p.y}];
+  2226→    }
+  2227→  }
+  2228→  S.duration=t.duration;
+  2229→  S.playT=0;
+  2230→  S.carrier=null;S.fx=[];S.drawings=[];
+  2231→  setMode('idle');
+  2232→  resize();applyFrame(0);
+  2233→  // Auto-reproducir
+  2234→  setTimeout(()=>{play();},400);
+  2235→  toast('🎴 '+t.name+' — reproduciendo');
+  2236→}
+  2237→function sharePlay(){
+  2238→  if(!hasPlay()){toast('Grabá una jugada antes de compartir');return}
+  2239→  if(S.plan!=='pro'){
+  2240→    closeSheets();
+  2241→    toast('🔒 Compartir por link es PRO — pasate y compartí con tu plantel');
+  2242→    setTimeout(()=>openSheet('shPlans'),300);
+  2243→    return;
+  2244→  }
+  2245→  // Codificar la jugada en base64 para embeber en el URL (sin backend)
+  2246→  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num,photo:p.photo||null});
+  2247→  const payload={
+  2248→    n:'Jugada compartida',
+  2249→    g:S.game,t1:S.team1,t2:S.team2,f1:S.form1,f2:S.form2,
+  2250→    d:S.duration,
+  2251→    t:S.tracks,
+  2252→    dr:S.drawings||[],
+  2253→    m:meta
+  2254→  };
+  2255→  try{
+  2256→    const json=JSON.stringify(payload);
+  2257→    // Usar btoa con UTF-8 safe
+  2258→    const b64=btoa(unescape(encodeURIComponent(json)));
+  2259→    const url=location.origin+'/pizarra-pro.html?play='+b64;
+  2260→    if(navigator.share){
+  2261→      navigator.share({title:'Pizarra Pro — Jugada táctica',text:'Mirá esta jugada:',url}).catch(()=>{});
+  2262→    } else {
+  2263→      // Fallback: copiar al portapapeles
+  2264→      navigator.clipboard.writeText(url).then(()=>{
+  2265→        toast('🔗 Link copiado — pegalo en WhatsApp');
+  2266→      }).catch(()=>{
+  2267→        // Fallback del fallback: mostrar input
+  2268→        prompt('Copiá este link:',url);
+  2269→      });
+  2270→    }
+  2271→  }catch(e){
+  2272→    toast('No pudimos generar el link (jugada muy grande)');
+  2273→  }
+  2274→}
+  2275→// Al cargar, si hay ?play= en el URL, cargar la jugada compartida
+  2276→function loadSharedPlay(){
+  2277→  const params=new URLSearchParams(location.search);
+  2278→  const playData=params.get('play');
+  2279→  if(!playData)return false;
+  2280→  try{
+  2281→    const json=decodeURIComponent(escape(atob(playData)));
+  2282→    const p=JSON.parse(json);
+  2283→    discardPreview(true);
+  2284→    S.game=p.g||5;S.team1=p.t1||5;S.team2=p.t2||5;S.form1=p.f1||'1-2-1';S.form2=p.f2||'1-2-1';
+  2285→    syncGameSeg();buildPlayers();
+  2286→    if(p.m)S.players.forEach(pl=>{const m=p.m[pl.id];if(m){pl.name=m.name||'';pl.num=m.num||pl.num}});
+  2287→    S.tracks=p.t||{};S.duration=p.d||0;S.drawings=p.dr||[];
+  2288→    S.carrier=null;S.fx=[];S.playT=0;
+  2289→    resize();applyFrame(0);setMode('idle');
+  2290→    // Auto-reproducir la jugada compartida
+  2291→    setTimeout(()=>{play();},500);
+  2292→    toast('🔗 Jugada compartida cargada — reproduciendo');
+  2293→    return true;
+  2294→  }catch(e){
+  2295→    toast('No pudimos cargar la jugada compartida');
+  2296→    return false;
+  2297→  }
+  2298→}
+  2299→
+  2300→// ---- Paywall / planes ----
+  2301→const FREE_AI_DAILY=1;
+  2302→const FREE_SAVED_MAX=3;
+  2303→function aiTodayDate(){return new Date().toISOString().slice(0,10)}
+  2304→function resetAiCounterIfNewDay(){
+  2305→  const today=aiTodayDate();
+  2306→  if(S.aiDate!==today){S.aiDate=today;S.aiUsedToday=0}
+  2307→}
+  2308→function canUseAI(){
+  2309→  if(S.plan==='pro')return true;
+  2310→  resetAiCounterIfNewDay();
+  2311→  return S.aiUsedToday<FREE_AI_DAILY;
+  2312→}
+  2313→function registerAIUse(){
+  2314→  resetAiCounterIfNewDay();
+  2315→  S.aiUsedToday++;
+  2316→  persistPlan();
+  2317→}
+  2318→function canSavePlay(){
+  2319→  if(S.plan==='pro')return true;
+  2320→  return S.saved.length<FREE_SAVED_MAX;
+  2321→}
+  2322→const PLAN_KEY='pizarraPro.plan.v1';
+  2323→function persistPlan(){try{localStorage.setItem(PLAN_KEY,JSON.stringify({plan:S.plan,aiUsedToday:S.aiUsedToday,aiDate:S.aiDate}))}catch(e){}}
+  2324→function loadPlan(){try{const r=localStorage.getItem(PLAN_KEY);if(r){const o=JSON.parse(r);S.plan=o.plan||'free';S.aiUsedToday=o.aiUsedToday||0;S.aiDate=o.aiDate||''}}catch(e){}}
+  2325→function updatePlanBadge(){
+  2326→  const b=document.getElementById('planBadge');
+  2327→  if(S.plan==='pro'){b.textContent='PRO';b.classList.remove('free')}
+  2328→  else{b.textContent='FREE';b.classList.add('free')}
+  2329→}
+  2330→// selección de plan en el sheet
+  2331→document.querySelectorAll('#shPlans .planCard').forEach(card=>{
+  2332→  card.onclick=()=>{
+  2333→    document.querySelectorAll('#shPlans .planCard').forEach(c=>c.classList.remove('sel'));
+  2334→    card.classList.add('sel');
+  2335→  };
+  2336→});
+  2337→document.getElementById('plansCta').onclick=async()=>{
+  2338→  const sel=document.querySelector('#shPlans .planCard.sel');
+  2339→  const plan=sel?sel.dataset.plan:'pro-yearly';
+  2340→  const btn=document.getElementById('plansCta');
+  2341→  const orig=btn.textContent;
+  2342→  btn.textContent='PROCESANDO…';btn.disabled=true;
+  2343→  try{
+  2344→    const res=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan})});
+  2345→    const data=await res.json();
+  2346→    if(data.error){toast('Error: '+data.error);return}
+  2347→    if(data.redirectUrl){
+  2348→      // Modo producción: redirigir a Stripe Checkout
+  2349→      window.top.location.href=data.redirectUrl;
+  2350→    } else {
+  2351→      // Modo demo: activar trial simulado
+  2352→      S.plan='pro';persistPlan();updatePlanBadge();closeSheets();
+  2353→      toast('✨ 7 días PRO gratis activados — disfrutá la IA ilimitada');
+  2354→    }
+  2355→  }catch(e){
+  2356→    toast('No pudimos procesar el pago. Intentá de nuevo.');
+  2357→  }finally{
+  2358→    btn.textContent=orig;btn.disabled=false;
+  2359→  }
+  2360→};
+  2361→
+  2362→function pushUndo(){
+  2363→  if(S.mode!=='rec')return;
+  2364→  S.recHistory.push({
+  2365→    tracks:JSON.parse(JSON.stringify(S.tracks)),
+  2366→    duration:S.duration,
+  2367→    carrier:S.carrier
+  2368→  });
+  2369→  if(S.recHistory.length>30)S.recHistory.shift();
+  2370→}
+  2371→function undoRec(){
+  2372→  if(S.mode!=='rec'||!S.recHistory.length){toast('Nada para deshacer');return}
+  2373→  const s=S.recHistory.pop();
+  2374→  S.tracks=s.tracks;S.duration=s.duration;S.carrier=s.carrier;
+  2375→  document.getElementById('recTime').textContent=(S.duration/1000).toFixed(1)+'s';
+  2376→  draw();toast('↶ Movimiento deshecho');
+  2377→}
+  2378→function exportGIF(){
+  2379→  if(typeof GIF==='undefined'){toast('No pude cargar el codificador GIF. Revisá tu conexión.');return}
+  2380→  if(!hasPlay()){toast('Grabá una jugada primero');return}
+  2381→  if(S.mode==='play')setMode('pause');
+  2382→  const D=curDuration();
+  2383→  const fps=14,N=Math.max(2,Math.min(Math.round(D/1000*fps),100));
+  2384→  const scale=Math.min(1,360/W);
+  2385→  const w=Math.round(W*scale),h=Math.round(H*scale);
+  2386→  const gif=new GIF({workers:1,quality:12,width:w,height:h,
+  2387→    workerScript:'/gif.worker.js'});
+  2388→  const saved=S.players.map(p=>({id:p.id,x:p.x,y:p.y}));
+  2389→  const savedT=S.playT;
+  2390→  const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
+  2391→  const tctx=tmp.getContext('2d');
+  2392→  for(let i=0;i<N;i++){
+  2393→    const t=D*(i/(N-1||1));
+  2394→    applyFrame(t,true); // easing para que el GIF se vea igual que la reproducción
+  2395→    tctx.drawImage(cv,0,0,w,h);
+  2396→    gif.addFrame(tmp,{delay:Math.round(1000/fps)});
+  2397→  }
+  2398→  S.players.forEach(p=>{const s=saved.find(q=>q.id===p.id);if(s){p.x=s.x;p.y=s.y}});
+  2399→  S.playT=savedT;
+  2400→  if(S.mode==='pause'||S.mode==='idle')applyFrame(savedT);
+  2401→  toast('🎬 Generando GIF… tardá unos segundos');
+  2402→  gif.on('finished',blob=>{
+  2403→    const url=URL.createObjectURL(blob);
+  2404→    const a=document.createElement('a');a.href=url;
+  2405→    a.download='pizarra-pro-jugada.gif';
+  2406→    document.body.appendChild(a);a.click();a.remove();
+  2407→    setTimeout(()=>URL.revokeObjectURL(url),2000);
+  2408→    toast('🎬 GIF listo — descargado');
+  2409→  });
+  2410→  gif.render();
+  2411→}
+  2412→
+  2413→// segmento de modalidad
+  2414→document.querySelectorAll('#gameSeg button').forEach(b=>b.onclick=()=>{
+  2415→  const g=+b.dataset.g;if(g===S.game)return;
+  2416→  if(S.mode!=='idle'){toast('Detené la reproducción/grabación primero');return}
+  2417→  discardPreview(true);
+  2418→  S.game=g;S.team1=g;S.team2=g;
+  2419→  S.form1=DEFAULT_FORM[g];S.form2=DEFAULT_FORM[g];
+  2420→  syncGameSeg();clearPlay(true);S.drawings=[];S.carrier=null;S.fx=[];
+  2421→  buildPlayers();resize();updateUI();
+  2422→  toast('Fútbol '+g+' · '+DEFAULT_FORM[g]);
+  2423→});
+  2424→function syncGameSeg(){
+  2425→  document.querySelectorAll('#gameSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.g===S.game));
+  2426→}
+  2427→
+  2428→// sheets
+  2429→const bg=document.getElementById('sheetBg');
+  2430→function openSheet(id){
+  2431→  closeSheets();bg.classList.add('open');
+  2432→  document.getElementById(id).classList.add('open');
+  2433→  if(id==='shPlays')renderPlays();
+  2434→  if(id==='shForm')renderFormSheet();
+  2435→  if(id==='shAI')renderAISheet();
+  2436→  if(id==='shTeams'){S._t1=S.team1;S._t2=S.team2;syncTeams()}
+  2437→}
+  2438→function closeSheets(){bg.classList.remove('open');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'))}
+  2439→bg.onclick=closeSheets;
+  2440→
+  2441→// velocidad
+  2442→function renderSpeeds(){
+  2443→  const l=document.getElementById('speedList');l.innerHTML='';
+  2444→  SPEEDS.forEach(s=>{
+  2445→    const el=document.createElement('div');
+  2446→    el.className='opt'+(S.speed===s.v?' sel':'');
+  2447→    el.innerHTML=`<span class="ic" style="background:#ffb02022">${s.i}</span>
+  2448→      <span class="tx"><b>${s.n} · ${s.v}x</b><small>${s.d}</small></span><span class="ck">✔</span>`;
+  2449→    el.onclick=()=>{S.speed=s.v;document.getElementById('speedLabel').textContent=s.v+'x';renderSpeeds();closeSheets();toast('Velocidad '+s.v+'x')};
+  2450→    l.appendChild(el);
+  2451→  });
+  2452→}
+  2453→
+  2454→// equipos
+  2455→function syncTeams(){
+  2456→  document.getElementById('t1n').textContent=S._t1;
+  2457→  document.getElementById('t2n').textContent=S._t2;
+  2458→  document.getElementById('t1m').disabled=S._t1<=3;document.getElementById('t1p').disabled=S._t1>=11;
+  2459→  document.getElementById('t2m').disabled=S._t2<=3;document.getElementById('t2p').disabled=S._t2>=11;
+  2460→}
+  2461→S._t1=5;S._t2=5;
+  2462→document.getElementById('t1m').onclick=()=>{S._t1=Math.max(3,S._t1-1);syncTeams()};
+  2463→document.getElementById('t1p').onclick=()=>{S._t1=Math.min(11,S._t1+1);syncTeams()};
+  2464→document.getElementById('t2m').onclick=()=>{S._t2=Math.max(3,S._t2-1);syncTeams()};
+  2465→document.getElementById('t2p').onclick=()=>{S._t2=Math.min(11,S._t2+1);syncTeams()};
+  2466→document.getElementById('teamsApply').onclick=()=>{
+  2467→  S.team1=S._t1;S.team2=S._t2;
+  2468→  if(!parseForm(S.form1,S.team1))S.form1='auto';
+  2469→  if(!parseForm(S.form2,S.team2))S.form2='auto';
+  2470→  discardPreview(true);clearPlay(true);S.carrier=null;S.fx=[];
+  2471→  buildPlayers(true);setMode('idle');draw();closeSheets();
+  2472→  toast(`Equipos: ${S.team1} vs ${S.team2}`);
+  2473→};
+  2474→
+  2475→// formaciones
+  2476→let formTeam='blue';
+  2477→document.getElementById('ftBlue').onclick=()=>{formTeam='blue';renderFormSheet()};
+  2478→document.getElementById('ftRed').onclick=()=>{formTeam='red';renderFormSheet()};
+  2479→function renderFormSheet(){
+  2480→  document.getElementById('ftBlue').classList.toggle('on',formTeam==='blue');
+  2481→  document.getElementById('ftRed').classList.toggle('on',formTeam==='red');
+  2482→  document.getElementById('formModeLbl').textContent='FÚTBOL '+S.game+' · EQUIPO '+(formTeam==='blue'?'AZUL':'ROJO');
+  2483→  const count=formTeam==='blue'?S.team1:S.team2;
+  2484→  const cur=formTeam==='blue'?S.form1:S.form2;
+  2485→  const box=document.getElementById('formChips');box.innerHTML='';
+  2486→  let any=false;
+  2487→  FORMATIONS[S.game].forEach(code=>{
+  2488→    const ok=!!parseForm(code,count);
+  2489→    const b=document.createElement('button');
+  2490→    b.className='fChip'+(cur===code?' sel':'');
+  2491→    b.textContent=code;b.disabled=!ok;if(ok)any=true;
+  2492→    b.onclick=()=>{applyFormation(formTeam,code);renderFormSheet();toast('Formación '+code+' aplicada')};
+  2493→    box.appendChild(b);
+  2494→  });
+  2495→  document.getElementById('formHint').textContent=any?
+  2496→    'Aplicar una formación reubica al equipo y borra la jugada en curso.':
+  2497→    `Con ${count} jugadores no hay formaciones estándar de Fútbol ${S.game}. Ajustá la cantidad en 👥.`;
+  2498→}
+  2499→
+  2500→// IA sheet
+  2501→function renderAISheet(){
+  2502→  const ab=document.getElementById('attChips');ab.innerHTML='';
+  2503→  [['auto','🤖 Auto'],['blue','🔵 Azul'],['red','🔴 Rojo']].forEach(([id,lbl])=>{
+  2504→    const b=document.createElement('button');
+  2505→    b.className='fChip'+(S.attTeam===id?' sel':'');
+  2506→    b.textContent=lbl;
+  2507→    b.onclick=()=>{S.attTeam=id;renderAISheet()};
+  2508→    ab.appendChild(b);
+  2509→  });
+  2510→  const box=document.getElementById('styleChips');box.innerHTML='';
+  2511→  STYLES.forEach(s=>{
+  2512→    const b=document.createElement('button');
+  2513→    b.className='fChip'+(S.aiStyle===s.id?' sel':'');
+  2514→    b.textContent=s.i+' '+s.n;
+  2515→    b.onclick=()=>{S.aiStyle=s.id;renderAISheet()};
+  2516→    box.appendChild(b);
+  2517→  });
+  2518→  const has=Object.keys(S.tracks).length>0&&S.duration>0;
+  2519→  document.getElementById('aiHasPlay').style.display=has?'block':'none';
+  2520→  document.getElementById('aiNoPlay').style.display=has?'none':'block';
+  2521→}
+  2522→document.getElementById('aiComplete').onclick=previewComplete;
+  2523→document.getElementById('aiDemo').onclick=demoPlay;
+  2524→
+  2525→// edición jugador
+  2526→let _plPhotoTemp=null;
+  2527→function openPlayerEdit(p){
+  2528→  S.editing=p;
+  2529→  document.getElementById('plName').value=p.name||'';
+  2530→  document.getElementById('plNum').value=p.num;
+  2531→  _plPhotoTemp=null;
+  2532→  const prev=document.getElementById('plPhotoPreview');
+  2533→  const delBtn=document.getElementById('plPhotoDel');
+  2534→  if(p.photo){
+  2535→    prev.style.backgroundImage='url('+p.photo+')';
+  2536→    prev.textContent='';
+  2537→    delBtn.style.display='block';
+  2538→  } else {
+  2539→    prev.style.backgroundImage='';
+  2540→    prev.textContent='👤';
+  2541→    delBtn.style.display='none';
+  2542→  }
+  2543→  openSheet('shPlayer');
+  2544→}
+  2545→document.getElementById('plPhoto').onchange=(e)=>{
+  2546→  const f=e.target.files[0];
+  2547→  if(!f)return;
+  2548→  if(f.size>800*1024){toast('La foto es muy grande (máx 800KB)');return}
+  2549→  const reader=new FileReader();
+  2550→  reader.onload=(ev)=>{
+  2551→    _plPhotoTemp=ev.target.result;
+  2552→    const prev=document.getElementById('plPhotoPreview');
+  2553→    prev.style.backgroundImage='url('+_plPhotoTemp+')';
+  2554→    prev.textContent='';
+  2555→    document.getElementById('plPhotoDel').style.display='block';
+  2556→  };
+  2557→  reader.readAsDataURL(f);
+  2558→};
+  2559→document.getElementById('plPhotoDel').onclick=()=>{
+  2560→  _plPhotoTemp='';
+  2561→  const prev=document.getElementById('plPhotoPreview');
+  2562→  prev.style.backgroundImage='';
+  2563→  prev.textContent='👤';
+  2564→  document.getElementById('plPhotoDel').style.display='none';
+  2565→};
+  2566→document.getElementById('plOk').onclick=()=>{
+  2567→  if(S.editing){
+  2568→    S.editing.name=document.getElementById('plName').value.trim().slice(0,14);
+  2569→    const n=parseInt(document.getElementById('plNum').value);
+  2570→    if(!isNaN(n))S.editing.num=clamp(n,0,99);
+  2571→    if(_plPhotoTemp!==null){
+  2572→      if(_plPhotoTemp==='')delete S.editing.photo;
+  2573→      else S.editing.photo=_plPhotoTemp;
+  2574→    }
+  2575→  }
+  2576→  _plPhotoTemp=null;
+  2577→  S.editing=null;closeSheets();draw();
+  2578→};
+  2579→
+  2580→// toast + onboarding
+  2581→let toastT;
+  2582→function toast(m){
+  2583→  const t=document.getElementById('toast');
+  2584→  t.textContent=m;t.classList.add('show');
+  2585→  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);
+  2586→}
+  2587→document.getElementById('obOk').onclick=()=>{document.getElementById('onboard').style.display='none'};
+  2588→
+  2589→// ---------------- Auth (login/registro/recuperar) ----------------
+  2590→// Demo: usuarios guardados en localStorage. Listo para migrar a Supabase/Auth real.
+  2591→const USERS_KEY='pizarraPro.users.v1';
+  2592→const SESSION_KEY='pizarraPro.session.v1';
+  2593→S.user=null;
+  2594→let _authMode='login'; // login | register | forgot
+  2595→function loadUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]')}catch(e){return[]}}
+  2596→function saveUsers(u){try{localStorage.setItem(USERS_KEY,JSON.stringify(u))}catch(e){}}
+  2597→function loadSession(){try{const s=localStorage.getItem(SESSION_KEY);if(s)S.user=JSON.parse(s)}catch(e){}}
+  2598→function saveSession(){try{localStorage.setItem(SESSION_KEY,JSON.stringify(S.user))}catch(e){}}
+  2599→function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch(e){}S.user=null}
+  2600→function hash(s){ // hash simple (no seguro, solo demo. En prod: bcrypt server-side)
+  2601→  let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return String(h)
+  2602→}
+  2603→function initials(name){return(name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?'}
+  2604→
+  2605→function openAuth(mode){
+  2606→  _authMode=mode||'login';
+  2607→  const title=document.getElementById('authTitle');
+  2608→  const sub=document.getElementById('authSub');
+  2609→  const submit=document.getElementById('authSubmit');
+  2610→  const nameField=document.getElementById('nameField');
+  2611→  const passField=document.getElementById('passField');
+  2612→  const switchP=document.getElementById('authSwitch');
+  2613→  const links=document.getElementById('authLinks');
+  2614→  const err=document.getElementById('authError');
+  2615→  const suc=document.getElementById('authSuccess');
+  2616→  err.classList.remove('show');suc.classList.remove('show');
+  2617→  document.getElementById('authForm').reset();
+  2618→  if(_authMode==='login'){
+  2619→    title.textContent='Iniciar sesión';
+  2620→    sub.textContent='Entrá para guardar tus jugadas en la nube y sincronizar entre dispositivos.';
+  2621→    submit.textContent='ENTRAR';
+  2622→    nameField.style.display='none';
+  2623→    passField.style.display='block';
+  2624→    switchP.innerHTML='¿No tenés cuenta? <a id="authSwitchLink">Registrate gratis</a>';
+  2625→    links.style.display='flex';
+  2626→  } else if(_authMode==='register'){
+  2627→    title.textContent='Crear cuenta';
+  2628→    sub.textContent='Gratis. Guardá jugadas, sincronizá y desbloqueá la IA.';
+  2629→    submit.textContent='CREAR CUENTA';
+  2630→    nameField.style.display='block';
+  2631→    passField.style.display='block';
+  2632→    switchP.innerHTML='¿Ya tenés cuenta? <a id="authSwitchLink">Iniciar sesión</a>';
+  2633→    links.style.display='none';
+  2634→  } else if(_authMode==='forgot'){
+  2635→    title.textContent='Recuperar contraseña';
+  2636→    sub.textContent='Te enviamos un link a tu email para restablecerla.';
+  2637→    submit.textContent='ENVIAR LINK';
+  2638→    nameField.style.display='none';
+  2639→    passField.style.display='none';
+  2640→    switchP.innerHTML='¿Ya te acordás? <a id="authSwitchLink">Volver a iniciar sesión</a>';
+  2641→    links.style.display='none';
+  2642→  }
+  2643→  document.getElementById('authModal').classList.add('show');
+  2644→  const sl=document.getElementById('authSwitchLink');
+  2645→  if(sl)sl.onclick=()=>openAuth(_authMode==='login'?'register':'login');
+  2646→}
+  2647→function closeAuth(){document.getElementById('authModal').classList.remove('show')}
+  2648→function authError(msg){const e=document.getElementById('authError');e.textContent=msg;e.classList.add('show')}
+  2649→function authSuccess(msg){const e=document.getElementById('authSuccess');e.textContent=msg;e.classList.add('show')}
+  2650→function refreshUserUI(){
+  2651→  const pill=document.getElementById('userPill');
+  2652→  const loginBtn=document.getElementById('hLogin');
+  2653→  if(S.user){
+  2654→    pill.style.display='flex';
+  2655→    loginBtn.style.display='none';
+  2656→    document.getElementById('userAvatar').textContent=initials(S.user.name||S.user.email);
+  2657→    document.getElementById('userName').textContent=S.user.name||S.user.email.split('@')[0];
+  2658→  } else {
+  2659→    pill.style.display='none';
+  2660→    loginBtn.style.display='flex';
+  2661→  }
+  2662→}
+  2663→document.getElementById('hLogin').onclick=()=>openAuth('login');
+  2664→document.getElementById('authForgot').onclick=()=>openAuth('forgot');
+  2665→document.getElementById('authForm').onsubmit=(e)=>{
+  2666→  e.preventDefault();
+  2667→  const email=document.getElementById('authEmail').value.trim().toLowerCase();
+  2668→  const pass=document.getElementById('authPass').value;
+  2669→  const name=document.getElementById('authName').value.trim();
+  2670→  document.getElementById('authError').classList.remove('show');
+  2671→  document.getElementById('authSuccess').classList.remove('show');
+  2672→  if(_authMode==='forgot'){
+  2673→    authSuccess('📧 Te enviamos un link a '+email+'. Revisá tu casilla.');
+  2674→    setTimeout(()=>{closeAuth();toast('📧 Link de recuperación enviado')},1800);
+  2675→    return;
+  2676→  }
+  2677→  if(_authMode==='register'){
+  2678→    if(name.length<2){authError('Decinos tu nombre (mínimo 2 caracteres)');return}
+  2679→    if(pass.length<6){authError('La contraseña tiene que tener al menos 6 caracteres');return}
+  2680→    const users=loadUsers();
+  2681→    if(users.find(u=>u.email===email)){authError('Ya existe una cuenta con ese email. Iniciá sesión.');return}
+  2682→    const u={id:'u'+Date.now(),name,email,passHash:hash(pass),created:Date.now()};
+  2683→    users.push(u);saveUsers(users);
+  2684→    S.user={id:u.id,name:u.name,email:u.email};saveSession();
+  2685→    authSuccess('✓ Cuenta creada. ¡Bienvenido, '+name+'!');
+  2686→    setTimeout(()=>{closeAuth();refreshUserUI();toast('✓ Sesión iniciada — bienvenido, '+name)},1200);
+  2687→    return;
+  2688→  }
+  2689→  // login
+  2690→  const users=loadUsers();
+  2691→  const u=users.find(x=>x.email===email);
+  2692→  if(!u||u.passHash!==hash(pass)){authError('Email o contraseña incorrectos');return}
+  2693→  S.user={id:u.id,name:u.name,email:u.email};saveSession();
+  2694→  closeAuth();refreshUserUI();
+  2695→  toast('✓ Hola de nuevo, '+u.name);
+  2696→};
+  2697→document.getElementById('userPill').onclick=(e)=>{
+  2698→  e.stopPropagation();
+  2699→  document.getElementById('userMenu').classList.toggle('show');
+  2700→};
+  2701→document.addEventListener('click',()=>document.getElementById('userMenu').classList.remove('show'));
+  2702→document.getElementById('umPlays').onclick=()=>{document.getElementById('userMenu').classList.remove('show');openSheet('shPlays')};
+  2703→document.getElementById('umUpgrade').onclick=()=>{document.getElementById('userMenu').classList.remove('show');openSheet('shPlans')};
+  2704→document.getElementById('umLogout').onclick=()=>{
+  2705→  document.getElementById('userMenu').classList.remove('show');
+  2706→  clearSession();refreshUserUI();
+  2707→  toast('Sesión cerrada');
+  2708→};
+  2709→
+  2710→// ---------------- Init ----------------
+  2711→loadSaved();
+  2712→loadPlan();
+  2713→loadRoster();
+  2714→loadSession();
+  2715→buildPlayers();
+  2716→resize();
+  2717→setMode('idle');
+  2718→renderSpeeds();
+  2719→updatePlanBadge();
+  2720→refreshUserUI();
+  2721→// Si hay una jugada compartida en el URL (?play=...), cargarla y reproducirla
+  2722→loadSharedPlay();
+  2723→
+  2724→// ---- PWA: Service Worker + Install prompt ----
+  2725→if('serviceWorker' in navigator){
+  2726→  window.addEventListener('load',()=>{
+  2727→    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  2728→  });
+  2729→}
+  2730→let deferredPrompt=null;
+  2731→window.addEventListener('beforeinstallprompt',e=>{
+  2732→  e.preventDefault();
+  2733→  deferredPrompt=e;
+  2734→  // mostrar toast de instalación después de un rato
+  2735→  setTimeout(()=>{
+  2736→    if(deferredPrompt && !localStorage.getItem('pizarraPro.installDismissed')){
+  2737→      showInstallToast();
+  2738→    }
+  2739→  },8000);
+  2740→});
+  2741→function showInstallToast(){
+  2742→  const t=document.getElementById('toast');
+  2743→  t.innerHTML='📲 <button id="installYes" style="background:none;border:none;color:var(--accent);font-weight:800;cursor:pointer;text-decoration:underline">Instalar app</button>';
+  2744→  t.style.maxWidth='none';t.style.whiteSpace='normal';
+  2745→  t.classList.add('show');
+  2746→  clearTimeout(toastT);
+  2747→  document.getElementById('installYes').onclick=async()=>{
+  2748→    if(!deferredPrompt)return;
+  2749→    deferredPrompt.prompt();
+  2750→    const {outcome}=await deferredPrompt.userChoice;
+  2751→    deferredPrompt=null;
+  2752→    t.classList.remove('show');
+  2753→    if(outcome==='accepted')localStorage.setItem('pizarraPro.installDismissed','1');
+  2754→  };
+  2755→  toastT=setTimeout(()=>t.classList.remove('show'),6000);
+  2756→}
+  2757→window.addEventListener('appinstalled',()=>{
+  2758→  localStorage.setItem('pizarraPro.installDismissed','1');
+  2759→  toast('✓ App instalada — encontrala en tu pantalla de inicio');
+  2760→});
+  2761→</script>
+  2762→</body>
+  2763→</html>
+  2764→
