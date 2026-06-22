@@ -466,3 +466,28 @@ Stage Summary:
 - TODOS los features verificados y funcionando.
 - App lista para producción. Solo falta STRIPE_SECRET_KEY real para cobrar.
 - Producto comercial completo: PWA + landing + paywall + IA + sharing + present mode.
+
+---
+Task ID: 21
+Agent: main (Z.ai Code)
+Task: Plantillas de jugadas prearmadas.
+
+Work Log:
+- Creado public/templates.js con 6 plantillas F11:
+  * Córner al primer palo (pelota parada)
+  * Contraataque vertical (transición)
+  * Salida desde el arquero (salida)
+  * Presión alta rival (defensiva)
+  * Tiki-taka triangulación (ofensiva)
+  * Banda y centro al área (ofensiva)
+- Cargado templates.js en pizarra-pro.html.
+- Agregado botón 🎴 en header + sheet shTemplates.
+- renderTemplates(): agrupa por categoría, muestra cards con icono equipo atacante.
+- loadTemplate(): cambia a F11 si hace falta, construye tracks completas
+  (jugadores no mencionados quedan quietos), auto-reproduce.
+- Verificado: 6 plantillas cargan, sheet abre, plantilla "corner-primer-palo"
+  carga y reproduce (mode=play, dur=4000ms, 23 tracks). Sin errores.
+
+Stage Summary:
+- Feature de plantillas listo. 6 jugadas prearmadas para que el DT arranque rápido.
+- Freno acá, no sigo con más loops.

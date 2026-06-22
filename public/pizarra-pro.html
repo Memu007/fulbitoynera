@@ -16,6 +16,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pizarra Pro">
 <script src="/gif.js"></script>
+<script src="/templates.js"></script>
 <style>
   :root{
     /* Paleta profesional — dark mode */
@@ -395,6 +396,7 @@
     </div>
     <button class="iconBtn" id="hHome" title="Inicio (Landing)">🏠</button>
     <button class="iconBtn" id="hUpgrade" title="Mejorar a Pro">👑</button>
+    <button class="iconBtn" id="hTemplates" title="Plantillas de jugadas">🎴</button>
     <button class="iconBtn" id="hShare" title="Compartir jugada (PRO)">🔗</button>
     <button class="iconBtn" id="hExport" title="Exportar a GIF">🎬</button>
     <button class="iconBtn" id="hPlays" title="Mis jugadas">📂</button>
@@ -601,6 +603,13 @@
 
     <button class="bigBtn" id="plansCta" style="margin-top:14px">PROBAR 7 DÍAS GRATIS</button>
     <p class="hint" style="margin-top:8px">Podés cancelar cuando quieras. Cobramos cuando termina el trial.</p>
+  </div>
+</div>
+
+<div class="sheet" id="shTemplates">
+  <div class="grab"></div><h2>🎴 PLANTILLAS DE JUGADAS</h2>
+  <div class="body" id="templatesList">
+    <p class="hint" style="text-align:left;padding:0 4px 14px">Cargá una jugada lista para ver, editar o guardar. Ideal para arrancar rápido.</p>
   </div>
 </div>
 
@@ -1731,6 +1740,64 @@ document.getElementById('hExport').onclick=()=>{
 
 // ---- Compartir jugada por link (PRO) ----
 document.getElementById('hShare').onclick=sharePlay;
+document.getElementById('hTemplates').onclick=()=>{openSheet('shTemplates');renderTemplates()};
+
+// ---- Plantillas de jugadas ----
+function renderTemplates(){
+  const list=document.getElementById('templatesList');
+  if(typeof PLAYS_TEMPLATES==='undefined'){list.innerHTML='<p class="empty">No se pudieron cargar las plantillas.</p>';return}
+  // Agrupar por categoría
+  const byCat={};
+  PLAYS_TEMPLATES.forEach(t=>{(byCat[t.cat]=byCat[t.cat]||[]).push(t)});
+  let html='<p class="hint" style="text-align:left;padding:0 4px 14px">Cargá una jugada lista para ver, editar o guardar.</p>';
+  for(const cat in byCat){
+    html+=`<div class="secTitle">${esc(cat)}</div>`;
+    byCat[cat].forEach(t=>{
+      html+=`<div class="opt" data-tpl="${t.id}" style="cursor:pointer">
+        <span class="ic" style="background:${t.att==='blue'?'#3B82F622':'#EF444422'}">${t.att==='blue'?'🔵':'🔴'}</span>
+        <span class="tx"><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></span>
+        <span class="ck" style="opacity:1">▶</span>
+      </div>`;
+    });
+  }
+  html+='<p class="hint" style="margin-top:14px">Las plantillas cargan una jugada de Fútbol 11. Podés editarla, pasarla a IA o guardarla.</p>';
+  list.innerHTML=html;
+  list.querySelectorAll('.opt').forEach(el=>{
+    el.onclick=()=>loadTemplate(el.dataset.tpl);
+  });
+}
+function loadTemplate(id){
+  const t=PLAYS_TEMPLATES.find(p=>p.id===id);
+  if(!t){toast('Plantilla no encontrada');return}
+  closeSheets();
+  // Cambiar a F11 si no lo está
+  if(S.game!==11){
+    S.game=11;S.team1=11;S.team2=11;
+    S.form1='4-3-3';S.form2='4-3-3';
+    syncGameSeg();buildPlayers();
+  } else {
+    buildPlayers(true);
+    applyFormationsQuiet();
+  }
+  discardPreview(true);
+  // Construir tracks completas: los jugadores que no están en la plantilla quedan quietos
+  S.tracks={};
+  for(const p of S.players){
+    if(t.tracks[p.id]){
+      S.tracks[p.id]=JSON.parse(JSON.stringify(t.tracks[p.id]));
+    } else {
+      S.tracks[p.id]=[{t:0,x:p.x,y:p.y},{t:t.duration,x:p.x,y:p.y}];
+    }
+  }
+  S.duration=t.duration;
+  S.playT=0;
+  S.carrier=null;S.fx=[];S.drawings=[];
+  setMode('idle');
+  resize();applyFrame(0);
+  // Auto-reproducir
+  setTimeout(()=>{play();},400);
+  toast('🎴 '+t.name+' — reproduciendo');
+}
 function sharePlay(){
   if(!hasPlay()){toast('Grabá una jugada antes de compartir');return}
   if(S.plan!=='pro'){
