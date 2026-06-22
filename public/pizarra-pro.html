@@ -782,23 +782,31 @@ function L(a,b,c,d){ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke()
 function C(x,y,r,f){ctx.beginPath();ctx.arc(x,y,r,0,7);f?ctx.fill():ctx.stroke()}
 
 function drawPitch(){
-  // césped apagado tipo broadcast + franjas sutiles + viñeta
-  const stripes=S.game===11?12:S.game===8?10:8;
+  // césped tipo broadcast: rayas de corte diagonales visibles + degradado sutil
+  const stripes=S.game===11?10:S.game===8?8:6;
+  // fondo base verde profundo
+  ctx.fillStyle='#1A5334';
+  ctx.fillRect(0,0,W,H);
+  // rayas de corte (alternando tonos, horizontales, tipo cancha de TV)
   for(let i=0;i<stripes;i++){
-    ctx.fillStyle=i%2?'#1E5E3A':'#1A5334';
+    ctx.fillStyle=i%2?'#1E5E3A':'#18502E';
     ctx.fillRect(0,i*H/stripes,W,H/stripes+1);
   }
-  const vg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
-  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.32)');
+  // degradado radial sutil (centro más iluminado, bordes más oscuros = efecto stadium)
+  const vg=ctx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.7);
+  vg.addColorStop(0,'rgba(255,255,255,.06)');
+  vg.addColorStop(0.6,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(0,0,0,.35)');
   ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
-  ctx.strokeStyle='rgba(242,244,243,.88)';
+  // líneas blancas nítidas tipo broadcast
+  ctx.strokeStyle='rgba(242,244,243,.92)';
   ctx.lineWidth=Math.max(1.5,W*0.0045);
   const m=W*0.045;
   ctx.strokeRect(m,m,W-2*m,H-2*m);
   L(m,H/2,W-m,H/2);
   C(W/2,H/2,W*(S.game===5?0.16:0.13),false);
-  ctx.fillStyle='rgba(242,244,243,.88)';C(W/2,H/2,3,true);
+  ctx.fillStyle='rgba(242,244,243,.92)';C(W/2,H/2,3,true);
 
   // áreas (proporciones por modalidad)
   const big= S.game===5?{w:.62,h:.16}: S.game===8?{w:.56,h:.15}:{w:.52,h:.14};
@@ -806,7 +814,7 @@ function drawPitch(){
   const bw=W*big.w,bh=H*big.h,sw=W*sm.w,sh=H*sm.h;
   ctx.strokeRect(W/2-bw/2,m,bw,bh); ctx.strokeRect(W/2-sw/2,m,sw,sh);
   ctx.strokeRect(W/2-bw/2,H-m-bh,bw,bh); ctx.strokeRect(W/2-sw/2,H-m-sh,sw,sh);
-  ctx.fillStyle='rgba(242,244,243,.88)';
+  ctx.fillStyle='rgba(242,244,243,.92)';
   C(W/2,m+bh*0.72,3,true);C(W/2,H-m-bh*0.72,3,true);
   // semicírculo del área (8 y 11)
   if(S.game!==5){

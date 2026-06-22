@@ -532,3 +532,25 @@ Work Log:
 Stage Summary:
 - Puntaje VLM: 6 → 7/10. Cerramos brecha con competencia.
 - Freno acá.
+
+---
+Task ID: 24
+Agent: main (Z.ai Code)
+Task: Mejorar cancha tipo broadcast (rayas de corte + degradado stadium).
+
+Work Log:
+- drawPitch rediseñado:
+  * Fondo base verde profundo #1A5334.
+  * Rayas de corte horizontales alternando #1E5E3A / #18502E (tipo cancha de TV).
+  * Degradado radial: centro iluminado (rgba 255,255,255,.06), bordes oscurecidos (rgba 0,0,0,.35) = efecto stadium/focus.
+  * Líneas blancas más nítidas (.92 alpha).
+- Verificación VLM:
+  * Antes: 7/10 (cancha "verde plano sin profundidad").
+  * Ahora: 8/10 (cancha "broadcast comparable a Bundesliga/Premier League").
+  * "Cancha 8/10, igual o superior a TacticalPad en este aspecto".
+  * Puntaje global producto: 7.5/10 (casi 8).
+
+Stage Summary:
+- LLEGAMOS A 8/10 en cancha. Nivel TacticalPad.
+- Producto completo 7.5/10. Para 9/10: sombras en fichas + ocultar UI en fullscreen.
+- Freno acá por hoy. Evolución: 6 → 7 → 7.5/10 en una sesión.
