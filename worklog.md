@@ -227,3 +227,28 @@ Work Log:
 Stage Summary:
 - Rediseño verificado, nada roto.
 - Modo Presentación listo para vestuarios (feature que piden DT en reviews).
+
+---
+Task ID: 13
+Agent: main (Z.ai Code)
+Task: Buscar repos para forkear + mejorar dinamismo de animación.
+
+Work Log:
+- Investigación GitHub (18 búsquedas, 14 repos leídos): NINGÚN repo es forkeable
+  sin problemas. gljubojevic sin licencia (ilegal comercial), tacticalboard en Vue
+  y stale 2022, giustini solo hace alineaciones estáticas, pespila Python/Streamlit.
+- Conclusión honesta al usuario: el problema no es el código base, es la animación.
+  Referencia de dinamismo: tacticslate.com (ghost positions, timing controls).
+- Implementadas 4 mejoras de dinamismo en nuestra app:
+  1. applyFrame: trackea velocidad por jugador (vx, vy, spd) con lookback 60ms
+  2. drawPlayer: bob vertical sinusoidal mientras se mueve (simula carrera)
+  3. drawPlayer: flecha/triángulo que apunta hacia la dirección de movimiento
+  4. drawBall: patrón de pentágonos que rota (spin) mientras viaja
+- Verificación: velocidad trackeada correctamente (ball spd=0.0078, mate spd=0.0090),
+  reproducción fluida, sin errores. VLM confirmó "dinamismo 8/10", "se siente más
+  dinámico que una pizarra estática".
+
+Stage Summary:
+- Decisión: NO forkear nada, seguir mejorando nuestra app.
+- Dinamismo mejorado de ~3/10 a 8/10 según VLM.
+- Próximo: easing en tiempo, ghost positions, más estilos IA.
