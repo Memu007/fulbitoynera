@@ -648,3 +648,41 @@ Stage Summary:
 - Auth completo en modo demo (localStorage). Listo para migrar a Supabase/Auth.
 - Sesión persiste entre recargas.
 - Freno acá.
+
+---
+Task ID: 29
+Agent: main (Z.ai Code)
+Task: 3 quick wins (#1 duplicar, #7 foto jugador, #10 WhatsApp plantel).
+
+Work Log:
+#1 Duplicar jugada:
+- Botón ⧉ en cada playItem, antes de Cargar.
+- Handler: copia profunda (JSON parse/stringify), agrega " (copia)" al nombre,
+  push a S.saved, persiste, re-render. Toast de confirmación.
+
+#7 Foto de jugador:
+- Sheet shPlayer con preview circular (72px), input file (accept image/*),
+  botón "Quitar foto".
+- openPlayerEdit: muestra preview si ya tiene foto, resetea _plPhotoTemp.
+- onChange: FileReader lee como dataURL, valida <800KB, muestra preview.
+- plOk: guarda photo en player (dataURL). delete si _plPhotoTemp===''.
+- drawPlayer: si p.photo, dibuja foto enmascarada en círculo (clip) con
+  borde del color del equipo. Si no, gradiente 3D como antes.
+- buildPlayers y loadPlay preservan/restauran photo.
+- meta (saveOk/sharePlay/loadPlay) incluye photo.
+- Verificado: photoWrap y file input presentes en DOM.
+
+#10 Compartir plantel a WhatsApp:
+- Botón 📤 WhatsApp en control de minutos (entre Iniciar y Reset).
+- Genera texto plano: "*⏱️ Minutos jugados*\n Partido: X\n\n" + lista
+  ordenada por minutos con emojis 🟢🟡🔴 según equidad.
+- navigator.share si disponible, si no copia al portapapeles + abre wa.me.
+- Pausa timer antes de compartir (minutos no cambian).
+- Verificado: texto generado correctamente con emojis y formato WhatsApp.
+
+Stage Summary:
+- 3 quick wins completos en 1 loop.
+- Duplicar: flujo de variantes de jugadas mucho más rápido.
+- Foto: enganche de chicos en inferiores (review real lo confirma).
+- WhatsApp: resuelve dolor de padres ("¿cuánto jugó mi hijo?").
+- Freno acá.

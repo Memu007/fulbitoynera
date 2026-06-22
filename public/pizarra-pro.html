@@ -692,8 +692,16 @@
 <div class="sheet" id="shPlayer">
   <div class="grab"></div><h2>EDITAR JUGADOR</h2>
   <div class="body">
+    <div id="plPhotoWrap" style="text-align:center;margin-bottom:12px">
+      <label for="plPhoto" style="cursor:pointer;display:inline-block">
+        <div id="plPhotoPreview" style="width:72px;height:72px;border-radius:50%;background:var(--panel2);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px;overflow:hidden;background-size:cover;background-position:center">👤</div>
+        <small style="color:var(--accent);font-weight:700;font-size:11px">📷 Tocá para subir foto</small>
+      </label>
+      <input type="file" id="plPhoto" accept="image/*" style="display:none">
+      <button id="plPhotoDel" style="display:none;background:none;border:none;color:var(--rec);font-size:11px;cursor:pointer;margin-top:4px;font-weight:600">Quitar foto</button>
+    </div>
     <div class="row2">
-      <input type="text" id="plName" placeholder="Nombre (ej: Messi)" maxlength="10">
+      <input type="text" id="plName" placeholder="Nombre (ej: Messi)" maxlength="14">
       <input type="number" id="plNum" placeholder="N°" min="0" max="99" style="max-width:90px">
     </div>
     <button class="bigBtn" id="plOk">LISTO</button>
@@ -932,17 +940,17 @@ function formationPositions(code,count,isBlue){
 
 function buildPlayers(keepMeta){
   const meta={};
-  if(keepMeta) S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num});
+  if(keepMeta) S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num,photo:p.photo||null});
   S.players=[];
   const f1=formationPositions(S.form1,S.team1,true);
   for(let i=0;i<S.team1;i++){
     const id='b'+i;
-    S.players.push({id,team:'blue',num:meta[id]?.num??(i+1),name:meta[id]?.name||'',gk:i===0,x:f1[i][0],y:f1[i][1]});
+    S.players.push({id,team:'blue',num:meta[id]?.num??(i+1),name:meta[id]?.name||'',photo:meta[id]?.photo||null,gk:i===0,x:f1[i][0],y:f1[i][1]});
   }
   const f2=formationPositions(S.form2,S.team2,false);
   for(let i=0;i<S.team2;i++){
     const id='r'+i;
-    S.players.push({id,team:'red',num:meta[id]?.num??(i+1),name:meta[id]?.name||'',gk:i===0,x:f2[i][0],y:f2[i][1]});
+    S.players.push({id,team:'red',num:meta[id]?.num??(i+1),name:meta[id]?.name||'',photo:meta[id]?.photo||null,gk:i===0,x:f2[i][0],y:f2[i][1]});
   }
   S.players.push({id:'ball',team:'ball',ball:true,num:0,name:'',gk:false,x:.5,y:.5});
 }
@@ -1036,24 +1044,50 @@ function drawPlayer(p){
   ctx.fillStyle='rgba(0,0,0,.5)';
   ctx.beginPath();ctx.ellipse(x,y+r*0.75,r*0.85,r*0.32,0,0,7);ctx.fill();
   ctx.restore();
-  // disco con gradiente radial 3D (oscuro abajo, claro arriba)
-  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.4,r*0.1,x,y,r);
-  g.addColorStop(0,baseCol);
-  g.addColorStop(0.7,baseCol);
-  g.addColorStop(1,darkCol);
-  ctx.fillStyle=g;
-  ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
-  // borde fino oscuro (separa de la cancha, más sutil que blanco brillante)
-  ctx.lineWidth=1;
-  ctx.strokeStyle='rgba(0,0,0,.45)';
-  ctx.stroke();
-  // highlight superior brillante (volumen 3D)
-  const hl=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.05,x-r*0.2,y-r*0.25,r*0.75);
-  hl.addColorStop(0,'rgba(255,255,255,.55)');
-  hl.addColorStop(0.6,'rgba(255,255,255,.08)');
-  hl.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hl;
-  ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  // disco: si tiene foto, dibujar foto enmascarada en círculo; si no, gradiente 3D
+  if(p.photo){
+    // fondo del color del equipo detrás (por si la foto no cubre todo)
+    ctx.fillStyle=baseCol;
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+    // foto enmascarada en círculo
+    ctx.save();
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.clip();
+    try{
+      if(!p._img)p._img=new Image();
+      if(p._img.src!==p.photo)p._img.src=p.photo;
+      if(p._img.complete&&p._img.naturalWidth>0){
+        // dibujar cubriendo el círculo (cover)
+        const iw=p._img.naturalWidth,ih=p._img.naturalHeight;
+        const sc=Math.max(r*2/iw,r*2/ih);
+        const dw=iw*sc,dh=ih*sc;
+        ctx.drawImage(p._img,x-dw/2,y-dh/2,dw,dh);
+      }
+    }catch(e){}
+    ctx.restore();
+    // borde del color del equipo (para distinguir de qué equipo es)
+    ctx.lineWidth=2.5;
+    ctx.strokeStyle=baseCol;
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();
+  } else {
+    // sin foto: gradiente radial 3D (oscuro abajo, claro arriba)
+    const g=ctx.createRadialGradient(x-r*0.3,y-r*0.4,r*0.1,x,y,r);
+    g.addColorStop(0,baseCol);
+    g.addColorStop(0.7,baseCol);
+    g.addColorStop(1,darkCol);
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+    // borde fino oscuro (separa de la cancha, más sutil que blanco brillante)
+    ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(0,0,0,.45)';
+    ctx.stroke();
+    // highlight superior brillante (volumen 3D)
+    const hl=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.05,x-r*0.2,y-r*0.25,r*0.75);
+    hl.addColorStop(0,'rgba(255,255,255,.55)');
+    hl.addColorStop(0.6,'rgba(255,255,255,.08)');
+    hl.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=hl;
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  }
   // carrier: anillo blanco (tiene la pelota)
   if(S.carrier===p.id&&S.mode!=='play'&&S.mode!=='pause'){
     ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,r+4,0,7);ctx.stroke()
@@ -1822,13 +1856,22 @@ function renderPlays(){
     const el=document.createElement('div');el.className='playItem';
     el.innerHTML=`<span style="font-size:21px">📋</span>
       <span class="tx"><b>${esc(pl.name)}</b><small>F${pl.game} · ${pl.t1}v${pl.t2} · ${(pl.duration/1000).toFixed(1)}s</small></span>
+      <button class="miniBtn" data-a="d" data-i="${i}" title="Duplicar">⧉</button>
       <button class="miniBtn" data-a="l" data-i="${i}">Cargar</button>
-      <button class="miniBtn warn" data-a="d" data-i="${i}">✕</button>`;
+      <button class="miniBtn warn" data-a="x" data-i="${i}">✕</button>`;
     list.appendChild(el);
   });
   list.querySelectorAll('button').forEach(b=>b.onclick=()=>{
     const i=+b.dataset.i;
-    if(b.dataset.a==='d'){S.saved.splice(i,1);persistSaved();renderPlays();toast('Jugada eliminada')}
+    if(b.dataset.a==='x'){S.saved.splice(i,1);persistSaved();renderPlays();toast('Jugada eliminada')}
+    else if(b.dataset.a==='d'){
+      const orig=S.saved[i];
+      const copy=JSON.parse(JSON.stringify(orig));
+      copy.name=(orig.name||'Jugada')+' (copia)';
+      S.saved.push(copy);
+      persistSaved();renderPlays();
+      toast('⧉ Duplicada: '+copy.name+' — cargala para editar');
+    }
     else loadPlay(i);
   });
 }
@@ -1838,7 +1881,7 @@ function loadPlay(i){
   discardPreview(true);
   S.game=pl.game;S.team1=pl.t1;S.team2=pl.t2;S.form1=pl.f1;S.form2=pl.f2;
   syncGameSeg();buildPlayers();
-  S.players.forEach(p=>{const m=pl.meta[p.id];if(m){p.name=m.name;p.num=m.num}});
+  S.players.forEach(p=>{const m=pl.meta[p.id];if(m){p.name=m.name;p.num=m.num;if(m.photo)p.photo=m.photo;else p.photo=null}});
   S.tracks=JSON.parse(JSON.stringify(pl.tracks));
   S.duration=pl.duration;S.drawings=JSON.parse(JSON.stringify(pl.drawings||[]));
   S.carrier=null;S.fx=[];
@@ -1853,7 +1896,7 @@ document.getElementById('saveOk').onclick=()=>{
     return;
   }
   const name=document.getElementById('playName').value.trim()||'Jugada '+(S.saved.length+1);
-  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num});
+  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num,photo:p.photo||null});
   S.saved.push({name,game:S.game,t1:S.team1,t2:S.team2,f1:S.form1,f2:S.form2,
     duration:S.duration,tracks:JSON.parse(JSON.stringify(S.tracks)),
     drawings:JSON.parse(JSON.stringify(S.drawings)),meta});
@@ -2018,6 +2061,7 @@ function renderMinutes(){
   html+='<div class="lbl">Tiempo de partido · '+active+' en cancha</div>';
   html+='<div class="btns">';
   html+='<button class="primary" id="mStart">'+(S.match.running?'⏸ Pausar':'▶ Iniciar')+'</button>';
+  html+='<button id="mShare" style="background:var(--accent);color:#0E1416;border:none">📤 WhatsApp</button>';
   html+='<button id="mReset" class="danger">↺ Reset</button>';
   html+='</div></div>';
   // sugerencia de equidad
@@ -2073,6 +2117,39 @@ function renderMinutes(){
     }
     persistRoster();
     renderMinutes();
+  };
+  document.getElementById('mShare').onclick=()=>{
+    if(S.roster.length===0){toast('Cargá jugadores antes de compartir');return}
+    // Pausar el timer para que los minutos no cambien al compartir
+    const wasRunning=S.match.running;
+    if(wasRunning){document.getElementById('mStart').click()}
+    // Generar texto plano para WhatsApp
+    let txt='*⏱️ Minutos jugados*\n';
+    txt+=' Partido: '+fmtMin(S.roster.reduce((a,p)=>a+p.playedMs,0))+'\n\n';
+    const sorted=[...S.roster].sort((a,b)=>b.playedMs-a.playedMs);
+    for(const p of sorted){
+      const name=p.name||('Jugador '+(p.num||'?'));
+      const min=fmtMin(p.playedMs);
+      const ratio=S.roster.length>0?p.playedMs/(S.roster.reduce((a,x)=>a+x.playedMs,0)/S.roster.length||1):1;
+      const mark=ratio<0.5?'🔴':ratio<0.85?'🟡':'🟢';
+      txt+=mark+' #'+(p.num||'?')+' '+name+': '+min+'\n';
+    }
+    txt+='\n_Pizarra Pro_';
+    // WhatsApp: usar wa.me si hay app, si no copiar al portapapeles
+    const waUrl='https://wa.me/?text='+encodeURIComponent(txt);
+    if(navigator.share){
+      navigator.share({title:'Minutos jugados',text}).catch(()=>{
+        window.open(waUrl,'_blank');
+      });
+    } else {
+      // Copiar al portapapeles y abrir WhatsApp
+      navigator.clipboard.writeText(txt).then(()=>{
+        toast('📋 Copiado — abriendo WhatsApp...');
+        setTimeout(()=>window.open(waUrl,'_blank'),500);
+      }).catch(()=>{
+        window.open(waUrl,'_blank');
+      });
+    }
   };
   document.getElementById('mReset').onclick=()=>{
     if(!confirm('¿Resetear todos los minutos a 0?'))return;
@@ -2166,7 +2243,7 @@ function sharePlay(){
     return;
   }
   // Codificar la jugada en base64 para embeber en el URL (sin backend)
-  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num});
+  const meta={};S.players.forEach(p=>meta[p.id]={name:p.name,num:p.num,photo:p.photo||null});
   const payload={
     n:'Jugada compartida',
     g:S.game,t1:S.team1,t2:S.team2,f1:S.form1,f2:S.form2,
@@ -2446,18 +2523,57 @@ document.getElementById('aiComplete').onclick=previewComplete;
 document.getElementById('aiDemo').onclick=demoPlay;
 
 // edición jugador
+let _plPhotoTemp=null;
 function openPlayerEdit(p){
   S.editing=p;
   document.getElementById('plName').value=p.name||'';
   document.getElementById('plNum').value=p.num;
+  _plPhotoTemp=null;
+  const prev=document.getElementById('plPhotoPreview');
+  const delBtn=document.getElementById('plPhotoDel');
+  if(p.photo){
+    prev.style.backgroundImage='url('+p.photo+')';
+    prev.textContent='';
+    delBtn.style.display='block';
+  } else {
+    prev.style.backgroundImage='';
+    prev.textContent='👤';
+    delBtn.style.display='none';
+  }
   openSheet('shPlayer');
 }
+document.getElementById('plPhoto').onchange=(e)=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  if(f.size>800*1024){toast('La foto es muy grande (máx 800KB)');return}
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    _plPhotoTemp=ev.target.result;
+    const prev=document.getElementById('plPhotoPreview');
+    prev.style.backgroundImage='url('+_plPhotoTemp+')';
+    prev.textContent='';
+    document.getElementById('plPhotoDel').style.display='block';
+  };
+  reader.readAsDataURL(f);
+};
+document.getElementById('plPhotoDel').onclick=()=>{
+  _plPhotoTemp='';
+  const prev=document.getElementById('plPhotoPreview');
+  prev.style.backgroundImage='';
+  prev.textContent='👤';
+  document.getElementById('plPhotoDel').style.display='none';
+};
 document.getElementById('plOk').onclick=()=>{
   if(S.editing){
-    S.editing.name=document.getElementById('plName').value.trim().slice(0,10);
+    S.editing.name=document.getElementById('plName').value.trim().slice(0,14);
     const n=parseInt(document.getElementById('plNum').value);
     if(!isNaN(n))S.editing.num=clamp(n,0,99);
+    if(_plPhotoTemp!==null){
+      if(_plPhotoTemp==='')delete S.editing.photo;
+      else S.editing.photo=_plPhotoTemp;
+    }
   }
+  _plPhotoTemp=null;
   S.editing=null;closeSheets();draw();
 };
 
