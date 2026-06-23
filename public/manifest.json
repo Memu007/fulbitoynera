@@ -2,7 +2,7 @@
   "name": "Pizarra Pro — Táctica con IA",
   "short_name": "Pizarra Pro",
   "description": "Pizarra táctica de fútbol con IA. Grabá jugadas, animá y dejá que la IA complete el movimiento del rival.",
-  "start_url": "/pizarra-pro.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

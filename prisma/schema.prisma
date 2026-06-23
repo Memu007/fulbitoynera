@@ -13,20 +13,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Usuario {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  nombre        String?
+  passwordHash  String?
+  avatarUrl     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  jugadas       Jugada[]
+  suscripcion   Suscripcion?
+  equipos       Equipo[]
+  plantillas    Plantilla[]
 }
 
-model Post {
+model Jugada {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  nombre    String
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  data      String   // JSON con la jugada completa
+  gameType  String   // F5, F8, F11
+  duration  Int      // ms
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([usuarioId])
+}
+
+model Suscripcion {
+  id                   String    @id @default(cuid())
+  usuarioId            String    @unique
+  usuario              Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  plan                 String    @default("free") // free, pro, club
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String?   // active, canceled, past_due
+  currentPeriodEnd     DateTime?
+  aiUsedToday          Int       @default(0)
+  aiDate               String?   // YYYY-MM-DD
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model Plantilla {
+  id        String    @id @default(cuid())
+  nombre    String
+  gameType  String
+  data      String    // JSON con formación y posiciones
+  esGlobal  Boolean   @default(false)
+  usuarioId String?
+  usuario   Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([gameType])
+  @@index([esGlobal])
+}
+
+model Equipo {
+  id        String   @id @default(cuid())
+  nombre    String
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  logoUrl   String?
+  roster    String   // JSON con jugadores y minutos
+  match     String?  // JSON con estado del partido
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([usuarioId])
 }

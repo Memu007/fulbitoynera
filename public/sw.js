@@ -2,7 +2,9 @@
 // Cachea el shell de la app para offline (entrenadores en cancha sin señal)
 const CACHE = 'pizarra-pro-v1';
 const ASSETS = [
+  '/',
   '/pizarra-pro.html',
+  '/templates.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
@@ -14,7 +16,10 @@ const ASSETS = [
 // Install: pre-cachear assets esenciales
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS).catch(() => {}))
+    caches.open(CACHE).then(cache => cache.addAll(ASSETS).catch(err => {
+      console.error('SW precache falló', err);
+      throw err;
+    }))
   );
   self.skipWaiting();
 });

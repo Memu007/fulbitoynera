@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { db } from '@/lib/db';
 
 // Endpoint para crear una Stripe Checkout Session.
 // Funciona en dos modos:
-// 1. DEMO (sin STRIPE_SECRET_KEY): devuelve un plan simulado para que el flujo de la app funcione.
-// 2. PRODUCCIÓN (con STRIPE_SECRET_KEY): crea una Checkout Session real y devuelve la URL.
+// 1. DEMO (sin STRIPE_SECRET_KEY): activa el plan directamente en la DB.
+// 2. PRODUCCIÓN (con STRIPE_SECRET_KEY): crea una Checkout Session real y el webhook la activa.
 
 const PLAN_CONFIG: Record<string, {
   name: string;
@@ -37,6 +40,11 @@ const PLAN_CONFIG: Record<string, {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { plan } = await req.json();
 
     if (!plan || !PLAN_CONFIG[plan]) {
@@ -46,13 +54,18 @@ export async function POST(req: NextRequest) {
     const config = PLAN_CONFIG[plan];
     const stripeKey = process.env.STRIPE_SECRET_KEY;
 
-    // MODO DEMO: sin credenciales de Stripe configuradas.
-    // Devolvemos una respuesta simulada para que el flujo de la app funcione.
+    // MODO DEMO: sin credenciales de Stripe. Activamos el plan en DB directamente.
     if (!stripeKey || stripeKey === 'demo') {
+      await db.suscripcion.upsert({
+        where: { usuarioId: session.user.id },
+        update: { plan, status: 'active' },
+        create: { usuarioId: session.user.id, plan, status: 'active' },
+      });
       return NextResponse.json({
         demo: true,
         plan,
-        message: 'Modo demo: activación simulada. Configurá STRIPE_SECRET_KEY en .env para cobrar de verdad.',
+        activated: true,
+        message: 'Modo demo: plan activado. Configurá STRIPE_SECRET_KEY en .env para cobrar de verdad.',
         redirectUrl: null,
       });
     }
@@ -61,7 +74,8 @@ export async function POST(req: NextRequest) {
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(stripeKey);
 
-    const session = await stripe.checkout.sessions.create({
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
       line_items: [
@@ -76,12 +90,13 @@ export async function POST(req: NextRequest) {
         },
       ],
       ...(config.trial && { subscription_data: { trial_period_days: 7 } }),
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pizarra-pro.html?upgrade=success&plan=${plan}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pizarra-pro.html?upgrade=cancel`,
-      metadata: { plan },
+      success_url: `${baseUrl}/?upgrade=success&plan=${plan}`,
+      cancel_url: `${baseUrl}/?upgrade=cancel`,
+      metadata: { plan, userId: session.user.id },
+      customer_email: session.user.email || undefined,
     });
 
-    return NextResponse.json({ redirectUrl: session.url, plan });
+    return NextResponse.json({ redirectUrl: checkoutSession.url, plan });
   } catch (error) {
     console.error('Checkout error:', error);
     return NextResponse.json(

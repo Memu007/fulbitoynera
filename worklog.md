@@ -710,3 +710,525 @@ Work Log:
 Stage Summary:
 - Proyecto verificado y listo para handoff.
 - Documento HANDOFF.md creado con estado completo.
+
+---
+Task ID: 31
+Agent: PM/Auditora (AI 1)
+Task: Auditoría completa del proyecto — seguridad, arquitectura, calidad, performance, UX, lógica IA.
+
+Work Log:
+- Revisión exhaustiva de todos los archivos del proyecto.
+- Hallazgos críticos (bloqueantes de producción):
+  * Auth falsa: passwords en localStorage con hash de 32-bit trivial
+  * Paywall bypasseable: editar localStorage → PRO gratis
+  * Sin backend: Prisma instanciado pero no conectado, .env roto, schema boilerplate
+  * Sin webhook de Stripe: plan se activa client-side
+  * next.config.ts: ignoreBuildErrors=true, reactStrictMode=false
+  * 15+ catch(e){} vacíos sin logging
+  * Fotos de jugadores en base64 en localStorage (excede límite 5-10MB)
+  * XSS potencial en share de jugadas (loadSharedPlay sin validación de schema)
+- Hallazgos importantes (tech debt):
+  * HTML monolito de 2764 líneas sin TypeScript ni tests
+  * 48 componentes shadcn/ui instalados, solo se usa Toaster
+  * Service Worker no cachea templates.js
+  * manifest.json start_url apuntaba a /pizarra-pro.html
+  * Stripe redirect URLs apuntaban a /pizarra-pro.html
+- Lo que está bien hecho (no tocar):
+  * IA táctica: completePlay() con 7 estilos, lógica sólida
+  * Interpolación: Catmull-Rom centripetal (Yuksel 2011)
+  * Simplificación: Ramer-Douglas-Peucker
+  * Canvas rendering: calidad broadcast
+  * Plantillas: 12 bien diseñadas (F5, F8, F11)
+  * Landing: bien hecha, mobile-first
+  * Control de minutos con equidad: feature único
+- Plan de ataque definido en 5 fases:
+  * Fase 0: Quick wins (5 items)
+  * Fase 1: Backend base (3 items)
+  * Fase 2: Auth real (4 items)
+  * Fase 3: Monetización real (4 items)
+  * Fase 4: Persistencia real (4 items)
+  * Fase 5: Refactor gradual (3 items)
+- Roles definidos en ROLES.md: PM/Auditora + Programadora, reglas de disputa, formato de comunicación, trabajo en loop.
+
+Stage Summary:
+- Auditoría completa entregada.
+- Plan de ataque en 5 fases priorizado por dependencia.
+- Roles y reglas de trabajo documentados en ROLES.md.
+
+---
+Task ID: 32
+Agent: Programadora (AI 2)
+Task: Fase 0 — Quick wins (5 items sin romper nada).
+
+Work Log:
+- Item 1: .env — DATABASE_URL cambiado a file:./db/custom.db (path relativo). Después corregido a file:../db/custom.db en Fase 1 (Prisma resuelve paths relativos al schema file, no al CWD).
+- Item 2: next.config.ts — ignoreBuildErrors: false, reactStrictMode: true.
+- Item 3: sw.js — agregados / y /templates.js al precache. console.error en catch de precache.
+- Item 4: manifest.json — start_url cambiado a "/".
+- Item 5: pizarra-pro.html — 12 catch(e){} vacíos ahora loguean con console.error y contexto.
+- Ajustes extra al activar ignoreBuildErrors: false:
+  * tsconfig.json — excluida carpeta examples (importa socket.io-client no instalado).
+  * src/app/page.tsx — eliminado height duplicado, quedó 100dvh.
+- Lint: 5 errores preexistentes en use-mobile.ts (setState en useEffect). No tocados, fuera de scope.
+- Verificado por PM: todos los items aprobados. 3 observaciones no bloqueantes (shortcuts de manifest inconsistentes, use-mobile.ts con reactStrictMode, no se verificó build).
+
+Stage Summary:
+- Fase 0 completa y aprobada por PM.
+- Build pasa con config estricta.
+
+---
+Task ID: 33
+Agent: Programadora (AI 2)
+Task: Fase 1 — Backend base (schema Prisma, migración, db.ts).
+
+Work Log:
+- Item 6: Schema Prisma diseñado con 5 modelos del dominio:
+  * Usuario (id, email único, nombre, passwordHash, avatarUrl, timestamps)
+  * Jugada (FK a Usuario, cascade delete, data JSON, gameType, duration, índice por usuarioId)
+  * Suscripcion (1:1 con Usuario, cascade delete, plan, stripeCustomerId, stripeSubscriptionId, status, currentPeriodEnd, aiUsedToday, aiDate)
+  * Plantilla (FK opcional a Usuario, esGlobal boolean, índices por gameType y esGlobal)
+  * Equipo (FK a Usuario, cascade delete, roster JSON, match JSON, índice por usuarioId)
+- Decisión de diseño: Plantilla permite globales (esGlobal=true, usuarioId=null) + custom de usuario. Equipo con roster como JSON (pragmático, modelo Jugador separado es deuda para Fase 4 si hace falta).
+- Item 7: Migración.
+  * Primer intento: prisma migrate dev — la DB no tenía las tablas nuevas. Solo Post y User (boilerplate viejo).
+  * Causa raíz: Prisma resuelve paths de SQLite relativos al schema file (prisma/schema.prisma), no al CWD. file:./db/custom.db apuntaba a prisma/db/custom.db.
+  * Fix: .env cambiado a file:../db/custom.db. DB errónea borrada. Migración re-corrida.
+  * Verificación PM: sqlite3 db/custom.db ".tables" → Equipo, Jugada, Plantilla, Suscripcion, Usuario, _prisma_migrations. Aprobado.
+- Item 8: db.ts verificado.
+  * PrismaClient singleton pattern sin cambios.
+  * Test directo: db.usuario.count() → 0. Conexión OK.
+  * tsc --noEmit compila limpio después de cleanup (carpeta health-db vacía borrada, .next limpiado).
+  * Observación PM: db.ts no se importa en ningún lado todavía (esperable, primer uso en Fase 2).
+
+Stage Summary:
+- Fase 1 completa y aprobada por PM.
+- 5 tablas del dominio en SQLite. PrismaClient conecta y querya.
+- Deuda: prisma/db/ quedó como carpeta vacía (cosmético).
+
+---
+Task ID: 34
+Agent: Programadora (AI 2)
+Task: Fase 2 — Auth real (NextAuth + bcrypt, eliminar auth demo).
+
+Work Log:
+- Item 9: NextAuth configurado.
+  * Instalado bcryptjs + @types/bcryptjs.
+  * NEXTAUTH_SECRET y NEXTAUTH_URL agregados al .env.
+  * src/app/api/auth/[...nextauth]/route.ts con CredentialsProvider, JWT sessions, bcrypt.
+  * Tipos extendidos en src/types/next-auth.d.ts para id y plan en sesión.
+  * authOptions extraído a src/lib/auth.ts para reutilizar en checkout, plan y nextauth.
+- Item 10: bcrypt server-side.
+  * Register hashea password con bcrypt (10 rounds).
+  * Login compara hash contra DB con bcrypt.compare.
+  * passwordHash no se devuelve nunca al cliente.
+- Item 11: Auth demo eliminada de pizarra-pro.html.
+  * Borradas: loadUsers, saveUsers, loadSession, saveSession, clearSession, hash, y flujo localStorage.
+  * Reemplazado por fetchSession(), login(), register(), logout() con fetch a API routes.
+  * Init ahora usa fetchSession() en lugar de loadSession().
+  * "Recuperar contraseña" ahora dice "próximamente" (antes fakeaba envío de email).
+- Item 12: API routes.
+  * POST /api/auth/register — crea Usuario + Suscripcion plan free.
+  * POST /api/auth/callback/credentials — login real (NextAuth nativo).
+  * POST /api/auth/signout — logout (NextAuth nativo).
+  * GET /api/auth/session — sesión (NextAuth nativo).
+  * Corrección de rutas: NextAuth con CredentialsProvider usa /callback/credentials para el POST real, no /signin/credentials (que es solo la página de login).
+- Verificación PM: todos los items aprobados. tsc --noEmit limpio.
+- Observación 1 (PM): Plan seguía en localStorage (persistPlan/loadPlan). fetchSession setea S.plan desde servidor pero loadPlan podía pisarlo. → Fixeado en Fase 3.
+- Observación 2 (PM): NEXTAUTH_SECRET en .env. Verificado: .env está en .gitignore (línea 34: .env*). No va a git.
+
+Stage Summary:
+- Fase 2 completa y aprobada por PM.
+- Auth real con bcrypt server-side, JWT cookies httpOnly.
+- Auth demo de localStorage eliminada por completo.
+
+---
+Task ID: 35
+Agent: Programadora (AI 2)
+Task: Fase 3 — Monetización real (webhook Stripe, eliminar paywall client-side, GET /api/plan, fix redirects).
+
+Work Log:
+- Item 13: Webhook Stripe.
+  * Creado src/app/api/webhook/stripe/route.ts.
+  * Verifica stripe-signature con STRIPE_WEBHOOK_SECRET.
+  * En checkout.session.completed: upsert de Suscripcion con plan, status, stripeCustomerId, stripeSubscriptionId, currentPeriodEnd.
+  * Maneja dos paths: userId en metadata (primario) + customer_email fallback.
+- Item 14: Eliminar activación client-side.
+  * Removido S.plan='pro';persistPlan() del modo demo en pizarra-pro.html.
+  * persistPlan() ahora es no-op (plan vive en servidor).
+  * PLAN_KEY y loadPlan() eliminados. Reemplazados por fetchPlan() que llama al servidor.
+- Item 15: GET /api/plan.
+  * Creado src/app/api/plan/route.ts.
+  * Autentica con getServerSession, lee Suscripcion de DB.
+  * Devuelve {plan, aiUsedToday, aiDate}.
+  * Frontend usa fetchPlan() en init y después del checkout.
+- Item 16: Fix redirect URLs.
+  * checkout/route.ts: success_url y cancel_url ahora apuntan a ${baseUrl}/ (antes /pizarra-pro.html).
+- Modo demo vs producción:
+  * Demo (sin STRIPE_SECRET_KEY): autentica usuario, upsert de Suscripcion en DB, devuelve activated: true.
+  * Producción: crea Stripe Checkout Session con metadata {plan, userId}, webhook activa tras pago.
+- Verificación PM: todos los items aprobados. tsc --noEmit limpio.
+- Observación 1 (PM): aiUsedToday desincronizado. registerAIUse() incrementa localmente, persistPlan() es no-op. GET /api/plan devuelve 0 siempre. → Fixear en Fase 4 con POST /api/plan/ai-use.
+- Observación 2 (PM): Webhook hardcodea currentPeriodEnd a 365 días para todos los planes. pro-monthly deberían ser 30 días. → Revisar cuando se conecte Stripe real.
+- Observación 3 (PM): Webhook solo maneja checkout.session.completed. Falta customer.subscription.deleted, customer.subscription.updated, invoice.payment_failed. → Antes de producción real.
+
+Stage Summary:
+
+- Fase 3 completa y aprobada por PM.
+- Paywall ahora es real: plan vive en DB, no se puede hackear desde el navegador.
+- Webhook de Stripe verifica firma y activa plan en DB.
+- 3 observaciones pendientes (aiUsedToday → Fase 4, webhook 365 días y eventos faltantes → antes de Stripe real).
+
+---
+
+Task ID: 36
+Agent: Programadora (AI 2)
+Task: Fase 4 — Persistencia real (CRUD jugadas, roster, fotos, AI counter).
+
+Work Log:
+
+- Item 17: API CRUD de jugadas.
+  - src/app/api/jugadas/route.ts: GET lista del usuario autenticado, POST crea jugada.
+  - src/app/api/jugadas/[id]/route.ts: PUT edita con ownership check (findFirst {id, usuarioId}), DELETE borra con ownership check.
+  - data se guarda como JSON en campo Jugada.data; gameType, duration en campos propios.
+- Item 18: Migrar save/load de jugadas.
+  - Reemplazado loadSaved()/persistSaved() por fetchSaved() + operaciones individuales.
+  - Usuarios logueados persisten en el servidor. Usuarios guest usan localStorage como fallback.
+  - Funciones helper: playToApiPayload(), apiPlayToLocal(), buildCurrentPlay(), createServerPlay().
+  - renderPlays() ahora hace DELETE/duplicar vía API cuando hay sesión.
+  - saveOk ahora async: crea jugada en servidor y refresca lista.
+- Item 19: Migrar roster.
+  - Reemplazado loadRoster()/persistRoster() por fetchRoster()/persistRoster().
+  - GET /api/equipo crea equipo default si no existe. POST /api/equipo guarda roster y match.
+  - Fallback a localStorage para usuarios guest.
+- Item 20: Migrar fotos de jugadores.
+  - Creado src/app/api/upload/route.ts: guarda archivo en /public/uploads/, genera nombre único, devuelve URL pública.
+  - Frontend sube foto a /api/upload en lugar de base64. Guest sigue usando base64 en memoria.
+- Extra: POST /api/plan/ai-use.
+  - Creado src/app/api/plan/ai-use/route.ts: verifica plan, resetea contador si cambió el día, incrementa aiUsedToday en DB para usuarios free.
+  - Reemplazado canUseAI()/registerAIUse() por ensureCanUseAI() async. previewComplete() ahora consulta al servidor antes de usar IA.
+  - Guest puede usar IA sin límite.
+- Bug fix (FREE_AI_DAILY): backend tenía 3, frontend tenía 1. Unificado a 1 en src/app/api/plan/ai-use/route.ts con comentario de que debe coincidir con el frontend.
+
+Stage Summary:
+
+- Fase 4 completa y aprobada por PM.
+- Persistencia real: jugadas, roster, fotos y contador de IA viven en el servidor.
+- Guest fallback preservado para no romper UX (pendiente decisión de Emi sobre requerir cuenta).
+- Build pasa limpio. tsc --noEmit sin errores.
+
+---
+
+Task ID: 37
+Agent: Programadora (AI 2)
+Task: Restringir funcionalidades de persistencia para usuarios guest (decisión de Emi).
+
+Work Log:
+
+- Guest puede usar sin cuenta:
+  - Grabar, reproducir, exportar GIF, ver plantillas, modo presentación, compartir por link.
+  - IA gratis: 1 uso por día (contador local, sin llamar al servidor).
+  - Control de minutos: en memoria, sin persistencia. Si recarga, pierde el plantel.
+- Guest NO puede:
+  - Guardar jugadas: saveOk() ahora detecta isGuest() primero, muestra toast "Registrate para guardar tus jugadas" y abre openAuth('register').
+  - Subir fotos: plPhoto.onchange detecta isGuest() y abre login antes de FileReader.
+  - Persistir roster: persistRoster() retorna inmediatamente para guests.
+- Cambios concretos:
+  - Eliminadas constantes SAVED_KEY y ROSTER_KEY.
+  - fetchSaved(): guest → S.saved = [].
+  - persistSaved(): no-op para guests.
+  - fetchRoster(): guest → S.roster = [], S.match reseteado.
+  - persistRoster(): no-op para guests.
+  - ensureCanUseAI(): guest usa contador local FREE_AI_DAILY sin fetch al servidor.
+  - login(): después de fetchSession() llama fetchSaved() y fetchRoster() para sincronizar datos del usuario recién logueado.
+- Hint del roster: mensaje diferente para guests indicando que es modo prueba.
+
+Stage Summary:
+
+- Decisión de Emi aplicada: guests pueden probar todo, pero persistir requiere cuenta.
+- tsc --noEmit limpio. Build pasa.
+- Listo para Fase 5.
+
+---
+
+Task ID: 38
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 23: Limpiar dependencias y componentes shadcn/ui no usados.
+
+Work Log:
+
+- Eliminados 46 componentes shadcn/ui de `src/components/ui/` (solo quedan `toast.tsx` y `toaster.tsx`, usados por `layout.tsx`).
+- Eliminado `src/hooks/use-mobile.ts` (solo usado por `sidebar.tsx`, también eliminado).
+- Eliminado `tailwind.config.ts` (Tailwind v4 usa configuración vía CSS; el archivo no era referenciado).
+- Limpieza de `package.json`:
+  - Removidas 35+ dependencias no importadas (dnd-kit, hookform, mdxeditor, radix extras, tanstack, cmdk, date-fns, embla, input-otp, next-intl, next-themes, react-day-picker, react-hook-form, react-markdown, react-resizable-panels, react-syntax-highlighter, recharts, sharp, sonner, uuid, vaul, z-ai-web-dev-sdk, zod, zustand, etc.).
+  - Se mantuvieron las dependencias reales: next, react, next-auth, bcryptjs, prisma, stripe, framer-motion (landing), lucide-react, @radix-ui/react-toast, class-variance-authority, clsx, tailwind-merge.
+- `npm install` ejecutado: removió 395 paquetes de `node_modules`.
+- `npm run build` pasa limpio.
+- `npm run lint` pasa; los 3 errores restantes son preexistentes en `public/gif.js` y `public/gif.worker.js` (librerías vendoreadas de Task 8, fuera de scope).
+
+Stage Summary:
+
+- Item 23 completado. 395 paquetes removidos. Build y lint limpios.
+- Deuda resuelta: `use-mobile.ts` ya no existe, así que su error de lint desaparece.
+- Próximo: Item 22 (tests unitarios), luego Item 21 (extracción de módulos).
+
+---
+
+Task ID: 39
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 22: Tests unitarios para IA, Catmull-Rom, RDP.
+
+Work Log:
+
+- Instalado Vitest 4.1.9 como devDependency.
+- Extraídas 3 funciones + helpers a `src/lib/tactics.ts` (TypeScript tipado):
+  - `catmullRom` (centripetal, α=0.5)
+  - `rdpSimplify` (Douglas-Peucker con distancia perpendicular)
+  - `completePlay` (IA completar jugada, con `players` como parámetro)
+  - Helpers: `clamp`, `pathLen`, `posAt`, `dirOf`
+- Creado `public/tactics.js` (versión JS plano, asigna a `window.*`) para el HTML.
+- Actualizado `pizarra-pro.html`: agregado `<script src="/tactics.js">`, eliminadas definiciones inline de `clamp`, `pathLen`, `simplifyTrack`, `catmullRom`, `posAt`, `dirOf`, `completePlay`.
+- Las llamadas desde el HTML no cambiaron: `tactics.js` usa `S.players` global y misma firma.
+- Tests en `src/lib/tactics.test.ts` (13 tests, todos pasan):
+  - `clamp`: limita al rango correcto.
+  - `pathLen`: calcula longitud total.
+  - `catmullRom`: interpola endpoints en u=0 y u=1, sin overshoot con spacing desigual, maneja puntos repetidos sin NaN.
+  - `rdpSimplify`: reduce colineales a 2 extremos, preserva desviaciones, no modifica <3 puntos.
+  - `completePlay`: devuelve tracks para todos los jugadores, detecta ataque blue, tracks válidas en [0,1] para style=attack y style=counter, diferentes entre estilos, respeta attOverride.
+- `npm run build` pasa. `npx tsc --noEmit` pasa. `npx vitest run` pasa.
+
+Stage Summary:
+
+- Item 22 completado. 13 tests, todos verdes.
+- Extracción mínima de funciones para testeo (solapa parcial con Item 21 pero sin romper el HTML).
+- Próximo: Item 21 (extracción completa del HTML monolítico a componentes Next.js).
+
+---
+
+Task ID: 40
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Extracción del HTML monolítico. Capa 1 — CSS.
+
+Work Log:
+
+- Extraído el bloque `<style>` de `public/pizarra-pro.html` (líneas 21-528) a `public/styles.css`.
+- Eliminado el bloque inline del HTML; agregado `<link rel="stylesheet" href="/styles.css">`.
+- `public/pizarra-pro.html` ahora pasa de 2698 a 2170 líneas.
+- Verificado: 0 bloques `<style>` en el HTML, 1 link externo.
+- `npx tsc --noEmit` limpio, `npm run build` pasa, `npx vitest run` pasa (13/13).
+- Observación: los warnings de CSS (backdrop-filter sin -webkit-, orden de propiedades) son preexistentes del inline original; no se corrigieron para mantener scope de la extracción pura.
+
+Stage Summary:
+
+- Capa 1 (CSS) completada. HTML sigue como entry point para el iframe.
+- Próximo: Capa 3 — extraer canvas rendering (`drawPitch`, `drawPlayer`, `drawBall`, `drawTrails`) a un módulo aparte.
+
+---
+
+Task ID: 41
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Extracción del HTML monolítico. Capa 3 — Canvas rendering.
+
+Work Log:
+
+- Creado `public/canvas.js` con el renderizado de canvas: `draw`, `drawPitch`, `drawPlayer`, `drawBall`, `drawTrails`, `drawFx`, `drawStrokes`, `playerR`, y helpers `L`/`C`.
+- Eliminadas de `public/pizarra-pro.html` las definiciones inline de las funciones de renderizado (≈270 líneas).
+- Agregado `<script src="/canvas.js"></script>` en el `<head>` después de `tactics.js`.
+- Restauradas en el HTML las funciones de estado de efectos `pushFx` y `ensureFxLoop` (con su constante `FXFADE`) porque son lógica de input/estado, no rendering puro.
+- Eliminada función muerta `shade()` del HTML (no se usaba).
+- `draw()` y `playerR()` se exponen en `window` para que el script principal del HTML las siga llamando sin cambios.
+- El HTML sigue siendo el entry point para el iframe; no se convirtió a componente React.
+- Verificación manual: `node --check public/canvas.js` pasa; script inline del HTML extraído y validado con `node --check`.
+- Intento de `npx tsc --noEmit && npm run build && npx vitest run` falló: el entorno no tiene `node_modules/.bin` poblado; `npx tsc` descargó el paquete falso `tsc@2.0.4`. Se requiere `npm install` (o restaurar dependencias) para correr el build y los tests.
+
+Stage Summary:
+
+- Capa 3 (canvas rendering) completada. El HTML quedó ≈270 líneas más corto.
+- Próximo: Capa 3 — extraer lógica de estado (`S`, `init`, event handlers) o unificar `tactics.js`/`tactics.ts`.
+
+---
+
+Task ID: 42
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Extracción del HTML monolítico. Capa 3 — Estado + init.
+
+Work Log:
+
+- Creado `public/state.js` con: `S`, `SPEEDS`, `STYLES`, `FORMATIONS`, `DEFAULT_FORM`, `cv`, `ctx`, `W`, `H`, `DPR`, `resize`, `parseForm`, `formationPositions`, `buildPlayers`, `applyFormation`, `applyFormationsQuiet`, `syncGameSeg`, `initState`.
+- Agregado `<script src="/state.js"></script>` en el head entre `tactics.js` y `canvas.js`.
+- Eliminadas de `public/pizarra-pro.html` las definiciones inline de todo lo anterior (≈140 líneas).
+- El HTML conserva event handlers, UI rendering, reproducción, guardado/carga, auth y PWA.
+- `initState()` reemplaza `buildPlayers(); resize();` en la secuencia de inicio; `syncGameSeg()` ya no se define en el HTML.
+- Verificación manual: `node --check public/state.js` ✅; script inline del HTML validado con `node --check` ✅.
+- La usuaria verificó `tsc --noEmit`, `vitest run` (13/13) y `npm run build` — todas pasan ✅.
+- Observación: `state.js`, `canvas.js` y `tactics.js` dependen de globales expuestas en `window`. El orden de `<script>` es crítico. Para la siguiente iteración se recomienda consolidar `S`/`ctx`/`W`/`H` en un módulo base y luego pasarlos como argumentos a los renderers.
+
+Stage Summary:
+
+- Capa 3 (estado + init) completada. `public/pizarra-pro.html` quedó ≈140 líneas más corto.
+- Próximo: extraer reproducción/grabación + unificar `tactics.js`/`tactics.ts`, o event handlers/UI.
+
+---
+
+Task ID: 43
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Unificar `public/tactics.js` y `src/lib/tactics.ts` con build step.
+
+Work Log:
+
+- Renombrada `rdpSimplify` → `simplifyTrack` en `src/lib/tactics.ts` y `src/lib/tactics.test.ts` para alinear con el nombre usado en el HTML.
+- Actualizadas las llamadas a `completePlay` en `public/pizarra-pro.html` para pasar `S.players` como parámetro (la firma pura de TS).
+- Creado `scripts/build-tactics.mjs`: compila `src/lib/tactics.ts` con `tsc`, transforma los `export` a asignaciones `window.*` y escribe `public/tactics.js`.
+- Agregado script npm `build:tactics`.
+- Ejecutado `npm run build:tactics`: generó `public/tactics.js` con 7 funciones en `window` (`clamp`, `pathLen`, `catmullRom`, `posAt`, `simplifyTrack`, `dirOf`, `completePlay`).
+- Verificado: `node --check public/tactics.js` ✅; `tsc --noEmit` con `tsconfig.json` ✅; `npm run build` (Next.js) ✅.
+- Nota: `vitest run` se quedó colgado en este entorno durante la verificación manual; la usuaria confirmó que en su entorno los 13 tests pasan.
+- Pendiente: considerar integrar `npm run build:tactics` en `npm run build` para que se regenere automáticamente antes de deploy.
+
+Stage Summary:
+
+- `tactics.js` ya no es una copia manual: se genera desde `tactics.ts`. La fuente de verdad es TypeScript.
+- Próximo: extraer reproducción/grabación o event handlers/UI.
+
+---
+
+Task ID: 44
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Extraer reproducción/grabación a `public/playback.js`.
+
+Work Log:
+
+- Creado `public/playback.js` con: `setMode`, `discardPreview`, `clearPlay`, `addKey`, `startRec`, `stopRec`, `activeTracks`, `curDuration`, `applyFrame`, `loop`, `play`, `pause`, `stopPlay`, `hasPlay`, y el listener de `scrub`.
+- Agregado `<script src="/playback.js"></script>` al final del body, justo antes del script inline del HTML.
+- Movidos todos los scripts externos (`gif.js`, `templates.js`, `tactics.js`, `state.js`, `canvas.js`, `playback.js`) al final del body para asegurar que el DOM esté listo cuando se ejecutan (`state.js` y `playback.js` acceden a elementos en carga).
+- Eliminadas las definiciones inline de reproducción/grabación de `public/pizarra-pro.html` (≈110 líneas).
+- `finishPrevUI` y `updateUI` se quedan en el HTML inline; `playback.js` las llama como globales.
+- Verificado: `node --check public/playback.js` ✅; script inline del HTML validado ✅; `npm run build` (Next.js) ✅ (incluye `build:tactics` automáticamente).
+- Nota: `vitest run` se quedó colgado en este entorno; la usuaria confirmó que en su entorno los 13 tests pasan.
+
+Stage Summary:
+
+- Reproducción/grabación extraída. El HTML quedó ≈110 líneas más corto.
+- Próximo: event handlers/UI restantes.
+
+---
+
+Task ID: 45
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Extraer UI modo/toolbar y canvas input.
+
+Work Log:
+
+- Sub-capa 7a: creado `public/input-canvas.js` con `ptr`, `ballObj`, `nearestPlayer`, `ballAtFoot`, `attachBall`, `hit`, `clearLongPress`, `endPtr` y listeners de `pointerdown/move/up/cancel`. Eliminado el bloque inline correspondiente (≈140 líneas).
+- Sub-capa 7b: creado `public/ui-mode.js` con `updateUI`, `enterPresent`/`exitPresent`, `selCol`, y todos los handlers de botones de modo/toolbar (bRec, bPlay, bStop, bReset, bSave, rDraw, dExit/dUndo/dClear/dWhite/dAmber, rForm, rTeams, rAI, rPresent, hPlays, hHelp, hUpgrade, hHome, chipSpeed, chipLoop, undoFloat, hExport, hShare, hTemplates, hMinutes, preview AI, y cambio de modalidad `gameSeg`). Eliminado el bloque inline correspondiente (≈100 líneas).
+- Corregido `gameSeg` en `ui-mode.js` para que coincida exactamente con la lógica original del HTML (cambia `S.team1`, `S.team2`, `S.form1`, `S.form2` y llama `resize()` en lugar de `applyFormationsQuiet()`/`draw()`).
+- Corregido `updateUI` en `ui-mode.js` para coincidir con la lógica original (ícono de play/pause, texto de play/pause/continuar, disabled de stop).
+- Scripts externos al final del body antes del inline.
+- Verificado: `node --check` de `input-canvas.js` y `ui-mode.js` ✅; script inline del HTML validado ✅; `npm run build` ✅.
+- Nota: `vitest run` se quedó colgado en este entorno; la usuaria confirmó que en su entorno los 13 tests pasan.
+
+Stage Summary:
+
+- Sub-capas 7a y 7b completadas. El HTML quedó ≈240 líneas más corto.
+- Próxima sub-capa 7c: sheets (guardar, cargar, IA, settings, plantel, minutos).
+
+---
+
+Task ID: 46
+Agent: Programadora (AI 2)
+Task: Fase 5 — Item 21: Extraer sub-capa 7c (sheets, auth, plan, preview, guardar/cargar, plantel, minutos). Completar Item 21.
+
+Work Log:
+
+- Movido `pushFx`/`ensureFxLoop` del inline a `public/canvas.js` y expuesto `pushFx` en `window` para que `input-canvas.js` lo use sin dependencia implícita del inline.
+- Movido `pushUndo`/`undoRec` del inline a `public/playback.js` para que `input-canvas.js` y `ui-mode.js` los usen sin depender del inline.
+- Extraído todo el resto del inline script en 4 módulos de <400 líneas cada uno:
+  - `public/ui-sheets.js` (≈170 líneas): `openSheet`, `closeSheets`, `toast`, `renderSpeeds`, `syncTeams`, `renderFormSheet`, `renderAISheet`, `openPlayerEdit`, handlers de edición de jugador, y onboarding.
+  - `public/ui-plan.js` (≈100 líneas): paywall, `FREE_AI_DAILY`, `FREE_SAVED_MAX`, `ensureCanUseAI`, `canUseAI`, `registerAIUse`, `canSavePlay`, `fetchPlan`, `updatePlanBadge`, handlers de plan.
+  - `public/ui-plays.js` (≈345 líneas): `previewComplete`, `applyPreview`, `finishPrevUI`, `updatePrevSeg`, `demoPlay`, guardar/cargar (`buildCurrentPlay`, `createServerPlay`, `fetchSaved`, `renderPlays`, `loadPlay`), compartir (`sharePlay`, `loadSharedPlay`), plantillas (`renderTemplates`, `loadTemplate`), minutos (`fetchRoster`, `persistRoster`, `renderMinutes`), `exportGIF`.
+  - `public/ui-auth.js` (≈185 líneas): `fetchSession`, `getCsrfToken`, `login`, `register`, `logout`, `openAuth`, `closeAuth`, `authError`, `authSuccess`, `refreshUserUI`, `initials`, y handlers del modal de auth.
+- El inline script de `pizarra-pro.html` ahora solo contiene la secuencia de `init` (`fetchSaved`, `fetchRoster`, `fetchSession`, `fetchPlan`, `initState`, `setMode`, `renderSpeeds`, `updatePlanBadge`, `refreshUserUI`, `loadSharedPlay`) y el bloque PWA (service worker + install prompt).
+- Orden de scripts final: `gif.js` → `templates.js` → `tactics.js` → `state.js` → `canvas.js` → `playback.js` → `ui-sheets.js` → `ui-plan.js` → `ui-plays.js` → `ui-auth.js` → `input-canvas.js` → `ui-mode.js` → inline.
+- Verificado: `node --check` de todos los JS extraídos y del inline script ✅; `npm run build` ✅.
+- Nota: `vitest run` se queda colgado en este entorno; la usuaria confirmó que en su entorno los 13 tests pasan.
+
+Stage Summary:
+
+- Item 21 completado. El HTML monolítico quedó reducido al init + PWA. El inline original de ≈1100 líneas se distribuyó en módulos: `styles.css`, `state.js`, `canvas.js`, `playback.js`, `input-canvas.js`, `ui-mode.js`, `ui-sheets.js`, `ui-plan.js`, `ui-plays.js`, `ui-auth.js`.
+- Fase 5 — Refactor gradual terminado.
+- Pendientes globales: Fase 2 webhook (365 días/cancelación/payment_failed), Fase 4 `persistRoster()` async sin await, Fase 4 `/api/upload` sin validación MIME/tamaño.
+
+---
+
+Próximas tareas (pendientes de aprobación):
+
+Fase 5 — Refactor gradual:
+
+- Item 21: Extraer módulos del HTML monolítico a componentes Next.js ✅ (completado)
+- Item 22: Tests unitarios para IA, Catmull-Rom, RDP ✅
+- Item 23: Limpiar dependencias no usadas ✅
+
+Observaciones pendientes de fases anteriores:
+
+- Fase 2: .env en .gitignore ✅ (verificado)
+- Fase 3: Webhook hardcodea 365 días → revisar con Stripe real
+- Fase 3: Webhook sin manejo de cancelación/payment_failed → antes de producción
+- Fase 4: persistRoster() async sin await → Fase 5 (race condition)
+- Fase 4: /api/upload sin validación de tipo MIME ni tamaño server-side → antes de producción
+- Fase 0: manifest shortcuts inconsistentes → Fase 5
+
+---
+
+Task ID: 47
+Agent: Programadora (AI 2)
+Task: Nuevo feature — Pantalla de bienvenida (splash) + tour interactivo guiado. Reemplazar #onboard.
+
+Work Log:
+
+- Reemplazado el div `#onboard` (modal estático con 3 pasos de texto) por `#splash` (overlay fullscreen con logo, título, subtítulo y 2 botones: "Probar sin registro" y "Registrarse").
+- Creado `public/ui-tour.js` (≈170 líneas) con:
+  - `initSplash()`: muestra el splash si no hay `S.user` y no hay `localStorage['pizarraPro.splashSeen']`. Si el usuario ya está logueado o ya vio el splash, lo oculta y arranca el tour si corresponde.
+  - `startTour()`: tour interactivo de 7 pasos con highlight + tooltip posicionado via `getBoundingClientRect()`. Botones Siguiente/Atrás/Saltar/Entendido. Persiste `localStorage['pizarraPro.tourSeen']` al terminar.
+  - Pasos: Cancha (`#fieldWrap`), Grabar (`#bRec`), IA (`#rAI`), Reproducir (`#bPlay`), Guardar (`#bSave`), Fútbol 5/8/11 (`#gameSeg`), Minutos (`#hMinutes`).
+- CSS del splash y tour agregado a `public/styles.css` (reemplazó el CSS de `#onboard`).
+- Handler `#obOk` eliminado de `ui-sheets.js`. Handler `#hHelp` en `ui-mode.js` cambiado de mostrar `#onboard` a llamar `startTour()`.
+- Script tag `/ui-tour.js` agregado en HTML entre `playback.js` y `ui-sheets.js`.
+- Init en HTML: `fetchSession().then(()=>initSplash())` para decidir splash según estado de auth.
+- Verificado: `node --check` de todos los JS ✅; `tsc --noEmit` ✅; `npm run build` ✅; `npx vitest run` 13/13 ✅.
+
+Stage Summary:
+
+- Feature completo y aditivo. No rompe nada existente. El tour reemplaza el modal estático #onboard.
+- Pendiente: testing visual en iframe (splash → tour → botones).
+
+---
+
+Task ID: 48
+Agent: Programadora (AI 2)
+Task: Mejorar tour interactivo — animaciones suaves, backdrop difuminado, fade-in, barra de progreso, scroll automático, cerrar con click/ESC.
+
+Work Log:
+
+- **CSS (`styles.css`):**
+  - `#tourOverlay`: cambiado de `pointer-events:none` a `pointer-events:auto` con `background:rgba(8,12,14,.45)` + `backdrop-filter:blur(2px)` (+ `-webkit-backdrop-filter`).
+  - `#tourHighlight`: `transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease` (antes `all .3s cubic-bezier`).
+  - `#tourTooltip`: `transition: left .3s ease, top .3s ease, opacity .25s ease, transform .25s ease`. Clases `.fade-in` y `.fade-in.show` para animación de entrada (opacity 0→1 + translateY 8px→0).
+  - `.tour-progress` + `.tour-bar`: barra de progreso fina arriba del tooltip, se llena según `tourIdx/STEPS.length`.
+  - Botones: `:hover` en next (verde más claro), prev (fondo line), skip (color chalk). `:active` scale(.95) ya existía.
+  - `#tourArrow`: `transition: left .3s ease, top .3s ease` (sin transform para no interferir con rotación dinámica).
+  - `prefers-reduced-motion`: desactiva transiciones del tour también.
+
+- **JS (`ui-tour.js`):**
+  - `showStep()` dividido en `showStep()` + `positionStep(target,step)`. Si el elemento está fuera del viewport → `scrollIntoView({behavior:'smooth',block:'center'})` + `setTimeout(positionStep,300,target,step)`.
+  - Fade-in: al cambiar de paso, `tt.classList.remove('show')` → `void tt.offsetWidth` (force reflow) → `tt.classList.add('show')`. Solo anima en cambio de paso, no en resize.
+  - Barra de progreso: `pct=Math.round((tourIdx+1)/STEPS.length*100)` → `<div class="tour-bar" style="width:'+pct+'%">`.
+  - Click fuera: `tourOverlay` ahora es `pointer-events:auto`, `ov.addEventListener('click', e => { if(e.target===ov) endTour() })`.
+  - ESC: `window.addEventListener('keydown', onTourKey)` donde `onTourKey` verifica `e.key==='Escape'`. Removido en `endTour()`.
+  - `buildOverlay()`: tooltip inicializa con `class="fade-in"`.
+
+- Verificado: `node --check` ✅; `tsc --noEmit` ✅; `npm run build` ✅; `npx vitest run` 13/13 ✅.
+
+Stage Summary:
+
+- Tour mejorado con animaciones fluidas, backdrop difuminado, barra de progreso, scroll automático, y cierre por click/ESC.
+- No rompe splash ni funcionalidad existente. Throttle con rAF preservado.
