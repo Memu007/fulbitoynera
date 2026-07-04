@@ -1,9 +1,18 @@
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { NextResponse } from 'next/server'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
+
+const REGISTER_LIMIT = { windowMs: 60_000, maxRequests: 5 }
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req)
+    const limit = checkRateLimit(`register:${ip}`, REGISTER_LIMIT)
+    if (!limit.allowed) {
+      return rateLimitResponse(limit, 'Demasiados intentos de registro. Probá más tarde.')
+    }
+
     const body = await req.json()
     const { email, password, name } = body
 

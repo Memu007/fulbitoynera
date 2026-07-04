@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 const FREE_AI_DAILY = 1 // Debe coincidir con FREE_AI_DAILY en public/pizarra-pro.html
+const AI_USE_LIMIT = { windowMs: 60_000, maxRequests: 20 }
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req)
+    const limit = checkRateLimit(`ai-use:${ip}`, AI_USE_LIMIT)
+    if (!limit.allowed) {
+      return rateLimitResponse(limit, 'Demasiadas solicitudes a la IA. Probá más tarde.')
+    }
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })

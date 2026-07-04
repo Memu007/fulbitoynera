@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+
+const CHECKOUT_LIMIT = { windowMs: 60_000, maxRequests: 10 };
 
 // Endpoint para crear una Stripe Checkout Session.
 // Funciona en dos modos:
@@ -40,6 +43,12 @@ const PLAN_CONFIG: Record<string, {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const limit = checkRateLimit(`checkout:${ip}`, CHECKOUT_LIMIT);
+    if (!limit.allowed) {
+      return rateLimitResponse(limit, 'Demasiados intentos de checkout. Probá más tarde.');
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });

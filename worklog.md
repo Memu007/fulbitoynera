@@ -1232,3 +1232,153 @@ Stage Summary:
 
 - Tour mejorado con animaciones fluidas, backdrop difuminado, barra de progreso, scroll automático, y cierre por click/ESC.
 - No rompe splash ni funcionalidad existente. Throttle con rAF preservado.
+
+---
+
+Task ID: 49
+Agent: Programadora (AI 2)
+Task: Validar upload de imágenes (MIME + tamaño + extensión segura).
+
+Work Log:
+
+- **Archivo modificado:** `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/app/api/upload/route.ts`
+- **Cambios:**
+  - Agregado `MAX_SIZE = 2_000_000` (2MB).
+  - Agregado `ALLOWED_MIME: Record<string, string>` con whitelist: `image/png` → `png`, `image/jpeg` → `jpg`, `image/webp` → `webp`, `image/gif` → `gif`.
+  - Validación de MIME antes de leer bytes: si `file.type` no está en whitelist, retorna 400 con mensaje claro.
+  - Validación de tamaño: si `file.size > MAX_SIZE`, retorna 413.
+  - El nombre seguro ahora usa la extensión derivada del MIME (`ALLOWED_MIME[file.type]`), no de `file.name.split('.').pop()`.
+  - El response shape se mantiene: `{ url: "/uploads/${safeName}" }`.
+  - El flujo del cliente (`ui-sheets.js`) no se tocó.
+
+- Verificación: revisión de código hecha. El código es sintácticamente correcto TypeScript.
+- Pendiente: `tsc --noEmit`, `npm run build` y `npx vitest run` no pudieron ejecutarse en esta sesión porque el comando no devolvió output. Se deja para verificación manual de la PM.
+
+Stage Summary:
+
+- Endpoint de upload ahora valida tipo, tamaño y extensión de forma segura. No rompe el cliente existente.
+
+---
+
+Task ID: 50
+Agent: Programadora (AI 2)
+Task: Completar webhook de Stripe con cancelación, payment_failed y periodo dinámico.
+
+Work Log:
+
+- **Archivo modificado:** `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/app/api/webhook/stripe/route.ts`
+- **Cambios:**
+  - Agregado `periodDaysFromPlan(plan)` y `periodEndFromPlan(plan)`: detecta mensual (`mensual`/`month`) = 30 días, anual (`anual`/`year`/`annual`) = 365 días, default 365.
+  - Refactorizado `checkout.session.completed`: eliminó duplicación de código y usa `periodEndFromPlan` en lugar de 365 días hardcodeados.
+  - Agregado handler `customer.subscription.updated` → actualiza `status`, `currentPeriodEnd` (desde `current_period_end` del evento) y `plan` si está en metadata.
+  - Agregado handler `customer.subscription.deleted` → marca `status` como `canceled`.
+  - Agregado handler `invoice.payment_failed` → marca `status` como `unpaid` si invoice es `uncollectible`, sino `past_due`.
+  - Reestructurado el POST con un `switch` sobre `event.type` y un solo `try/catch` para el procesamiento.
+  - Todos los handlers retornan `NextResponse.json({ received: true })` al final.
+  - No se tocó `@/api/checkout/route.ts`.
+
+- Verificación: revisión de código manual. El archivo quedó en 175 líneas (bajo el límite de 400).
+- Pendiente: `tsc --noEmit`, `npm run build` y `npx vitest run` no pudieron ejecutarse en esta sesión (comando no retornó output). Se deja para verificación manual de la PM.
+
+Stage Summary:
+
+- Webhook de Stripe ahora maneja `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` e `invoice.payment_failed`. El período es dinámico según el plan.
+
+---
+
+Task ID: 52
+Agent: Programadora (AI 2)
+Task: Ajustar canchas F5, F8 y F11 con proporciones y medidas reglamentarias reales.
+
+Work Log:
+
+- **Archivos modificados:**
+  - `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/public/state.js`
+  - `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/public/canvas.js`
+
+- **Cambios en `state.js`:**
+  - Reemplazó ratios arbitrarios (`0.72`, `0.68`, `0.64`) por ratios reales:
+    - F5 (futsal): 40m × 20m → ratio 0.50
+    - F8: 60m × 45m → ratio 0.75
+    - F11: 105m × 68m → ratio 68/105 ≈ 0.648
+
+- **Cambios en `canvas.js`:**
+  - Agregó `FIELD_DIMS` con medidas reglamentarias en metros para cada modalidad.
+  - Agregó helpers `mW(m, dim)` y `mL(m, dim)` para convertir metros a píxeles manteniendo proporciones reales.
+  - Redibujó `drawPitch()` usando las medidas reales:
+    - F5: arco semicircular de 6m de radio (área de futsal), punto de penalty a 6m, sin círculo central (futsal no lo tiene).
+    - F8: área grande 13m × 32m, área chica 4m × 9m, penalty a 10m, arco semicircular de 9.15m de radio.
+    - F11: área grande 16.5m × 40.3m, área chica 5.5m × 18.3m, penalty a 11m, círculo central de 9.15m, arco semicircular de 9.15m.
+  - No se tocó la lógica de grabación/reproducción ni las formaciones (`formationPositions`).
+
+- Verificación: revisión de código manual. Los ratios y medidas coinciden con las reglamentarias. El archivo `canvas.js` quedó en 283 líneas (bajo el límite de 400).
+- Fix post-auditoría PM:
+  1. Corregido `mW` y `mL` en `canvas.js` que estaban invertidos: ahora `mW` multiplica por `W` (píxeles X) y `mL` multiplica por `H` (píxeles Y).
+  2. Corregido círculo central en F5: ahora se fuerza `centerRadius = 0` para F5, evitando que `0` falsy caiga en el else y dibuje un círculo.
+- Ejemplo de verificación F11 (W=400, H=617):
+  - Área grande ancho: `mW(40.3) = 40.3/68 * 400 = 237px` ✅
+  - Área grande profundidad: `mL(16.5) = 16.5/105 * 617 = 97px` ✅
+- Pendiente: testeo visual en el browser (no se pudo ejecutar `npm run dev` en esta sesión).
+
+Stage Summary:
+
+- Canchas con proporciones y medidas reglamentarias reales. F5 ahora tiene arco semicircular. No se rompió la lógica de formaciones.
+
+---
+
+Task ID: 53
+Agent: Programadora (AI 2)
+Task: Fix race condition en persistRoster() del control de minutos.
+
+Work Log:
+
+- **Archivo modificado:** `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/public/ui-plays.js`
+- **Cambios:**
+  - Agregados dos flags privados: `_persisting` y `_pendingPersist`.
+  - Modificada `persistRoster()` para evitar race condition:
+    - Si ya hay un guardado en curso (`_persisting === true`), marca `_pendingPersist = true` y sale. No inicia un segundo fetch simultáneo.
+    - Cuando termina el guardado actual, si quedó un pendiente, ejecuta `persistRoster()` recursivamente una vez más para guardar el último estado.
+    - El flag se limpia en `finally` para no quedar bloqueado si el fetch falla.
+  - No se tocó `tickMatch()` ni la lógica de grabación/reproducción/formaciones.
+
+- Verificación: revisión de código manual. Confirmado que solo puede haber un fetch de `persistRoster` activo a la vez, y que el último estado pendiente se guarda al finalizar.
+- Pendiente: testeo manual del control de minutos en el browser (no se pudo ejecutar `npm run dev` en esta sesión).
+
+Stage Summary:
+
+- `persistRoster()` ahora protege contra race condition sin romper el flujo de `tickMatch()`.
+
+---
+
+Task ID: 54
+Agent: Programadora (AI 2)
+Task: Agregar rate limiting básico a endpoints expuestos.
+
+Work Log:
+
+- **Archivo nuevo:** `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/lib/rate-limit.ts`
+- **Archivos modificados:**
+  - `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/app/api/auth/register/route.ts`
+  - `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/app/api/auth/[...nextauth]/route.ts`
+  - `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/app/api/checkout/route.ts`
+  - `@/Users/Emi/Documents/futbol/workspace-9da07ffb-346b-4319-a3e4-2d65047dbe21/src/app/api/plan/ai-use/route.ts`
+
+- **Cambios en `rate-limit.ts`:**
+  - Implementado rate limiting in-memory con `Map<string, Entry>`.
+  - `checkRateLimit(key, config)` devuelve si está permitido, límites, tiempo restante y `retryAfter`.
+  - `getClientIp(req)` extrae IP desde headers `x-forwarded-for` o `x-real-ip`.
+  - `rateLimitResponse(result, message)` devuelve 429 con header `Retry-After` y headers `X-RateLimit-*`.
+  - Cleanup periódico cada 5 minutos para limpiar entradas expiradas.
+
+- **Cambios en endpoints:**
+  - `register`: límite 5/min por IP (`register:${ip}`).
+  - `[...nextauth]` (callback credentials): límite 10/min por IP (`login:${ip}`). Se envolvió el handler de NextAuth para interceptar el POST a `/api/auth/callback/credentials` antes de delegar.
+  - `checkout`: límite 10/min por IP (`checkout:${ip}`).
+  - `ai-use`: límite 20/min por IP (`ai-use:${ip}`).
+
+- Verificación: revisión de código manual. Los 4 endpoints tienen rate limiting con 429 + `Retry-After`.
+- Pendiente: `tsc --noEmit` y testeo manual (no se pudieron ejecutar en esta sesión).
+
+Stage Summary:
+
+- Rate limiting básico agregado a los 4 endpoints expuestos usando in-memory store.

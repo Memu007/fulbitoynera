@@ -5,6 +5,13 @@ import { writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads')
+const MAX_SIZE = 2_000_000 // 2MB
+const ALLOWED_MIME: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,10 +27,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Archivo requerido' }, { status: 400 })
     }
 
+    const ext = ALLOWED_MIME[file.type]
+    if (!ext) {
+      return NextResponse.json(
+        { error: 'Tipo de archivo no permitido. Solo PNG, JPG, WEBP o GIF.' },
+        { status: 400 }
+      )
+    }
+
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: 'Archivo demasiado grande. Máximo 2MB.' },
+        { status: 413 }
+      )
+    }
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const ext = file.name.split('.').pop() || 'png'
     const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
     mkdirSync(UPLOAD_DIR, { recursive: true })

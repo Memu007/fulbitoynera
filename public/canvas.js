@@ -7,7 +7,20 @@
   function L(a, b, c, d) { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); }
   function C(x, y, r, f) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); f ? ctx.fill() : ctx.stroke(); }
 
+  // Medidas reglamentarias en metros (largo x ancho)
+  const FIELD_DIMS = {
+    5: { length: 40, width: 20, areaRadius: 6, penalty: 6, centerRadius: 0 },
+    8: { length: 60, width: 45, bigArea: { depth: 13, width: 32 }, smallArea: { depth: 4, width: 9 }, penalty: 10 },
+    11: { length: 105, width: 68, bigArea: { depth: 16.5, width: 40.3 }, smallArea: { depth: 5.5, width: 18.3 }, penalty: 11, centerRadius: 9.15 }
+  };
+
+  // Convierte metros de ancho del campo a píxeles X del canvas
+  function mW(m, dim) { return m / dim.width * W; }
+  // Convierte metros de largo del campo a píxeles Y del canvas
+  function mL(m, dim) { return m / dim.length * H; }
+
   function drawPitch() {
+    const dim = FIELD_DIMS[S.game];
     const stripes = S.game === 11 ? 10 : S.game === 8 ? 8 : 6;
     ctx.fillStyle = '#1A5334';
     ctx.fillRect(0, 0, W, H);
@@ -26,22 +39,40 @@
     const m = W * 0.045;
     ctx.strokeRect(m, m, W - 2 * m, H - 2 * m);
     L(m, H / 2, W - m, H / 2);
-    C(W / 2, H / 2, W * (S.game === 5 ? 0.16 : 0.13), false);
+    // F5 no tiene círculo central; F8/F11 usan 9.15m
+    const centerRadius = S.game === 5 ? 0 : mW(9.15, dim);
+    if (centerRadius) {
+      C(W / 2, H / 2, centerRadius, false);
+    }
     ctx.fillStyle = 'rgba(242,244,243,.92)'; C(W / 2, H / 2, 3, true);
 
-    const big = S.game === 5 ? { w: .62, h: .16 } : S.game === 8 ? { w: .56, h: .15 } : { w: .52, h: .14 };
-    const sm = S.game === 5 ? { w: .30, h: .06 } : { w: .26, h: .058 };
-    const bw = W * big.w, bh = H * big.h, sw = W * sm.w, sh = H * sm.h;
-    ctx.strokeRect(W / 2 - bw / 2, m, bw, bh); ctx.strokeRect(W / 2 - sw / 2, m, sw, sh);
-    ctx.strokeRect(W / 2 - bw / 2, H - m - bh, bw, bh); ctx.strokeRect(W / 2 - sw / 2, H - m - sh, sw, sh);
-    ctx.fillStyle = 'rgba(242,244,243,.92)';
-    C(W / 2, m + bh * 0.72, 3, true); C(W / 2, H - m - bh * 0.72, 3, true);
-    if (S.game !== 5) {
-      ctx.beginPath(); ctx.arc(W / 2, m + bh, W * 0.10, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
-      ctx.beginPath(); ctx.arc(W / 2, H - m - bh, W * 0.10, 1.25 * Math.PI, 1.75 * Math.PI); ctx.stroke();
+    if (S.game === 5) {
+      // F5: arco semicircular (área) de 6m de radio
+      const r = mW(dim.areaRadius, dim);
+      ctx.beginPath(); ctx.arc(W / 2, m, r, 0, Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(W / 2, H - m, r, Math.PI, 2 * Math.PI); ctx.stroke();
+      // Punto de penalty (6m)
+      const py = mL(dim.penalty, dim);
+      C(W / 2, m + py, 3, true); C(W / 2, H - m - py, 3, true);
+    } else {
+      // F8 / F11: áreas rectangulares
+      const big = dim.bigArea, sm = dim.smallArea;
+      const bw = mW(big.width, dim), bh = mL(big.depth, dim);
+      const sw = mW(sm.width, dim), sh = mL(sm.depth, dim);
+      ctx.strokeRect(W / 2 - bw / 2, m, bw, bh); ctx.strokeRect(W / 2 - sw / 2, m, sw, sh);
+      ctx.strokeRect(W / 2 - bw / 2, H - m - bh, bw, bh); ctx.strokeRect(W / 2 - sw / 2, H - m - sh, sw, sh);
+      // Punto de penalty
+      const py = mL(dim.penalty, dim);
+      ctx.fillStyle = 'rgba(242,244,243,.92)';
+      C(W / 2, m + py, 3, true); C(W / 2, H - m - py, 3, true);
+      // Arco semicircular fuera del área (radio 9.15m, centro en el penalty)
+      const arcR = mW(9.15, dim);
+      ctx.beginPath(); ctx.arc(W / 2, m + py, arcR, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(W / 2, H - m - py, arcR, 1.25 * Math.PI, 1.75 * Math.PI); ctx.stroke();
     }
+
     ctx.lineWidth = Math.max(3, W * 0.008);
-    const gw = sw * 0.8;
+    const gw = (S.game === 5 ? mW(3, dim) : mW(dim.smallArea ? dim.smallArea.width * 0.8 : 7, dim));
     L(W / 2 - gw / 2, m, W / 2 + gw / 2, m);
     L(W / 2 - gw / 2, H - m, W / 2 + gw / 2, H - m);
   }
