@@ -6,12 +6,16 @@
 // ---- Paywall / planes ----
 const FREE_AI_DAILY=1;
 const FREE_SAVED_MAX=3;
+const GUEST_AI_KEY='pizarraPro.ai.v1';
 function aiTodayDate(){return new Date().toISOString().slice(0,10)}
+function loadGuestAI(){S.aiDate=aiTodayDate();S.aiUsedToday=0;try{const x=JSON.parse(localStorage.getItem(GUEST_AI_KEY)||'{}');if(x.date===S.aiDate)S.aiUsedToday=Math.max(0,Number(x.used)||0)}catch(e){}}
+function persistGuestAI(){try{localStorage.setItem(GUEST_AI_KEY,JSON.stringify({date:S.aiDate,used:S.aiUsedToday}))}catch(e){}}
+loadGuestAI();
 async function ensureCanUseAI(){
   if(S.plan==='pro'||S.plan==='club')return true;
   if(isGuest()){
     // Guest: contador local (1 uso gratis por día). No llama al servidor porque requiere auth.
-    if(S.aiDate!==aiTodayDate()){S.aiDate=aiTodayDate();S.aiUsedToday=0}
+    if(S.aiDate!==aiTodayDate()){S.aiDate=aiTodayDate();S.aiUsedToday=0;persistGuestAI()}
     return S.aiUsedToday<FREE_AI_DAILY;
   }
   try{
@@ -32,11 +36,10 @@ function canUseAI(){
   return S.aiUsedToday<FREE_AI_DAILY;
 }
 function registerAIUse(){
-  // El contador se incrementa en el servidor. Actualizamos localmente para reflejo inmediato.
-  S.aiUsedToday++;
+  if(isGuest()){S.aiUsedToday++;persistGuestAI()}
 }
 function canSavePlay(){
-  if(S.plan==='pro')return true;
+  if(S.plan==='pro'||S.plan==='club')return true;
   return S.saved.length<FREE_SAVED_MAX;
 }
 async function fetchPlan(){
@@ -63,6 +66,7 @@ function persistPlan(){
 function updatePlanBadge(){
   const b=document.getElementById('planBadge');
   if(S.plan==='pro'){b.textContent='PRO';b.classList.remove('free')}
+  else if(S.plan==='club'){b.textContent='CLUB';b.classList.remove('free')}
   else{b.textContent='FREE';b.classList.add('free')}
 }
 // selección de plan en el sheet
@@ -105,5 +109,6 @@ window.registerAIUse=registerAIUse;
 window.canSavePlay=canSavePlay;
 window.fetchPlan=fetchPlan;
 window.updatePlanBadge=updatePlanBadge;
+window.loadGuestAI=loadGuestAI;
 
 })();

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { db } from '@/lib/db'
+import { normalizePlan } from '@/lib/plans'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -28,17 +29,18 @@ function subscriptionStatusFromEvent(
 }
 
 async function upsertFromCheckout(session: Stripe.Checkout.Session) {
-  const plan = session.metadata?.plan
+  const plan = normalizePlan(session.metadata?.plan)
+  const billingPlan=session.metadata?.billingPlan||session.metadata?.plan
   const userId = session.metadata?.userId
   const customerId = session.customer as string | null | undefined
   const subscriptionId = session.subscription as string | null | undefined
 
-  if (!plan) {
+  if (plan==='free') {
     console.error('Webhook Stripe: checkout session sin metadata.plan')
     return
   }
 
-  const periodEnd = periodEndFromPlan(plan)
+  const periodEnd = periodEndFromPlan(billingPlan)
   const subscriptionData = {
     plan,
     status: 'active' as const,
@@ -73,7 +75,7 @@ async function upsertFromCheckout(session: Stripe.Checkout.Session) {
 
 async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
   const status = subscriptionStatusFromEvent(sub)
-  const plan = sub.metadata?.plan || undefined
+  const plan = sub.metadata?.plan ? normalizePlan(sub.metadata.plan) : undefined
   // Stripe.Subscription expone current_period_end como número (timestamp)
   const periodEndRaw = (sub as unknown as Record<string, number>).current_period_end
   const currentPeriodEnd = periodEndRaw ? new Date(periodEndRaw * 1000) : undefined

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { effectivePlan, hasUnlimitedAccess } from '@/lib/plans'
 
 const FREE_AI_DAILY = 1 // Debe coincidir con FREE_AI_DAILY en public/pizarra-pro.html
 const AI_USE_LIMIT = { windowMs: 60_000, maxRequests: 20 }
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       })
     }
 
-    if (subscription.plan === 'pro' || subscription.plan === 'club') {
+    if (hasUnlimitedAccess(effectivePlan(subscription))) {
       return NextResponse.json({ canUse: true, aiUsedToday: subscription.aiUsedToday })
     }
 
@@ -51,12 +52,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ canUse: false, aiUsedToday: subscription.aiUsedToday })
     }
 
-    const updated = await db.suscripcion.update({
-      where: { usuarioId: session.user.id },
+    const updated = await db.suscripcion.updateMany({
+      where: { usuarioId: session.user.id, aiDate: today, aiUsedToday: { lt: FREE_AI_DAILY } },
       data: { aiUsedToday: { increment: 1 } },
     })
-
-    return NextResponse.json({ canUse: true, aiUsedToday: updated.aiUsedToday })
+    if (!updated.count) return NextResponse.json({ canUse: false, aiUsedToday: FREE_AI_DAILY })
+    return NextResponse.json({ canUse: true, aiUsedToday: subscription.aiUsedToday + 1 })
   } catch (e) {
     console.error('Error en POST /api/plan/ai-use', e)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

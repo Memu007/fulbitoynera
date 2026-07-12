@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+import type { AppPlan } from '@/lib/plans';
 
 const CHECKOUT_LIMIT = { windowMs: 60_000, maxRequests: 10 };
 
@@ -17,6 +18,7 @@ const PLAN_CONFIG: Record<string, {
   currency: string;
   interval: 'month' | 'year';
   trial: boolean;
+  appPlan: AppPlan;
 }> = {
   'pro-yearly': {
     name: 'Pizarra Pro Anual',
@@ -24,6 +26,7 @@ const PLAN_CONFIG: Record<string, {
     currency: 'ars',
     interval: 'year',
     trial: true,
+    appPlan:'pro',
   },
   'pro-monthly': {
     name: 'Pizarra Pro Mensual',
@@ -31,13 +34,15 @@ const PLAN_CONFIG: Record<string, {
     currency: 'ars',
     interval: 'month',
     trial: false,
+    appPlan:'pro',
   },
   'club': {
-    name: 'Pizarra Pro Club (5 entrenadores)',
+    name: 'Pizarra Pro Club — licencia institucional',
     amount: 19900, // USD 199 — B2B en USD
     currency: 'usd',
     interval: 'year',
     trial: false,
+    appPlan:'club',
   },
 };
 
@@ -61,18 +66,20 @@ export async function POST(req: NextRequest) {
     }
 
     const config = PLAN_CONFIG[plan];
+    const appPlan=config.appPlan;
     const stripeKey = process.env.STRIPE_SECRET_KEY;
 
     // MODO DEMO: sin credenciales de Stripe. Activamos el plan en DB directamente.
     if (!stripeKey || stripeKey === 'demo') {
       await db.suscripcion.upsert({
         where: { usuarioId: session.user.id },
-        update: { plan, status: 'active' },
-        create: { usuarioId: session.user.id, plan, status: 'active' },
+        update: { plan:appPlan, status: 'active' },
+        create: { usuarioId: session.user.id, plan:appPlan, status: 'active' },
       });
       return NextResponse.json({
         demo: true,
-        plan,
+        plan:appPlan,
+        billingPlan:plan,
         activated: true,
         message: 'Modo demo: plan activado. Configurá STRIPE_SECRET_KEY en .env para cobrar de verdad.',
         redirectUrl: null,
@@ -98,14 +105,15 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      ...(config.trial && { subscription_data: { trial_period_days: 7 } }),
-      success_url: `${baseUrl}/?upgrade=success&plan=${plan}`,
-      cancel_url: `${baseUrl}/?upgrade=cancel`,
-      metadata: { plan, userId: session.user.id },
+      subscription_data: { metadata:{plan:appPlan,billingPlan:plan,userId:session.user.id},...(config.trial?{trial_period_days:7}:{}) },
+      success_url: `${baseUrl}/pizarra-pro.html?upgrade=success&plan=${plan}`,
+      cancel_url: `${baseUrl}/pizarra-pro.html?upgrade=cancel`,
+      metadata: { plan:appPlan,billingPlan:plan,userId: session.user.id },
+      client_reference_id:session.user.id,
       customer_email: session.user.email || undefined,
     });
 
-    return NextResponse.json({ redirectUrl: checkoutSession.url, plan });
+    return NextResponse.json({ redirectUrl: checkoutSession.url, plan:appPlan,billingPlan:plan });
   } catch (error) {
     console.error('Checkout error:', error);
     return NextResponse.json(

@@ -18,7 +18,6 @@
  *   8. Footer (links + copyright + Hecho en Argentina 🇦🇷)
  */
 
-import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -41,13 +40,9 @@ import {
   Star,
   ShieldCheck,
 } from 'lucide-react'
+import { MockupCancha } from './componentes/mockup-cancha'
+import { Encabezado } from './componentes/encabezado'
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-  weight: ['400', '500', '600', '700', '800', '900'],
-})
 
 /* ─────────────────────────  PALETA  ───────────────────────── */
 const C = {
@@ -148,7 +143,7 @@ function Hero() {
           transition={{ duration: 0.6, delay: 0.15 }}
           className="relative"
         >
-          <FieldMockup />
+          <MockupCancha />
           {/* stats below mockup */}
           <div className="mt-4 grid grid-cols-3 gap-3">
             {[
@@ -691,10 +686,10 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div
-      className={`${inter.variable} flex min-h-screen flex-col`}
-      style={{ fontFamily: 'var(--font-inter), system-ui, -apple-system, sans-serif', background: C.bg, color: C.text }}
+      className="flex min-h-screen flex-col"
+      style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: C.bg, color: C.text }}
     >
-      <Header />
+      <Encabezado />
       <main className="flex-1">
         <Hero />
         <HowItWorks />

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { validatePlayInput } from '@/lib/play-validation'
 
 async function getJugada(id: string, userId: string) {
   return db.jugada.findFirst({
@@ -25,8 +26,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Jugada no encontrada' }, { status: 404 })
     }
 
-    const body = await req.json()
-    const { nombre, gameType, duration, data } = body
+    const validation = validatePlayInput(await req.json(), true)
+    if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 })
+    const { nombre, gameType, duration, data } = validation.value
 
     const updated = await db.jugada.update({
       where: { id },

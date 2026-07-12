@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import {FIELD_SPECS,fieldAspect} from './field-geometry'
+describe('canchas métricas',()=>{it('usa futsal 40x20',()=>{expect(FIELD_SPECS[5]).toMatchObject({length:40,width:20,goalWidth:3,penaltyMark:6,secondPenaltyMark:10});expect(fieldAspect(5)).toBe(.5)});it('usa preset F8 60x45',()=>{expect(FIELD_SPECS[8]).toMatchObject({length:60,width:45,goalArea:{depth:3,width:12},penaltyArea:{depth:9,width:24}})});it('usa F11 105x68',()=>{expect(FIELD_SPECS[11]).toMatchObject({length:105,width:68,goalWidth:7.32,penaltyMark:11})})})

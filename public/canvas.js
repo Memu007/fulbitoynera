@@ -5,13 +5,13 @@
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
   function L(a, b, c, d) { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); }
-  function C(x, y, r, f) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); f ? ctx.fill() : ctx.stroke(); }
+  function C(x, y, r, f) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); if(f)ctx.fill();else ctx.stroke(); }
 
   // Medidas reglamentarias en metros (largo x ancho)
   const FIELD_DIMS = {
-    5: { length: 40, width: 20, areaRadius: 6, penalty: 6, centerRadius: 0 },
-    8: { length: 60, width: 45, bigArea: { depth: 13, width: 32 }, smallArea: { depth: 4, width: 9 }, penalty: 10 },
-    11: { length: 105, width: 68, bigArea: { depth: 16.5, width: 40.3 }, smallArea: { depth: 5.5, width: 18.3 }, penalty: 11, centerRadius: 9.15 }
+    5: { length:40,width:20,areaRadius:6,penalty:6,secondPenalty:10,centerRadius:3,goalWidth:3 },
+    8: { length:60,width:45,bigArea:{depth:9,width:24},smallArea:{depth:3,width:12},penalty:9,centerRadius:6,arcRadius:6,goalWidth:6,offside:12 },
+    11:{ length:105,width:68,bigArea:{depth:16.5,width:40.32},smallArea:{depth:5.5,width:18.32},penalty:11,centerRadius:9.15,arcRadius:9.15,goalWidth:7.32 }
   };
 
   // Convierte metros de ancho del campo a píxeles X del canvas
@@ -39,8 +39,7 @@
     const m = W * 0.045;
     ctx.strokeRect(m, m, W - 2 * m, H - 2 * m);
     L(m, H / 2, W - m, H / 2);
-    // F5 no tiene círculo central; F8/F11 usan 9.15m
-    const centerRadius = S.game === 5 ? 0 : mW(9.15, dim);
+    const centerRadius = mW(dim.centerRadius,dim);
     if (centerRadius) {
       C(W / 2, H / 2, centerRadius, false);
     }
@@ -54,6 +53,7 @@
       // Punto de penalty (6m)
       const py = mL(dim.penalty, dim);
       C(W / 2, m + py, 3, true); C(W / 2, H - m - py, 3, true);
+      const py2=mL(dim.secondPenalty,dim);C(W/2,m+py2,2.5,true);C(W/2,H-m-py2,2.5,true);
     } else {
       // F8 / F11: áreas rectangulares
       const big = dim.bigArea, sm = dim.smallArea;
@@ -66,13 +66,13 @@
       ctx.fillStyle = 'rgba(242,244,243,.92)';
       C(W / 2, m + py, 3, true); C(W / 2, H - m - py, 3, true);
       // Arco semicircular fuera del área (radio 9.15m, centro en el penalty)
-      const arcR = mW(9.15, dim);
+      const arcR = mW(dim.arcRadius, dim);
       ctx.beginPath(); ctx.arc(W / 2, m + py, arcR, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
       ctx.beginPath(); ctx.arc(W / 2, H - m - py, arcR, 1.25 * Math.PI, 1.75 * Math.PI); ctx.stroke();
     }
 
     ctx.lineWidth = Math.max(3, W * 0.008);
-    const gw = (S.game === 5 ? mW(3, dim) : mW(dim.smallArea ? dim.smallArea.width * 0.8 : 7, dim));
+    const gw = mW(dim.goalWidth,dim);
     L(W / 2 - gw / 2, m, W / 2 + gw / 2, m);
     L(W / 2 - gw / 2, H - m, W / 2 + gw / 2, H - m);
   }
@@ -197,7 +197,7 @@
         for (const k of kf) {
           if (k.t > upTo) break;
           const x = k.x * W, y = k.y * H;
-          st ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), st = true);
+          if(st)ctx.lineTo(x,y);else{ctx.moveTo(x,y);st=true}
         }
         ctx.stroke(); ctx.setLineDash([]);
       }

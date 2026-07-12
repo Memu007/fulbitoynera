@@ -2,9 +2,9 @@
 (function(){
 
 // ---- Preview IA ----
-function previewComplete(){
+async function previewComplete(){
   if(!Object.keys(S.tracks).length || S.duration <= 0){ toast('Primero grabá una jugada'); return; }
-  if(!canUseAI()){
+  if(!await ensureCanUseAI()){
     closeSheets();
     toast('🧠 Usaste tu IA gratis de hoy — pasá a PRO para ilimitada');
     setTimeout(()=>openSheet('shPlans'),300);

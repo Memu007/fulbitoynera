@@ -65,7 +65,7 @@
     const aw = wrap.clientWidth - 18, ah = wrap.clientHeight - 12;
     // Medidas reglamentarias: ancho/largo
     // F5 (futsal): 40m x 20m, F8: 60m x 45m, F11: 105m x 68m
-    const ratio = S.game === 5 ? 0.50 : S.game === 8 ? 0.75 : 68 / 105;
+    const ratio = typeof fieldAspect==='function' ? fieldAspect(S.game) : (S.game===5?.5:S.game===8?.75:68/105);
     let h = ah, w = h * ratio;
     if (w > aw) { w = aw; h = w / ratio; }
     DPR = Math.min(window.devicePixelRatio || 1, 2);

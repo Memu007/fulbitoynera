@@ -1,0 +1,2 @@
+import { readdirSync,readFileSync } from 'node:fs';import { gzipSync } from 'node:zlib'
+const files=readdirSync('public').filter(f=>/\.(js|css|html)$/.test(f)&&!f.startsWith('gif.')&&f!=='ui-plays.js');let raw=0,gzip=0;for(const file of files){const data=readFileSync('public/'+file);raw+=data.length;gzip+=gzipSync(data).length}const kb=gzip/1024,limit=75;console.log(`Cliente principal: ${(raw/1024).toFixed(1)} KB raw / ${kb.toFixed(1)} KB gzip (${files.length} archivos)`);if(kb>limit){console.error(`Supera el presupuesto de ${limit} KB gzip`);process.exit(1)}

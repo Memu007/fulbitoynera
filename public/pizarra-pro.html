@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0E1416">
 <title>Pizarra Pro — Táctica de fútbol con IA</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="icon" type="image/png" href="/icon-512.png">
@@ -31,7 +28,7 @@
       <span class="un" id="userName">Usuario</span>
     </div>
     <button class="iconBtn" id="hLogin" title="Iniciar sesión">👤</button>
-    <button class="iconBtn" id="hHome" title="Inicio (Landing)">🏠</button>
+    <button class="iconBtn" id="hHome" title="Inicio rápido del DT">🏠</button>
     <button class="iconBtn" id="hUpgrade" title="Mejorar a Pro">👑</button>
     <button class="iconBtn" id="hMinutes" title="Control de minutos (inferiores)">⏱️</button>
     <button class="iconBtn" id="hTemplates" title="Plantillas de jugadas">🎴</button>
@@ -171,7 +168,7 @@
   <div class="body">
     <input type="text" id="playName" placeholder="Ej: Córner al primer palo" maxlength="40">
     <button class="bigBtn" id="saveOk">GUARDAR</button>
-    <p class="hint" style="margin-top:8px">Quedan guardadas en este dispositivo. Cerrá y abrí la app y siguen ahí.</p>
+    <p class="hint" style="margin-top:8px">Como invitado queda en este dispositivo; con cuenta se sincroniza en la nube.</p>
   </div>
 </div>
 
@@ -257,6 +254,21 @@
   <div class="body" id="minutesBody"></div>
 </div>
 
+<div class="sheet" id="shCoach">
+  <div class="grab"></div><h2>⚽ INICIO DEL DT</h2>
+  <div class="body">
+    <div class="coachIntro"><b>¿Qué necesitás hacer ahora?</b><small>Las acciones más usadas, a un toque.</small></div>
+    <div class="coachGrid">
+      <button class="coachAction primary" id="coachTactic"><span>✏️</span><b>Preparar jugada</b><small>Volver a la cancha y grabar</small></button>
+      <button class="coachAction" id="coachMinutes"><span>⏱️</span><b>Controlar partido</b><small>Minutos, titulares y cambios</small></button>
+      <button class="coachAction" id="coachTemplates"><span>🎴</span><b>Usar plantilla</b><small>Arrancar desde una jugada lista</small></button>
+      <button class="coachAction" id="coachPlays"><span>📂</span><b>Mis jugadas</b><small id="coachPlayCount">Abrir guardadas</small></button>
+    </div>
+    <button class="coachWide" id="coachPresent">🖥️ Mostrar esta jugada a los chicos</button>
+    <div class="coachSecondary"><button id="coachExport">🎬 Exportar GIF</button><button id="coachHelp">❔ Ayuda rápida</button><button id="coachPlan">👑 Mi plan</button></div>
+  </div>
+</div>
+
 <div class="sheet" id="shTemplates">
   <div class="grab"></div><h2>🎴 PLANTILLAS DE JUGADAS</h2>
   <div class="body" id="templatesList">
@@ -276,13 +288,13 @@
         <small>Nombre</small>
         <input type="text" id="authName" placeholder="Tu nombre" maxlength="30" autocomplete="name">
       </div>
-      <div class="field">
+      <div class="field" id="emailField">
         <small>Email</small>
         <input type="email" id="authEmail" placeholder="tu@email.com" required autocomplete="email">
       </div>
       <div id="passField" class="field">
         <small>Contraseña</small>
-        <input type="password" id="authPass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="current-password">
+        <input type="password" id="authPass" placeholder="Mínimo 8 caracteres" required minlength="8" maxlength="128" autocomplete="current-password">
       </div>
       <button type="submit" id="authSubmit">ENTRAR</button>
     </form>
@@ -307,16 +319,19 @@
 <div id="splash">
   <div class="splash-card">
     <div class="splash-logo">⚽</div>
-    <h2>Pizarra <em>Pro</em></h2>
-    <p class="splash-sub">Táctica de fútbol con IA. Dibujá, animá y dejá que la IA complete la jugada.</p>
-    <button class="splash-btn primary" id="splashGuest">Probar sin registro</button>
-    <button class="splash-btn" id="splashRegister">Registrarse</button>
+    <h2>¿Qué vas a hacer hoy?</h2>
+    <p class="splash-sub">Entrá directo a la tarea. No necesitás registrarte para probar.</p>
+    <button class="splash-btn primary" id="splashTactic">✏️ Preparar una jugada</button>
+    <button class="splash-btn" id="splashMatch">⏱️ Controlar un partido</button>
+    <button class="splash-btn" id="splashPlays">📂 Abrir mis jugadas</button>
+    <button class="splash-link" id="splashRegister">Crear cuenta para guardar y sincronizar</button>
   </div>
 </div>
 
 <script src="/gif.js"></script>
 <script src="/templates.js"></script>
 <script src="/tactics.js"></script>
+<script src="/field-geometry.js"></script>
 <script src="/state.js"></script>
 <script src="/canvas.js"></script>
 <script src="/playback.js"></script>
@@ -328,7 +343,6 @@
 <script src="/jugadas.js"></script>
 <script src="/preview-ia.js"></script>
 <script src="/compartir.js"></script>
-<script src="/ui-plays.js"></script>
 <script src="/ui-auth.js"></script>
 <script src="/input-canvas.js"></script>
 <script src="/ui-mode.js"></script>
@@ -343,17 +357,25 @@
 ============================================================ */
 
 // ---------------- Init ----------------
-fetchSaved();
-fetchRoster();
-fetchSession().then(()=>initSplash());
-fetchPlan();
 initState();
 setMode('idle');
 renderSpeeds();
 updatePlanBadge();
 refreshUserUI();
-// Si hay una jugada compartida en el URL (?play=...), cargarla y reproducirla
-loadSharedPlay();
+async function bootstrapApp(){
+  const params=new URLSearchParams(location.search);
+  await fetchSession();if(!isGuest())await fetchPlan();await fetchSaved();await fetchRoster();
+  const entry=params.has('share')||params.has('play')||params.has('reset')||params.has('action');
+  if(entry)document.getElementById('splash').style.display='none';else initSplash();
+  if(!entry)restoreDraft();
+  await loadSharedPlay();
+  if(params.get('reset'))openAuth('reset');
+  if(params.get('action')==='plays')openSheet('shPlays');
+  if(params.get('action')==='minutes'){openSheet('shMinutes');renderMinutes()}
+  if(params.get('upgrade')==='success'){await fetchPlan();toast('✨ Pago confirmado — plan '+S.plan.toUpperCase()+' activo')}
+  else if(params.get('upgrade')==='cancel')toast('Pago cancelado — no se realizó ningún cargo');
+}
+bootstrapApp();
 
 // ---- PWA: Service Worker + Install prompt ----
 if('serviceWorker' in navigator){

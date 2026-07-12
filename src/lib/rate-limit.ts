@@ -21,6 +21,7 @@ type Entry = {
 
 const store = new Map<string, Entry>()
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000
+let lastCleanup = Date.now()
 
 function cleanup() {
   const now = Date.now()
@@ -31,10 +32,9 @@ function cleanup() {
   }
 }
 
-setInterval(cleanup, CLEANUP_INTERVAL_MS)
-
 export function checkRateLimit(key: string, config: RateLimitConfig): RateLimitResult {
   const now = Date.now()
+  if (now - lastCleanup >= CLEANUP_INTERVAL_MS) { cleanup(); lastCleanup = now }
   const entry = store.get(key)
 
   if (!entry || now > entry.resetAt) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { effectivePlan } from '@/lib/plans'
 
 export async function GET() {
   try {
@@ -15,7 +16,9 @@ export async function GET() {
     })
 
     return NextResponse.json({
-      plan: subscription?.plan || 'free',
+      plan: effectivePlan(subscription),
+      status: subscription?.status || null,
+      currentPeriodEnd: subscription?.currentPeriodEnd || null,
       aiUsedToday: subscription?.aiUsedToday || 0,
       aiDate: subscription?.aiDate || '',
     })

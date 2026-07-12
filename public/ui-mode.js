@@ -29,6 +29,7 @@
     document.getElementById('rAI').disabled=pl&&!pv||rec;
     document.getElementById('hExport').disabled=!has||rec||pl;
     document.getElementById('hShare').disabled=!has||rec;
+    if(typeof scheduleDraftSave==='function')scheduleDraftSave();
   };
 
   function selCol(id){document.querySelectorAll('.dBtn.col').forEach(b=>b.classList.toggle('on',b.id===id))}
@@ -77,8 +78,8 @@
     toast(S.drawMode?'✏️ Dibujá flechas sobre la cancha':'Modo mover jugadores');
   };
   document.getElementById('dExit').onclick=()=>document.getElementById('rDraw').click();
-  document.getElementById('dUndo').onclick=()=>{S.drawings.pop();draw()};
-  document.getElementById('dClear').onclick=()=>{S.drawings=[];draw();toast('Dibujos borrados')};
+  document.getElementById('dUndo').onclick=()=>{S.drawings.pop();draw();scheduleDraftSave()};
+  document.getElementById('dClear').onclick=()=>{S.drawings=[];draw();scheduleDraftSave();toast('Dibujos borrados')};
   document.getElementById('dWhite').onclick=()=>{S.drawColor='#f3f6f1';selCol('dWhite')};
   document.getElementById('dAmber').onclick=()=>{S.drawColor='#ffb020';selCol('dAmber')};
   document.getElementById('rForm').onclick=()=>openSheet('shForm');
@@ -91,7 +92,7 @@
   document.getElementById('hPlays').onclick=()=>openSheet('shPlays');
   document.getElementById('hHelp').onclick=()=>startTour();
   document.getElementById('hUpgrade').onclick=()=>openSheet('shPlans');
-  document.getElementById('hHome').onclick=()=>{try{top.location.href='/landing';}catch(e){location.href='/landing';}};
+  document.getElementById('hHome').onclick=()=>openCoachHome();
   document.getElementById('chipSpeed').onclick=()=>openSheet('shSpeed');
   document.getElementById('chipLoop').onclick=()=>{
     S.loop=!S.loop;

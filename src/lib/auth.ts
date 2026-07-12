@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from './db'
+import { effectivePlan } from './plans'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -31,7 +32,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.nombre,
-          plan: subscription?.plan ?? 'free',
+          plan: effectivePlan(subscription),
         }
       },
     }),
@@ -44,6 +45,10 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.plan = user.plan
+      }
+      if (token.id) {
+        const subscription = await db.suscripcion.findUnique({ where: { usuarioId: token.id as string } })
+        token.plan = effectivePlan(subscription)
       }
       return token
     },

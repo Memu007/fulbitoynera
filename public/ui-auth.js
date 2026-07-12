@@ -7,7 +7,7 @@
 const AUTH_BASE='/api/auth';
 S.user=null;
 function isGuest(){return !S.user}
-let _authMode='login'; // login | register | forgot
+let _authMode='login'; // login | register | forgot | reset
 function initials(name){return(name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?'}
 
 async function fetchSession(){
@@ -20,10 +20,12 @@ async function fetchSession(){
       if(S.user.plan)S.plan=S.user.plan;
     } else {
       S.user=null;
+      S.plan='free';if(typeof loadGuestAI==='function')loadGuestAI();
     }
   }catch(e){
     console.error('Error cargando sesión',e);
     S.user=null;
+    S.plan='free';if(typeof loadGuestAI==='function')loadGuestAI();
   }
   refreshUserUI();
   updatePlanBadge();
@@ -47,12 +49,14 @@ async function login(email,password){
   const data=await res.json();
   if(data.error){throw new Error(data.error==='CredentialsSignin'?'Email o contraseña incorrectos':data.error)}
   await fetchSession();
+  await fetchPlan();
   await fetchSaved();
   await fetchRoster();
   return S.user;
 }
 
 async function register(name,email,password){
+  const guestPlays=JSON.parse(JSON.stringify(S.saved||[])),guestRoster=JSON.parse(JSON.stringify(S.roster||[])),guestMatch=JSON.parse(JSON.stringify(S.match||{running:false,startMs:0,elapsed:0}));
   const res=await fetch(`${AUTH_BASE}/register`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -61,7 +65,10 @@ async function register(name,email,password){
   });
   const data=await res.json();
   if(!res.ok){throw new Error(data.error||'Error al crear cuenta')}
-  return login(email,password);
+  const user=await login(email,password),failed=[];
+  for(const play of guestPlays.slice(0,3)){try{const cloud=await fetch('/api/jugadas',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({nombre:play.name||'Jugada',gameType:'F'+(play.game||5),duration:play.duration||0,data:JSON.stringify(play)})});if(!cloud.ok)failed.push(play)}catch(e){failed.push(play)}}
+  if(guestRoster.length){try{await fetch('/api/equipo',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({roster:JSON.stringify({roster:guestRoster}),match:JSON.stringify({...guestMatch,running:false,startMs:0})})})}catch(e){}}
+  await fetchSaved();await fetchRoster();return user;
 }
 
 async function logout(){
@@ -77,6 +84,7 @@ async function logout(){
     console.error('Error cerrando sesión',e);
   }
   S.user=null;
+  S.plan='free';loadGuestAI();await fetchSaved();await fetchRoster();
   refreshUserUI();
   updatePlanBadge();
   toast('Sesión cerrada');
@@ -88,13 +96,16 @@ function openAuth(mode){
   const sub=document.getElementById('authSub');
   const submit=document.getElementById('authSubmit');
   const nameField=document.getElementById('nameField');
+  const emailField=document.getElementById('emailField');
   const passField=document.getElementById('passField');
+  const emailInput=document.getElementById('authEmail'),passInput=document.getElementById('authPass');
   const switchP=document.getElementById('authSwitch');
   const links=document.getElementById('authLinks');
   const err=document.getElementById('authError');
   const suc=document.getElementById('authSuccess');
   err.classList.remove('show');suc.classList.remove('show');
   document.getElementById('authForm').reset();
+  emailField.style.display='block';emailInput.disabled=false;passField.style.display='block';passInput.disabled=false;passInput.autocomplete=_authMode==='login'?'current-password':'new-password';
   if(_authMode==='login'){
     title.textContent='Iniciar sesión';
     sub.textContent='Entrá para guardar tus jugadas en la nube y sincronizar entre dispositivos.';
@@ -113,12 +124,15 @@ function openAuth(mode){
     links.style.display='none';
   } else if(_authMode==='forgot'){
     title.textContent='Recuperar contraseña';
-    sub.textContent='Te enviamos un link a tu email para restablecerla. (Próximamente)';
+    sub.textContent='Te enviamos un link a tu email para restablecerla.';
     submit.textContent='ENVIAR LINK';
     nameField.style.display='none';
     passField.style.display='none';
+    passInput.disabled=true;
     switchP.innerHTML='¿Ya te acordás? <a id="authSwitchLink">Volver a iniciar sesión</a>';
     links.style.display='none';
+  } else if(_authMode==='reset'){
+    title.textContent='Nueva contraseña';sub.textContent='Elegí una contraseña nueva de al menos 8 caracteres.';submit.textContent='GUARDAR CONTRASEÑA';nameField.style.display='none';emailField.style.display='none';emailInput.disabled=true;switchP.innerHTML='¿No pediste este cambio? <a id="authSwitchLink">Volver a iniciar sesión</a>';links.style.display='none';
   }
   document.getElementById('authModal').classList.add('show');
   const sl=document.getElementById('authSwitchLink');
@@ -150,14 +164,17 @@ document.getElementById('authForm').onsubmit=async(e)=>{
   document.getElementById('authError').classList.remove('show');
   document.getElementById('authSuccess').classList.remove('show');
   if(_authMode==='forgot'){
-    authSuccess('📧 Recuperación de contraseña próximamente.');
-    setTimeout(()=>{closeAuth();toast('📧 Recuperación próximamente')},1800);
+    try{const res=await fetch(`${AUTH_BASE}/forgot-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'No pudimos enviar el email');authSuccess('📧 '+data.message);if(data.devResetUrl)setTimeout(()=>location.href=data.devResetUrl,900)}catch(err){authError(err.message)}
     return;
+  }
+  if(_authMode==='reset'){
+    if(pass.length<8){authError('La contraseña tiene que tener al menos 8 caracteres');return}
+    try{const token=new URLSearchParams(location.search).get('reset'),res=await fetch(`${AUTH_BASE}/reset-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,password:pass})}),data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'No pudimos cambiar la contraseña');authSuccess('✓ Contraseña actualizada');history.replaceState(null,'','/pizarra-pro.html');setTimeout(()=>openAuth('login'),1400)}catch(err){authError(err.message)}return;
   }
   try{
     if(_authMode==='register'){
       if(name.length<2){authError('Decinos tu nombre (mínimo 2 caracteres)');return}
-      if(pass.length<6){authError('La contraseña tiene que tener al menos 6 caracteres');return}
+      if(pass.length<8){authError('La contraseña tiene que tener al menos 8 caracteres');return}
       await register(name,email,pass);
       authSuccess('✓ Cuenta creada. ¡Bienvenido!');
       setTimeout(()=>{closeAuth();refreshUserUI();toast('✓ Sesión iniciada — bienvenido')},1200);

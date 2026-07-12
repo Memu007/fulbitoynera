@@ -5,7 +5,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0E1416",
   "theme_color": "#0E1416",
   "categories": ["sports", "productivity", "education"],
@@ -45,6 +45,13 @@
       "description": "Ver jugadas guardadas",
       "url": "/pizarra-pro.html?action=plays",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name":"Controlar partido",
+      "short_name":"Minutos",
+      "description":"Abrir el control de minutos y cambios",
+      "url":"/pizarra-pro.html?action=minutes",
+      "icons":[{"src":"/icon-192.png","sizes":"192x192"}]
     }
   ]
 }

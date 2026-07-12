@@ -55,7 +55,7 @@
     clearLongPress();_lpStart=null;
     if(S.drawMode&&S.curStroke){
       if(S.curStroke.pts.length>2)S.drawings.push(S.curStroke);
-      S.curStroke=null;draw();return;
+      S.curStroke=null;draw();if(typeof scheduleDraftSave==='function')scheduleDraftSave();return;
     }
     const d=S.dragging;
     if(d){
@@ -71,7 +71,7 @@
         if(S.carrier===d.id)addKey(ballObj());
       }
     }
-    S.dragging=null;S.curFx=null;draw();
+    S.dragging=null;S.curFx=null;draw();if(typeof scheduleDraftSave==='function')scheduleDraftSave();
   }
 
   cv.addEventListener('pointerdown',e=>{

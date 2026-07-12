@@ -8,13 +8,10 @@ var TOUR_KEY='pizarraPro.tourSeen';
 
 // ---- Pasos del tour ----
 var STEPS=[
-  {sel:'#hMinutes',title:'Control de minutos',text:'Para inferiores: controlá los minutos jugados de cada jugador.'},
-  {sel:'#gameSeg',title:'Fútbol 5 / 8 / 11',text:'Cambiá la modalidad según tu categoría.'},
-  {sel:'#fieldWrap',title:'Cancha',text:'Esta es tu pizarra. Tocá un jugador para moverlo, doble-tap para darle la pelota.'},
-  {sel:'#rAI',title:'IA',text:'La IA completa la jugada por vos. Mueve a los importantes y dejá que el resto se mueva solo.'},
-  {sel:'#bRec',title:'Grabar',text:'Tocá para empezar a grabar. Mové la pelota y tus jugadores clave.'},
-  {sel:'#bPlay',title:'Reproducir',text:'Reproducí la jugada a distintas velocidades.'},
-  {sel:'#bSave',title:'Guardar',text:'Guardá tus jugadas para volver a verlas. Necesitás cuenta.'}
+  {sel:'#gameSeg',title:'Elegí la modalidad',text:'Fútbol 5, 8 u 11. La cancha y las formaciones se ajustan solas.'},
+  {sel:'#fieldWrap',title:'Mové lo importante',text:'Arrastrá jugadores y pelota. Mantené presionado un jugador para poner nombre y número.'},
+  {sel:'#bRec',title:'Grabá',text:'Tocá Grabar y mové sólo a los protagonistas. Después podés reproducir y corregir.'},
+  {sel:'#hHome',title:'Todo a un toque',text:'Desde Inicio abrís partido, plantillas, jugadas guardadas y presentación.'}
 ];
 
 // ---- Splash ----
@@ -32,19 +29,38 @@ function initSplash(){
   }
   // Mostrar splash
   el.style.display='flex';
-  document.getElementById('splashGuest').onclick=function(){
+  document.getElementById('splashTactic').onclick=function(){
     localStorage.setItem(SPLASH_KEY,'1');
     closeSplash();
     if(!localStorage.getItem(TOUR_KEY)){
       setTimeout(startTour,400);
     }
   };
+  document.getElementById('splashMatch').onclick=function(){localStorage.setItem(SPLASH_KEY,'1');closeSplash();setTimeout(function(){openSheet('shMinutes');renderMinutes();},420)};
+  document.getElementById('splashPlays').onclick=function(){localStorage.setItem(SPLASH_KEY,'1');closeSplash();setTimeout(function(){openSheet('shPlays');},420)};
   document.getElementById('splashRegister').onclick=function(){
     localStorage.setItem(SPLASH_KEY,'1');
     closeSplash();
     if(typeof openAuth==='function')openAuth('register');
   };
 }
+
+function openCoachHome(){
+  document.getElementById('coachPlayCount').textContent=(S.saved&&S.saved.length?S.saved.length+' guardadas':'Abrir guardadas');
+  document.querySelector('#coachTactic b').textContent=hasPlay()?'Continuar jugada':'Preparar jugada';
+  document.querySelector('#coachTactic small').textContent=hasPlay()?'Seguir donde la dejaste':'Volver a la cancha y grabar';
+  document.getElementById('coachPresent').disabled=!hasPlay();
+  document.getElementById('coachExport').disabled=!hasPlay();
+  openSheet('shCoach');
+}
+document.getElementById('coachTactic').onclick=function(){closeSheets()};
+document.getElementById('coachMinutes').onclick=function(){openSheet('shMinutes');renderMinutes()};
+document.getElementById('coachTemplates').onclick=function(){openSheet('shTemplates');renderTemplates()};
+document.getElementById('coachPlays').onclick=function(){openSheet('shPlays')};
+document.getElementById('coachPresent').onclick=function(){closeSheets();enterPresent()};
+document.getElementById('coachExport').onclick=function(){closeSheets();document.getElementById('hExport').click()};
+document.getElementById('coachHelp').onclick=function(){closeSheets();startTour()};
+document.getElementById('coachPlan').onclick=function(){openSheet('shPlans')};
 
 function closeSplash(){
   var el=document.getElementById('splash');
@@ -211,5 +227,6 @@ function endTour(){
 // ---- Expose ----
 window.initSplash=initSplash;
 window.startTour=startTour;
+window.openCoachHome=openCoachHome;
 
 })();

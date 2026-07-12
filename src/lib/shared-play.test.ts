@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import {validateSharedPlayData} from './shared-play'
+describe('jugadas compartidas',()=>{it('acepta datos válidos',()=>{const d=JSON.stringify({g:5,d:1200,t:{ball:[]}});expect(validateSharedPlayData(d)).toBe(d)});it('rechaza modalidad o tracks inválidas',()=>{expect(validateSharedPlayData(JSON.stringify({g:7,d:1,t:{}}))).toBeNull();expect(validateSharedPlayData(JSON.stringify({g:5,d:1,t:[]}))).toBeNull()})})

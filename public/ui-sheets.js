@@ -153,7 +153,7 @@ document.getElementById('plOk').onclick=()=>{
     }
   }
   _plPhotoTemp=null;
-  S.editing=null;closeSheets();draw();
+  S.editing=null;closeSheets();draw();if(typeof scheduleDraftSave==='function')scheduleDraftSave();
 };
 
 // toast

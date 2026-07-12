@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import {effectivePlan,normalizePlan,hasUnlimitedAccess} from './plans'
+describe('planes',()=>{it('normaliza variantes comerciales',()=>{expect(normalizePlan('pro-yearly')).toBe('pro');expect(normalizePlan('club')).toBe('club')});it('bloquea deuda',()=>{expect(effectivePlan({plan:'pro',status:'past_due'})).toBe('free')});it('da ilimitado a Pro y Club',()=>{expect(hasUnlimitedAccess('pro')).toBe(true);expect(hasUnlimitedAccess('club')).toBe(true)})})
